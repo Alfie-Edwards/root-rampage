@@ -26,4 +26,19 @@ function shallowcopy(tab)
         res[k] = v
     end
     return res
+
+function remove_value(list, value_to_remove)
+    local i = index_of(list, value_to_remove)
+    if i ~= nil then
+        table.remove(list, i)
+    end
+end
+
+function get_key(tab, value)
+    for k,v in pairs(tab) do
+        if v == value then
+            return k
+        end
+    end
+    return nil
 end

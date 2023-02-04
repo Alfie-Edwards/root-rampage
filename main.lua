@@ -2,9 +2,13 @@ require "pixelcanvas"
 require "level"
 require "player"
 require "time"
+require "roots.roots"
+require "roots.node"
 
 
 function love.load()
+    roots = Roots.new()
+    Node.new(30, 30, nil, true, roots)
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
     love.graphics.setLineStyle("rough")
@@ -15,7 +19,17 @@ function love.load()
     player = Player.new()
 end
 
+function love.mousepressed(x, y, button, istouch, presses)
+    canvas_x, canvas_y = canvas:screen_to_canvas(x, y)
+    roots:mousepressed(canvas_x, canvas_y, button)
+end
+
+function love.mousereleased(x, y, button, istouch, presses)
+    roots:mousereleased(x, y, button)
+end
+
 function love.update(dt)
+    roots:update(dt)
     t = t + dt
 
     player:input()
@@ -31,6 +45,7 @@ function love.draw()
 
     level:draw()
     player:draw()
+    roots:draw()
 
     canvas:draw()
 end

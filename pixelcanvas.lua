@@ -46,6 +46,13 @@ function PixelCanvas:position()
     return offset_x, offset_y, scale
 end
 
+function PixelCanvas:screen_to_canvas(screen_x, screen_y)
+    local x_offset, y_offset, scale = self:position()
+    local canvas_x = (screen_x - x_offset) / scale
+    local canvas_y = (screen_y - y_offset) / scale
+    return canvas_x, canvas_y
+end
+
 function PixelCanvas:draw()
     love.graphics.push()
     love.graphics.origin()
