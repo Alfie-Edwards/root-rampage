@@ -29,6 +29,12 @@ function TreeSpot:create_node(parent)
     return self.node
 end
 
+function TreeSpot:update(dt)
+    if self.node ~= nil and self.node.is_dead then
+        self.node = nil
+    end
+end
+
 function TreeSpot:draw()
     love.graphics.setColor({0.2, 0.4, 0, 0.2})
     love.graphics.circle("fill", self.x, self.y, TreeSpot.RADIUS)

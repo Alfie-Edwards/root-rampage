@@ -31,8 +31,8 @@ function Branch:trim_start()
         self.base = self.base.children[self.child_index]
         self.child_index = 1
     end
-    table.remove(self.points, 0)
-    table.remove(self.points, 0)
+    table.remove(self.points, 1)
+    table.remove(self.points, 1)
     self.length = self.length - 1
 end
 
@@ -68,8 +68,11 @@ function Branch:update_tip()
     end
 end
 
-function Branch:draw()
+function Branch:update(dt)
     self:update_tip()
+end
+
+function Branch:draw()
     love.graphics.setLineWidth(5)
     love.graphics.setLineStyle("smooth")
     love.graphics.setColor({0.4, 0.2, 0, 1})

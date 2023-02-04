@@ -161,6 +161,12 @@ function Roots:update(dt)
             end
         end
     end
+    for _, branch in ipairs(self.branches) do
+        branch:update(dt)
+    end
+    for _, tree_spot in ipairs(self.tree_spots) do
+        tree_spot:update(dt)
+    end
 end
 
 function Roots:draw()
