@@ -68,25 +68,27 @@ end
 function Player:get_movement()
     local most_recent = { dir = Direction.UP, when = never }
 
-    if self.started_holding.LEFT > most_recent.when then
-        most_recent = { dir = Direction.LEFT, when = self.started_holding.LEFT }
-    end
-
-    if self.started_holding.RIGHT > most_recent.when then
-        most_recent = { dir = Direction.RIGHT, when = self.started_holding.RIGHT }
-    end
-
-    if self.started_holding.UP > most_recent.when then
-        most_recent = { dir = Direction.UP, when = self.started_holding.UP }
-    end
-
-    if self.started_holding.DOWN > most_recent.when then
-        most_recent = { dir = Direction.DOWN, when = self.started_holding.DOWN }
+    for direction, time in pairs(self.started_holding) do
+        if time > most_recent.when then
+            most_recent = { dir = Direction[direction], when = time }
+        end
     end
 
     most_recent.speed = self.max_speed
 
     return most_recent
+end
+
+function Player:velocity()
+    if self.dir == Direction.UP then
+        return { x = 0, y = -self.speed }
+    elseif self.dir == Direction.DOWN then
+        return { x = 0, y = self.speed }
+    elseif self.dir == Direction.LEFT then
+        return { x = -self.speed, y = 0 }
+    elseif self.dir == Direction.RIGHT then
+        return { x = self.speed, y = 0 }
+    end
 end
 
 function Player:move(dt)
@@ -95,20 +97,13 @@ function Player:move(dt)
         return
     end
 
-    self.speed = movement.speed
+    self.speed = movement.speed * dt
     self.dir = movement.dir
 
-    local real_speed = self.speed * dt
+    local vel = self:velocity()
+    vel = level:collide(self.pos, vel)
 
-    if self.dir == Direction.UP then
-        self.pos.y = self.pos.y - real_speed
-    elseif self.dir == Direction.DOWN then
-        self.pos.y = self.pos.y + real_speed
-    elseif self.dir == Direction.LEFT then
-        self.pos.x = self.pos.x - real_speed
-    elseif self.dir == Direction.RIGHT then
-        self.pos.x = self.pos.x + real_speed
-    end
+    self.pos = moved(self.pos, vel)
 end
 
 function Player:orientation()
@@ -121,7 +116,6 @@ function Player:orientation()
     elseif self.dir == Direction.RIGHT then
         return math.pi * 0.5
     end
-
 end
 
 function Player:draw()

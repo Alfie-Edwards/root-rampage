@@ -20,6 +20,10 @@ function love.update(dt)
 
     player:input()
     player:move(dt)
+
+    if level:solid(player.pos) then
+        print(t.."  in")
+    end
 end
 
 function love.draw()
