@@ -91,6 +91,43 @@ function Player:velocity()
     end
 end
 
+function Player:collide()
+    local vel = self:velocity()
+    local next_pos = moved(self.pos, vel)
+
+    if not level:solid(next_pos) then
+        return vel
+    end
+
+    local old_cell_x, old_cell_y = level:cell(self.pos.x, self.pos.y)
+    local new_cell_x, new_cell_y = level:cell(next_pos.x, next_pos.y)
+
+    local intersection_x, intersection_y = level:position_in_cell(next_pos.x, next_pos.y)
+    local cs = level:cell_size()
+
+    local adjusted_vel = shallowcopy(vel)
+
+    if old_cell_x ~= new_cell_x then
+        if vel.x > 0 then
+            -- left edge
+            adjusted_vel.x = adjusted_vel.x - (intersection_x + 1)
+        else
+            -- right edge
+            adjusted_vel.x = adjusted_vel.x + cs - intersection_x
+        end
+    else
+        if vel.y > 0 then
+            -- top edge
+            adjusted_vel.y = adjusted_vel.y - (intersection_y + 1)
+        else
+            -- bottom edge
+            adjusted_vel.y = adjusted_vel.y + cs - intersection_y
+        end
+    end
+
+    return adjusted_vel
+end
+
 function Player:move(dt)
     local movement = self:get_movement()
     if movement.when == never then
@@ -100,7 +137,7 @@ function Player:move(dt)
     self.speed = movement.speed * dt
     self.dir = movement.dir
 
-    local vel = level:collide(self.pos, self:velocity())
+    local vel = self:collide(self.pos, self:velocity())
 
     self.pos = moved(self.pos, vel)
 end
