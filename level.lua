@@ -53,42 +53,6 @@ function Level:solid(pos)
     return self.geom:getPixel(cell_x, cell_y) == 0
 end
 
-function Level:collide(pos, vel)
-    local next_pos = moved(pos, vel)
-
-    if not self:solid(next_pos) then
-        return vel
-    end
-
-    local old_cell_x, old_cell_y = self:cell(pos.x, pos.y)
-    local new_cell_x, new_cell_y = self:cell(next_pos.x, next_pos.y)
-
-    local intersection_x, intersection_y = self:position_in_cell(next_pos.x, next_pos.y)
-    local cs = self:cell_size()
-
-    local adjusted_vel = shallowcopy(vel)
-
-    if old_cell_x ~= new_cell_x then
-        if vel.x > 0 then
-            -- left edge
-            adjusted_vel.x = adjusted_vel.x - (intersection_x + 1)
-        else
-            -- right edge
-            adjusted_vel.x = adjusted_vel.x + cs - intersection_x
-        end
-    else
-        if vel.y > 0 then
-            -- top edge
-            adjusted_vel.y = adjusted_vel.y - (intersection_y + 1)
-        else
-            -- bottom edge
-            adjusted_vel.y = adjusted_vel.y + cs - intersection_y
-        end
-    end
-
-    return adjusted_vel
-end
-
 function Level:draw_geom(opacity)
     if opacity == nil then
         opacity = 1
