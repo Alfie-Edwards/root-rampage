@@ -71,18 +71,18 @@ function Level:collide(pos, vel)
     if old_cell_x ~= new_cell_x then
         if vel.x > 0 then
             -- left edge
-            adjusted_vel.x = adjusted_vel.x - intersection_x
+            adjusted_vel.x = adjusted_vel.x - (intersection_x + 1)
         else
             -- right edge
-            adjusted_vel.x = adjusted_vel.x + (cs - intersection_x)
+            adjusted_vel.x = adjusted_vel.x + cs - intersection_x
         end
     else
         if vel.y > 0 then
             -- top edge
-            adjusted_vel.y = adjusted_vel.y - intersection_y
+            adjusted_vel.y = adjusted_vel.y - (intersection_y + 1)
         else
             -- bottom edge
-            adjusted_vel.y = adjusted_vel.y + (cs - intersection_y)
+            adjusted_vel.y = adjusted_vel.y + cs - intersection_y
         end
     end
 
