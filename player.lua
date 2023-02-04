@@ -100,8 +100,7 @@ function Player:move(dt)
     self.speed = movement.speed * dt
     self.dir = movement.dir
 
-    local vel = self:velocity()
-    vel = level:collide(self.pos, vel)
+    local vel = level:collide(self.pos, self:velocity())
 
     self.pos = moved(self.pos, vel)
 end
