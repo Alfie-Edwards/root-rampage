@@ -53,6 +53,13 @@ function Level:solid(pos)
     return self.geom:getPixel(cell_x, cell_y) == 0
 end
 
+function Level:is_grow_zone(pos)
+    if self:out_of_bounds(pos.x, pos.y) then
+        return false
+    end
+    return pos.x > 200 and pos.y > 200 and pos.x < 300 and pos.y < 300
+end
+
 function Level:draw_geom(opacity)
     if opacity == nil then
         opacity = 1

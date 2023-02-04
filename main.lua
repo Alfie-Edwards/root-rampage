@@ -4,11 +4,17 @@ require "player"
 require "time"
 require "roots.roots"
 require "roots.node"
+require "roots.tree_spot"
 
 
 function love.load()
     roots = Roots.new()
-    Node.new(100, 100, nil, true, roots)
+    local starting_tree_spot = TreeSpot.new(200, 200)
+    roots:add_tree_spot(starting_tree_spot)
+    roots:add_tree_spot(TreeSpot.new(300, 230))
+    roots:add_tree_spot(TreeSpot.new(500, 200))
+    starting_tree_spot:create_node()
+
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
     love.graphics.setLineStyle("rough")
