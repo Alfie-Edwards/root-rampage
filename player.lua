@@ -7,7 +7,8 @@ Direction = { LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3 }
 Player = {
     -- config
     img = love.graphics.newImage("assets/player.png"),
-    max_speed = 350,
+    size = 24,
+    max_speed = 200,
 
     -- main state
     pos = { x = 0, y = 0 },
@@ -132,6 +133,9 @@ function Player:draw()
     local ox = player.img:getWidth() / 2
     local oy = player.img:getHeight() / 2
 
-    love.graphics.draw(player.img, x, y, orientation, 1, 1, ox, oy)
+    local sx = self.size / self.img:getWidth()
+    local sy = self.size / self.img:getHeight()
+
+    love.graphics.draw(player.img, x, y, orientation, sx, sy, ox, oy)
     -- love.graphics.circle("fill", player.pos.x, player.pos.y, 10)
 end
