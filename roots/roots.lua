@@ -173,7 +173,9 @@ function Roots:draw()
     if self.selected == nil then
         canvas_x, canvas_y = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
         local closest = self:get_closest_node(canvas_x, canvas_y)
-        love.graphics.setColor({0.8, 0.8, 0, 0.5})
-        love.graphics.circle("fill", closest.x, closest.y, 6)
+        if closest ~= nil then
+            love.graphics.setColor({0.8, 0.8, 0, 0.5})
+            love.graphics.circle("fill", closest.x, closest.y, 6)
+        end
     end
 end
