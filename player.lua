@@ -63,7 +63,13 @@ function Player:attack()
         self.time_of_prev_attack = t
     end
 
-    -- TODO #finish: do the attack
+    local atk_centre = self:attack_centre()
+    local nodes_to_cut = roots:get_within_radius(atk_centre.x, atk_centre.y,
+                                                 self.attack_radius)
+
+    for _,node in ipairs(nodes_to_cut) do
+        node:cut()
+    end
 end
 
 function Player:input()
@@ -206,12 +212,11 @@ function Player:draw()
     if t - self.time_of_prev_attack < self.attack_duration then
         local atk = self:attack_centre()
 
-        local r, g, b, a = love.graphics.getColor()
         love.graphics.setColor(0, 1, 0, 1)
         love.graphics.circle("fill", atk.x, atk.y, self.attack_radius)
-        love.graphics.setColor(r, g, b, a)
     end
 
     -- draw player
+    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(player.img, x, y, orientation, sx, sy, ox, oy)
 end

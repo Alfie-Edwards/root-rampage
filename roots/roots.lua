@@ -45,7 +45,7 @@ end
 
 function Roots:get_branches(base)
     local branches = {}
-    for _,branch in pairs(self.branches) do
+    for _,branch in ipairs(self.branches) do
         if branch.base == base then
             table.insert(branches, branch)
         end
@@ -60,6 +60,17 @@ function Roots:get_branch(base, child_index)
         end
     end
     return nil
+end
+
+function Roots:get_within_radius(x, y, radius)
+    local res = {}
+    for _, node in ipairs(self.nodes) do
+        local dist = (x - node.x) ^ 2 + (y - node.y) ^ 2
+        if dist < radius ^ 2 then
+            table.insert(res, node)
+        end
+    end
+    return res
 end
 
 function Roots:get_closest_node(x, y)

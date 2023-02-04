@@ -29,7 +29,7 @@ function shallowcopy(tab)
 end
 
 function remove_value(list, value_to_remove)
-    local i = index_of(list, value_to_remove)
+    local i = get_key(list, value_to_remove)
     if i ~= nil then
         table.remove(list, i)
     end

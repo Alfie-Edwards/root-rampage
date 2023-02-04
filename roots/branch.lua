@@ -14,19 +14,19 @@ function Branch.new(base, child_index)
     assert(child_index ~= nil)
     assert(roots ~= nil)
 
-    print("Branch created!")
     obj.base = base
     obj.child_index = child_index
     obj.tip = base
     obj.length = 1
     obj.points = {base.x, base.y}
+    obj:update_tip()
 
     return obj
 end
 
 function Branch:trim_start()
     if self.base.children[self.child_index] == nil then
-        self.roots.remove_branch(self)
+        self.roots:remove_branch(self)
     else
         self.base = self.base.children[self.child_index]
         self.child_index = 1
@@ -39,8 +39,8 @@ end
 function Branch:trim_end()
     assert(self.tip.parent ~= nil)
     self.tip = self.tip.parent
-    table.remove(self.points, -1)
-    table.remove(self.points, -1)
+    table.remove(self.points, #self.points)
+    table.remove(self.points, #self.points)
     self.length = self.length - 1
 end
 
@@ -68,13 +68,12 @@ function Branch:update_tip()
     end
 end
 
-
 function Branch:draw()
     self:update_tip()
     love.graphics.setLineWidth(5)
     love.graphics.setLineStyle("smooth")
     love.graphics.setColor({0.4, 0.2, 0, 1})
-    if self.length > 1 then
+    if self.length > 1 and not self.base.is_dead then
         love.graphics.line(self.points)
     end
 end

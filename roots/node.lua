@@ -50,6 +50,7 @@ function Node:remove_child(child)
     assert(child.parent == self)
     local key = get_key(self.children, child)
     self.children[key] = nil
+    child.parent = nil
 end
 
 function Node:get_children()
@@ -63,25 +64,26 @@ function Node:get_children()
     return children
 end
 
-function get_main_branch()
+function Node:get_main_branch()
     -- Get the branch this node was originally created on.
     local base
     local child_index
 
-    if base.parent == nil then
+    if self.parent == nil then
         base = self
         child_index = 1
     else
         local prev = self
-        base = base.parent
-        while (#base.children) == 1 and base.parent ~= nil do
+        base = self.parent
+        while base.children[1] == prev and base.parent ~= nil do
+            prev = base
             base = base.parent
         end
 
         child_index = get_key(base.children, prev)
     end
 
-    local branch = self.roots.get_branch(base, child_index)
+    local branch = self.roots:get_branch(base, child_index)
     assert(branch ~= nil)
     return branch
 end
@@ -97,17 +99,17 @@ end
 function Node:do_to_subtree(func)
     assert(func ~= nil)
     func(self)
-    for _,child in ipairs(self.children) do
+    for _,child in pairs(self.children) do
         child:do_to_subtree(func)
     end
 end
 
 function Node:kill_subtree_if_no_trees()
-    local any_trees = function(node)
+    local function any_trees(node)
         if node.is_tree then
             return true
         else
-            for _,child in ipairs(node.children) do
+            for _,child in pairs(node.children) do
                 if any_trees(child) then
                     return true
                 end
@@ -116,7 +118,7 @@ function Node:kill_subtree_if_no_trees()
         end
     end
 
-    if any_trees(self) then
+    if not any_trees(self) then
         self:do_to_subtree(
             function(node)
                 node:kill()
@@ -127,14 +129,16 @@ end
 
 function Node:cut()
     -- Update all branches starting at this node.
-    for _,branch in ipairs(self.roots.get_branches(self)) do
+    for _,branch in ipairs(self.roots:get_branches(self)) do
         branch:trim_start()
     end
 
     -- Start a new branch after this node.
-    if self.parent ~= nil and #self.children > 0 then
-        self.roots.add_branch(Branch.new(self.children[1], 1))
+    if self.parent ~= nil then
         self:get_main_branch():trim_end_to(self.parent)
+        if #self.children > 0 then
+            self.roots:add_branch(Branch.new(self.children[1], 1))
+        end
     end
 
     -- Cache children and parent.
@@ -142,9 +146,12 @@ function Node:cut()
     local parent = self.parent
 
     -- Disconnect node.
-    self:remove_all_children()
+    for _,child in pairs(children) do
+        self:remove_child(child)
+    end
+
     if self.parent ~= nil then
-        self.parent.remove_child(self)
+        self.parent:remove_child(self)
     end
 
     -- Kill check on parent graph.
@@ -153,7 +160,7 @@ function Node:cut()
     end
 
     -- Kill check on child graphs.
-    for _,child in ipairs(children) do
+    for _,child in pairs(children) do
         child:kill_subtree_if_no_trees()
     end
 
@@ -163,6 +170,14 @@ function Node:cut()
     self.roots:add_branch(Branch.new(self, 1))
 end
 
+function Node:cull()
+    for _,branch in ipairs(self.roots:get_branches(self)) do
+        self.roots:remove_branch(branch)
+    end
+    self.roots:remove_node(self)
+end
+
 function Node:kill()
     self.is_dead = true
+    self:cull()
 end
