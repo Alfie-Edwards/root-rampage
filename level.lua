@@ -20,8 +20,8 @@ function Level.new()
 end
 
 function Level:cell(x, y)
-    local scale_x = self.geom_img:getWidth() / canvas:width()
-    local scale_y = self.geom_img:getHeight() / canvas:height()
+    local scale_x = self.geom:getWidth() / canvas:width()
+    local scale_y = self.geom:getHeight() / canvas:height()
 
     local cell_x = x * scale_x
     local cell_y = y * scale_y
@@ -30,7 +30,7 @@ function Level:cell(x, y)
 end
 
 function Level:cell_size()
-    return canvas:width() / self.geom_img:getWidth()
+    return canvas:width() / self.geom:getWidth()
 end
 
 function Level:position_in_cell(x, y)
