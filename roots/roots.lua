@@ -92,6 +92,9 @@ function Roots:is_valid_node_pos(x, y)
     if self:get_closest_node(x, y) ~= self.selected then
         return false
     end
+    if level:solid({x = x, y = y}) then
+        return false
+    end
     return true
 end
 

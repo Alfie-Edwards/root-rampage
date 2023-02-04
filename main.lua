@@ -8,7 +8,7 @@ require "roots.node"
 
 function love.load()
     roots = Roots.new()
-    Node.new(30, 30, nil, true, roots)
+    Node.new(100, 100, nil, true, roots)
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
     love.graphics.setLineStyle("rough")

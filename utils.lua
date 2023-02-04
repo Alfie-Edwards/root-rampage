@@ -26,6 +26,7 @@ function shallowcopy(tab)
         res[k] = v
     end
     return res
+end
 
 function remove_value(list, value_to_remove)
     local i = index_of(list, value_to_remove)
