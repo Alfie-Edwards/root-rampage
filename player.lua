@@ -9,11 +9,17 @@ Player = {
     img = love.graphics.newImage("assets/player.png"),
     size = 24,
     max_speed = 200,
+    attack_radius = 12,
+    attack_cooldown = 1,
+    attack_centre_offset = 8,
+
+    attack_duration = 0.25,  -- (just for temp effect)
 
     -- main state
     pos = { x = 0, y = 0 },
     speed = 0,
     dir = Direction.UP,
+    attack_centre = nil,
 
     -- other bits of state
     started_holding = {
@@ -22,6 +28,8 @@ Player = {
         UP = 0,
         DOWN = 0,
     },
+
+    time_of_prev_attack = never,
 }
 setup_class("Player")
 
@@ -30,8 +38,32 @@ function Player.new()
     setup_instance(obj, Player)
 
     obj.pos = { x = 50, y = 50 }
+    obj.time_of_prev_attack = -obj.attack_cooldown
 
     return obj
+end
+
+function Player:attack_centre()
+    local adj = {}
+    if self.dir == Direction.UP then
+        adj = { x = 0, y = -self.attack_centre_offset }
+    elseif self.dir == Direction.DOWN then
+        adj = { x = 0, y = self.attack_centre_offset }
+    elseif self.dir == Direction.LEFT then
+        adj = { x = -self.attack_centre_offset, y = 0 }
+    elseif self.dir == Direction.RIGHT then
+        adj = { x = self.attack_centre_offset, y = 0 }
+    end
+
+    return moved(self.pos, adj)
+end
+
+function Player:attack()
+    if t - self.time_of_prev_attack > self.attack_cooldown then
+        self.time_of_prev_attack = t
+    end
+
+    -- TODO #finish: do the attack
 end
 
 function Player:input()
@@ -62,6 +94,10 @@ function Player:input()
         end
     else
         self.started_holding.RIGHT = never
+    end
+
+    if love.keyboard.isDown("space") then
+        self:attack()
     end
 end
 
@@ -166,6 +202,16 @@ function Player:draw()
     local sx = self.size / self.img:getWidth()
     local sy = self.size / self.img:getHeight()
 
+    -- draw attack
+    if t - self.time_of_prev_attack < self.attack_duration then
+        local atk = self:attack_centre()
+
+        local r, g, b, a = love.graphics.getColor()
+        love.graphics.setColor(0, 1, 0, 1)
+        love.graphics.circle("fill", atk.x, atk.y, self.attack_radius)
+        love.graphics.setColor(r, g, b, a)
+    end
+
+    -- draw player
     love.graphics.draw(player.img, x, y, orientation, sx, sy, ox, oy)
-    -- love.graphics.circle("fill", player.pos.x, player.pos.y, 10)
 end
