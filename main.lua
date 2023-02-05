@@ -80,6 +80,10 @@ function love.draw()
     door:draw()
     hacking:draw()
     wincon:draw()
+    love.graphics.setColor({1, 1, 1, 0.05})
+    love.graphics.setBlendMode("add")
+    love.graphics.rectangle("fill", 0, 0, canvas:width(), canvas:height())
+    love.graphics.setBlendMode("alpha")
 
     canvas:draw()
 end
