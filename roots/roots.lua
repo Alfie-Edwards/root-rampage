@@ -140,9 +140,11 @@ end
 function Roots:get_within_radius(x, y, radius)
     local res = {}
     for _, node in ipairs(self.nodes) do
-        local dist = (x - node.x) ^ 2 + (y - node.y) ^ 2
-        if dist < radius ^ 2 then
-            table.insert(res, node)
+        if not node.is_dead then
+            local dist = (x - node.x) ^ 2 + (y - node.y) ^ 2
+            if dist < radius ^ 2 then
+                table.insert(res, node)
+            end
         end
     end
     return res
@@ -208,6 +210,12 @@ function Roots:update_prospective()
 
     if self.prospective.selection == nil then
         self.prospective = {}
+        return
+    end
+
+    if self.selected ~= nil and self.prospective.timer ~= nil and
+        ((self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil) or
+         (self.prospective.terminal ~= nil and self.prospective.terminal.node == nil)) then
         return
     end
 
@@ -353,6 +361,18 @@ function Roots:draw()
             self.prospective.x + self.prospective.dir_x * Branch.LINE_WIDTH * 2,
             self.prospective.y + self.prospective.dir_y * Branch.LINE_WIDTH * 2
         )
+    end
+
+    if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
+        love.graphics.setColor({0, 0, 0, 0.4})
+        love.graphics.setLineWidth(1)
+        love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.tree_spot.x, self.prospective.tree_spot.y})
+    end
+
+    if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
+        love.graphics.setColor({0, 0, 0, 0.4})
+        love.graphics.setLineWidth(1)
+        love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.terminal.x, self.prospective.terminal.y})
     end
 
     for _, tree_spot in ipairs(self.tree_spots) do

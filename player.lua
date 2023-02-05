@@ -265,14 +265,6 @@ function Player:draw()
     local sx = self.size / sprite:getWidth()
     local sy = self.size / sprite:getHeight()
 
-    -- draw attack
-    if self:is_swinging() then
-        local atk = self:attack_centre()
-
-        love.graphics.setColor(0, 1, 0, 1)
-        love.graphics.circle("fill", atk.x, atk.y, self.attack_radius)
-    end
-
     -- draw player
     local x = round(player.pos.x)
     local y = round(player.pos.y)
