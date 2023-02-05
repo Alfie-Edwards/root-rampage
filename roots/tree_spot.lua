@@ -7,7 +7,10 @@ TreeSpot = {
     TIME = 5,
     TOOLTIP = "Grow tree",
 
-    SPRITES = sprite.make_set("assets/tree/", { "tree 1.png", "tree 2.png", "tree 3.png" }),
+    SPRITES = {
+        patch = sprite.make("patch of soil.png"),
+        plant = sprite.make_set("tree/", { "tree 1.png", "tree 2.png", "tree 3.png" }),
+    },
 
     GROW_DURATION = 2,
     WITHER_DURATION = 1,
@@ -76,26 +79,32 @@ end
 
 function TreeSpot:sprite()
     if self.node ~= nil and self.t_grown ~= never then
-        return sprite.sequence(TreeSpot.SPRITES, TreeSpot.GROW_DURATION, self.t_grown)
+        return sprite.sequence(TreeSpot.SPRITES.plant, TreeSpot.GROW_DURATION, self.t_grown)
     end
 
     if self.t_cut ~= never and self:since_cut() < TreeSpot.WITHER_DURATION then
-        return sprite.sequence(reverse(TreeSpot.SPRITES), TreeSpot.WITHER_DURATION, self.t_cut)
+        return sprite.sequence(reverse(TreeSpot.SPRITES.plant), TreeSpot.WITHER_DURATION, self.t_cut)
     end
 
     return nil
 end
 
-function TreeSpot:draw()
-    love.graphics.setLineWidth(1)
-    love.graphics.setColor({0.2, 0.4, 0, 0.2})
-    love.graphics.circle("line", self.x, self.y, TreeSpot.RADIUS)
+function TreeSpot:draw_patch()
+    local sprite = TreeSpot.SPRITES.patch
 
+    local ox = sprite:getWidth() / 2
+    local oy = sprite:getHeight() / 2
+
+    local sx = (TreeSpot.RADIUS * 2) / sprite:getWidth()
+    local sy = (TreeSpot.RADIUS * 2) / sprite:getHeight()
+
+    love.graphics.setColor({1, 1, 1, 1})
+    love.graphics.draw(sprite, self.x, self.y, 0, sx, sy, ox, oy)
+end
+
+function TreeSpot:draw_plant()
     local sprite = self:sprite()
     if sprite == nil then
-        -- once we have a 'not-yet-grown-patch' sprite, this should never happen
-        love.graphics.setColor({0.2, 0.4, 0, 1})
-        love.graphics.circle("fill", self.x, self.y, TreeSpot.RADIUS * 0.5)
         return
     end
 
@@ -108,4 +117,9 @@ function TreeSpot:draw()
 
     love.graphics.setColor({1, 1, 1, 1})
     love.graphics.draw(sprite, self.x, self.y, 0, 1, 1, ox, oy)
+end
+
+function TreeSpot:draw()
+    self:draw_patch()
+    self:draw_plant()
 end

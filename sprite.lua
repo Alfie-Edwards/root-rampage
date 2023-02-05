@@ -3,11 +3,15 @@ require "direction"
 
 sprite = {}
 
+function sprite.make(path)
+    return love.graphics.newImage("assets/"..path)
+end
+
 function sprite.make_set(prefix, tab)
     local res = {}
     for k, v in pairs(tab) do
         if type(v) == "string" then
-            res[k] = love.graphics.newImage(prefix..v)
+            res[k] = sprite.make(prefix..v)
         elseif type(v) == "table" then
             res[k] = sprite.make_set(prefix, v)
         else
