@@ -26,7 +26,7 @@ Player = {
     attack_cooldown = 1,
     attack_centre_offset = 8,
 
-    attack_duration = 0.25,  -- (just for temp effect)
+    attack_duration = 0.25,
 
     -- sprites
     sprite_sets = {
@@ -41,6 +41,12 @@ Player = {
             right = { "Player walk/Rightwalk1.png", "Player walk/Rightwalk2.png" },
             up = { "Player walk/Backwalk1.png", "Player walk/Backwalk2.png" },
             down = { "Player walk/Frontwalk1.png", "Player walk/Frontwalk2.png" },
+        }),
+        swing = sprite_set({
+            left = { "Playerleftswing1.png", "Playerleftswing2.png" },
+            right = { "Playerrightswing1.png", "Playerrightswing2.png" },
+            up = { "Playerbackswing1.png", "Playerbackswing2.png" },
+            down = { "Playerfrontswing1.png", "Playerfrontswing2.png" },
         }),
     },
 
@@ -86,13 +92,29 @@ function Player:directional_sprite(set)
     return set.down
 end
 
-function Player:cycling_sprite(set, period)
-    local progress = (t % period) / period
+function Player:is_swinging()
+    return t - self.time_of_prev_attack < self.attack_duration
+end
+
+function Player:sequence_sprite(set, duration, start_time)
+    local time_since = t - start_time
+    local progress = (time_since % duration) / duration
     local index = math.floor(progress * #set) + 1
     return set[index]
 end
 
+function Player:cycling_sprite(set, period)
+    return self:sequence_sprite(set, period, 0)
+end
+
 function Player:sprite()
+    if self:is_swinging() then
+        return self:sequence_sprite(
+            self:directional_sprite(self.sprite_sets.swing),
+            self.attack_duration,
+            self.time_of_prev_attack)
+    end
+
     if self.speed ~= 0 then
         return self:cycling_sprite(self:directional_sprite(self.sprite_sets.walk), 0.5)
     end
@@ -229,7 +251,7 @@ end
 
 function Player:move(dt)
     local movement = self:get_movement()
-    if movement.when == never then
+    if movement.when == never or self:is_swinging() then
         self.speed = 0
         return
     end
@@ -242,18 +264,6 @@ function Player:move(dt)
     self.pos = moved(self.pos, vel)
 end
 
--- function Player:orientation()
---     if self.dir == Direction.UP then
---         return 0
---     elseif self.dir == Direction.DOWN then
---         return math.pi
---     elseif self.dir == Direction.LEFT then
---         return math.pi * 1.5
---     elseif self.dir == Direction.RIGHT then
---         return math.pi * 0.5
---     end
--- end
-
 function Player:draw()
     local sprite = self:sprite()
 
@@ -264,7 +274,7 @@ function Player:draw()
     local sy = self.size / sprite:getHeight()
 
     -- draw attack
-    if t - self.time_of_prev_attack < self.attack_duration then
+    if self:is_swinging() then
         local atk = self:attack_centre()
 
         love.graphics.setColor(0, 1, 0, 1)
