@@ -6,9 +6,11 @@ require "utils"
 
 Player = {
     -- config
-    size = 24,
-    max_speed = 150,
-    root_speed = 75,
+    sprite_size = 24,
+    size = 18,
+    max_speed = 100,
+    acceleration_time = 0.2,
+    root_speed = 50,
     attack_radius = 12,
     attack_cooldown = 1,
     attack_centre_offset = 8,
@@ -169,6 +171,8 @@ function Player:get_movement()
     if #(roots:get_within_radius(self.pos.x, self.pos.y, self.size / 2)) > 0 then
         most_recent.speed = self.root_speed
     end
+    most_recent.speed = most_recent.speed * (0.5 + 0.5 * math.min(1, (t - most_recent.when) / self.acceleration_time))
+
 
     return most_recent
 end
@@ -326,8 +330,8 @@ function Player:draw()
     local ox = sprite:getWidth() / 2
     local oy = sprite:getHeight() / 2
 
-    local sx = self.size / sprite:getWidth()
-    local sy = self.size / sprite:getHeight()
+    local sx = self.sprite_size / sprite:getWidth()
+    local sy = self.sprite_size / sprite:getHeight()
 
     -- draw player
     local x = round(player.pos.x)
