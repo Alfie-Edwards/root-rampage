@@ -19,14 +19,25 @@ function Level.new()
     return obj
 end
 
-function Level:cell(x, y)
+function Level:cell_x(x)
     local scale_x = self.geom:getWidth() / canvas:width()
+    return math.floor(x * scale_x)
+end
+
+function Level:cell_y(y)
     local scale_y = self.geom:getHeight() / canvas:height()
+    return math.floor(y * scale_y)
+end
 
-    local cell_x = x * scale_x
-    local cell_y = y * scale_y
+function Level:cell(x, y)
+    -- local scale_x = self.geom:getWidth() / canvas:width()
+    -- local scale_y = self.geom:getHeight() / canvas:height()
 
-    return cell_x, cell_y
+    -- local cell_x = x * scale_x
+    -- local cell_y = y * scale_y
+
+    -- return cell_x, cell_y
+    return self:cell_x(x), self:cell_y(y)
 end
 
 function Level:cell_size()
@@ -43,6 +54,10 @@ function Level:out_of_bounds(x, y)
            y < 0 or y > canvas:height()
 end
 
+function Level:cell_solid(x, y)
+    return self.geom:getPixel(x, y) == 0
+end
+
 function Level:solid(pos)
     if self:out_of_bounds(pos.x, pos.y) then
         return true
@@ -50,7 +65,7 @@ function Level:solid(pos)
 
     local cell_x, cell_y = self:cell(pos.x, pos.y)
 
-    return self.geom:getPixel(cell_x, cell_y) == 0
+    return self:cell_solid(cell_x, cell_y)
 end
 
 function Level:is_grow_zone(pos)
