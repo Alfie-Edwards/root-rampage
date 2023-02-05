@@ -1,5 +1,7 @@
 -- A rendering construct.
 Branch = {
+    LINE_WIDTH = 5,
+
     base = nil,
     child_index = nil,
     tip = nil
@@ -73,6 +75,7 @@ function Branch:update(dt)
 end
 
 function Branch:draw()
+    love.graphics.setLineJoin("bevel")
     love.graphics.setLineWidth(5)
     love.graphics.setLineStyle("smooth")
     love.graphics.setColor({0.4, 0.2, 0, 1})

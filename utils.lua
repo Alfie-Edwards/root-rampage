@@ -46,4 +46,9 @@ end
 
 function round(num)
     return math.floor(num + 0.5)
+
+function draw_centred_text(text, x, y, color)
+    color = color or {1, 1, 1}
+    x = x - font:getWidth(text) / 2
+    love.graphics.print({color, text}, x, y)
 end

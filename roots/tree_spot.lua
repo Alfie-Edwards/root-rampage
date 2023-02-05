@@ -3,6 +3,7 @@ require "roots.node"
 
 TreeSpot = {
     RADIUS = 16,
+    TIME = 5,
 
     x = nil,
     y = nil,
@@ -36,8 +37,9 @@ function TreeSpot:update(dt)
 end
 
 function TreeSpot:draw()
+    love.graphics.setLineWidth(1)
     love.graphics.setColor({0.2, 0.4, 0, 0.2})
-    love.graphics.circle("fill", self.x, self.y, TreeSpot.RADIUS)
+    love.graphics.circle("line", self.x, self.y, TreeSpot.RADIUS)
     if self.node ~= nil then
     love.graphics.setColor({0.2, 0.4, 0, 1})
         love.graphics.circle("fill", self.x, self.y, TreeSpot.RADIUS * 0.5)

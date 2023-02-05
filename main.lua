@@ -8,6 +8,8 @@ require "roots.tree_spot"
 
 
 function love.load()
+    font = love.graphics.newFont(14)
+
     roots = Roots.new()
     local starting_tree_spot = TreeSpot.new(200, 200)
     roots:add_tree_spot(starting_tree_spot)
@@ -23,6 +25,7 @@ function love.load()
     -- setup game state
     level = Level.new()
     player = Player.new()
+    timers = {}
 end
 
 function love.mousepressed(x, y, button, istouch, presses)

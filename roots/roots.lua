@@ -1,4 +1,5 @@
 require "utils"
+require "roots.branch"
 require "roots.tree_spot"
 require "roots.node"
 
@@ -9,6 +10,7 @@ Roots = {
     branches = nil,
     selected = nil,
     tree_spots = nil,
+    prospective = nil,
 }
 setup_class("Roots")
 
@@ -19,6 +21,16 @@ function Roots.new()
     obj.nodes = {}
     obj.branches = {}
     obj.tree_spots = {}
+    obj.prospective = {
+        node = nil,
+        x = nil,
+        y = nil,
+        mouse_x = nil,
+        mouse_y = nil,
+        tree_spot = nil,
+        timer = nil,
+        message = nil,
+    }
 
     return obj
 end
@@ -138,26 +150,67 @@ function Roots:is_valid_node_pos(x, y)
     return true
 end
 
-function Roots:update(dt)
-    if love.mouse.isDown(1) and self.selected ~= nil then
-        canvas_x, canvas_y = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
-        local dx = canvas_x - self.selected.x
-        local dy = canvas_y - self.selected.y
-        local dist = 0
-        if not (dx == 0  and dy == 0) then
-            dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
-        end
-        if dist >= Roots.SPEED then
-            local x_new = self.selected.x + (dx * Roots.SPEED / dist)
-            local y_new = self.selected.y + (dy * Roots.SPEED / dist)
+function Roots:update_prospective()
+    self.prospective.mouse_x, self.prospective.mouse_y = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
 
-            if self:is_valid_node_pos(x_new, y_new) then
-                local tree_spot = self:find_tree_spot(x_new, y_new)
-                if tree_spot ~= nil and tree_spot.node == nil then
-                    self.selected = tree_spot:create_node(self.selected)
-                else
-                    self.selected = Node.new(x_new, y_new, self.selected, false, self)
+    if self.selected ~= nil then
+        self.prospective.selection = self.selected
+    else
+        self.prospective.selection = self:get_closest_node(self.prospective.mouse_x, self.prospective.mouse_y)
+    end
+
+    if self.prospective.selection == nil then
+        self.prospective = {}
+        return
+    end
+
+    local dx = self.prospective.mouse_x - self.prospective.selection.x
+    local dy = self.prospective.mouse_y - self.prospective.selection.y
+
+    if dx == 0 and dy == 0 then
+        self.prospective_point = nil
+        return
+    end
+
+    local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
+    self.prospective.x = self.prospective.selection.x + (dx * Roots.SPEED / dist)
+    self.prospective.y = self.prospective.selection.y + (dy * Roots.SPEED / dist)
+
+    local new_tree_spot = self:find_tree_spot(self.prospective.x, self.prospective.y)
+    if new_tree_spot ~= self.prospective.tree_spot then
+        if new_tree_spot == nil or new_tree_spot.node ~= nil then
+            self.prospective.timer = nil
+        else
+            self.prospective.timer = t
+        end
+    end
+    self.prospective.tree_spot = new_tree_spot
+    if self.prospective.tree_spot ~= nil then
+        if self.prospective.timer == nil and self.prospective.tree_spot.node == nil and self.selected ~= nil then
+            self.prospective.timer = t
+        end
+        if self.prospective.timer ~= nil and self.prospective.tree_spot.node ~= nil or self.selected == nil then
+            self.prospective.timer = nil
+        end
+    end
+
+    self.prospective.message = nil
+    if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
+        self.prospective.message = "Grow Tree"
+    end
+end
+
+function Roots:update(dt)
+    self:update_prospective()
+
+    if love.mouse.isDown(1) and self.selected ~= nil then
+        if self:is_valid_node_pos(self.prospective.x, self.prospective.y) then
+            if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
+                if (t - self.prospective.timer) > TreeSpot.TIME then
+                    self.selected = self.prospective.tree_spot:create_node(self.selected)
                 end
+            else
+                self.selected = Node.new(self.prospective.x, self.prospective.y, self.selected, false, self)
             end
         end
     end
@@ -170,18 +223,30 @@ function Roots:update(dt)
 end
 
 function Roots:draw()
-    for _, tree_spot in ipairs(self.tree_spots) do
-        tree_spot:draw()
-    end
     for _, branch in ipairs(self.branches) do
         branch:draw()
     end
-    if self.selected == nil then
-        canvas_x, canvas_y = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
-        local closest = self:get_closest_node(canvas_x, canvas_y)
-        if closest ~= nil then
-            love.graphics.setColor({0.8, 0.8, 0, 0.5})
-            love.graphics.circle("fill", closest.x, closest.y, 6)
-        end
+
+    if self.prospective.selection ~= nil then
+        love.graphics.setLineWidth(Branch.LINE_WIDTH)
+        love.graphics.setLineStyle("smooth")
+        love.graphics.setColor({0.4, 0.2, 0, 1})
+        local projected_x = self.prospective.selection.x + (self.prospective.x - self.prospective.selection.x) * 3 / Roots.SPEED
+        local projected_y = self.prospective.selection.y + (self.prospective.y - self.prospective.selection.y) * 3 / Roots.SPEED
+        love.graphics.circle("fill", projected_x, projected_y, 4)
+    end
+
+    for _, tree_spot in ipairs(self.tree_spots) do
+        tree_spot:draw()
+    end
+
+    if self.prospective.message ~= nil then
+        draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 30, {0.2, 0.2, 0.2, 1})
+    end
+
+    if self.prospective.timer ~= nil then
+        local angle = math.min(1, (t - self.prospective.timer) / TreeSpot.TIME) * math.pi * 2
+        love.graphics.setColor({0.2, 0.2, 0.2, 1})
+        love.graphics.arc("fill", self.prospective.mouse_x, self.prospective.mouse_y, 10, -math.pi / 2, angle - math.pi / 2)
     end
 end
