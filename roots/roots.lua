@@ -346,7 +346,7 @@ function Roots:draw()
 
     if self.prospective.selection ~= nil then
         if self:get_attack_state() == AttackState.ATTACKING then
-            love.graphics.setColor({0.8, 0.15, 0.1, 1})
+            love.graphics.setColor({0.4, 0.08, 0.02, 1})
         else
             love.graphics.setColor({0.2, 0.1, 0, 1})
         end
