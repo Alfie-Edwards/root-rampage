@@ -2,7 +2,7 @@ require "utils"
 
 
 Level = {
-    img = love.graphics.newImage("assets/level-img.png"),
+    img = love.graphics.newImage("assets/map3.png"),
 
     geom = love.image.newImageData("assets/level-geom.bmp"),
     geom_img = nil,  -- geom as an image, to draw for debugging
@@ -30,13 +30,6 @@ function Level:cell_y(y)
 end
 
 function Level:cell(x, y)
-    -- local scale_x = self.geom:getWidth() / canvas:width()
-    -- local scale_y = self.geom:getHeight() / canvas:height()
-
-    -- local cell_x = x * scale_x
-    -- local cell_y = y * scale_y
-
-    -- return cell_x, cell_y
     return self:cell_x(x), self:cell_y(y)
 end
 
@@ -83,9 +76,17 @@ function Level:draw_geom(opacity)
     local scale_x = canvas:width() / self.geom_img:getWidth()
     local scale_y = canvas:height() / self.geom_img:getHeight()
 
+    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(self.geom_img, 0, 0, 0, scale_x, scale_y)
 end
 
+function Level:draw_img()
+    local scale_x = canvas:width() / self.img:getWidth()
+    local scale_y = canvas:height() / self.img:getHeight()
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(self.img, 0, 0, 0, scale_x, scale_y)
+end
+
 function Level:draw()
-    self:draw_geom()
+    self:draw_img()
 end
