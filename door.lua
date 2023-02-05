@@ -50,5 +50,6 @@ function Door:draw(dt)
     end
     local angle = math.pi + math.pi / 2 * anim
 
+    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(Door.SPRITE, self.x, self.y, angle, 1, 1, 3, 2)
 end
