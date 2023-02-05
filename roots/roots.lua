@@ -213,7 +213,7 @@ function Roots:update_prospective()
         return
     end
 
-    if self.selected ~= nil and self.prospective.timer ~= nil and
+    if self.selected ~= nil and not self.prospective.selection.is_dead and self.prospective.timer ~= nil and
         ((self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil) or
          (self.prospective.terminal ~= nil and self.prospective.terminal.node == nil)) then
         return
@@ -307,6 +307,9 @@ function Roots:update_prospective()
 end
 
 function Roots:update(dt)
+    if self.selected ~= nil and self.selected.is_dead then
+        self.selected  = nil
+    end
     self:update_prospective()
 
     if love.mouse.isDown(1) and self.selected ~= nil then
