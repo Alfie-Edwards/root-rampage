@@ -1,3 +1,5 @@
+require "hacking"
+require "wincon"
 require "pixelcanvas"
 require "level"
 require "player"
@@ -9,8 +11,8 @@ require "roots.terminal"
 
 
 function love.load()
-    font = love.graphics.newFont(14)
 
+    -- setup roots
     roots = Roots.new()
     local starting_tree_spot = TreeSpot.new(200, 200)
     roots:add_tree_spot(starting_tree_spot)
@@ -21,8 +23,17 @@ function love.load()
     roots:add_terminal(Terminal.new(550, 100))
     roots:add_terminal(Terminal.new(150, 250))
 
+    -- setup hacking
+    hacking = Hacking.new(roots)
+
+    -- setup win conditions
+    wincon = Wincon.new(roots, hacking)
+
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
+    font = love.graphics.newFont("assets/font.ttf", 16, "none")
+    love.graphics.setFont(font)
+    love.graphics.setLineJoin("bevel")
     love.graphics.setLineStyle("rough")
     canvas = PixelCanvas.new({ 768, 432 })
 
@@ -46,6 +57,8 @@ function love.update(dt)
     t = t + dt
 
     player:update(dt)
+    hacking:update(dt)
+    wincon:update(dt)
 end
 
 function love.draw()
@@ -54,6 +67,7 @@ function love.draw()
     level:draw()
     roots:draw()
     player:draw()
+    wincon:draw()
 
     canvas:draw()
 end
