@@ -1,4 +1,5 @@
 require "utils"
+require "time"
 require "roots.branch"
 require "roots.tree_spot"
 require "roots.node"
@@ -109,10 +110,12 @@ function Roots:get_closest_node(x, y)
     local closest = nil
     local dist = nil
     for _, node in ipairs(self.nodes) do
-        local new_dist = ((x - node.x) ^ 2 + (y - node.y) ^ 2) ^ (1 / 2)
-        if dist == nil or new_dist < dist then
-            closest = node
-            dist = new_dist
+        if not node.is_dead then
+            local new_dist = ((x - node.x) ^ 2 + (y - node.y) ^ 2) ^ (1 / 2)
+            if dist == nil or new_dist < dist then
+                closest = node
+                dist = new_dist
+            end
         end
     end
     return closest

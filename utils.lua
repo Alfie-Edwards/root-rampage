@@ -46,6 +46,7 @@ end
 
 function round(num)
     return math.floor(num + 0.5)
+end
 
 function draw_centred_text(text, x, y, color)
     color = color or {1, 1, 1}

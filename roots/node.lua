@@ -1,3 +1,4 @@
+require "time"
 require "roots.branch"
 
 Node = {
@@ -6,6 +7,7 @@ Node = {
     is_tree = nil,
     is_dead = nil,
     roots = nil,
+    t_dead = nil,
 }
 setup_class("Node")
 
@@ -171,13 +173,10 @@ function Node:cut()
 end
 
 function Node:cull()
-    for _,branch in ipairs(self.roots:get_branches(self)) do
-        self.roots:remove_branch(branch)
-    end
     self.roots:remove_node(self)
 end
 
 function Node:kill()
     self.is_dead = true
-    self:cull()
+    self.t_dead = t
 end

@@ -1,10 +1,15 @@
+require "time"
+
 -- A rendering construct.
 Branch = {
     LINE_WIDTH = 5,
+    WITHER_TIME = 3,
+    COLOR = {0.4, 0.2, 0, 1},
+    DEAD_COLOR = {0.25, 0.25, 0.15, 1},
 
     base = nil,
     child_index = nil,
-    tip = nil
+    tip = nil,
 }
 setup_class("Branch")
 
@@ -28,7 +33,7 @@ end
 
 function Branch:trim_start()
     if self.base.children[self.child_index] == nil then
-        self.roots:remove_branch(self)
+        self:cull()
     else
         self.base = self.base.children[self.child_index]
         self.child_index = 1
@@ -52,6 +57,16 @@ function Branch:trim_end_to(node)
     end
 end
 
+function Branch:cull()
+    self.roots:remove_branch(self)
+    self.base:cull()
+    local next = self.base.children[self.child_index]
+    while next ~= nil do
+        next:cull()
+        next = next.children[1]
+    end
+end
+
 function Branch:update_tip()
     if self.length == 1 then
         if self.tip.children[self.child_index] then
@@ -72,14 +87,29 @@ end
 
 function Branch:update(dt)
     self:update_tip()
+    if self.base.is_dead and (t - self.base.t_dead) > Branch.WITHER_TIME then
+        self:cull()
+    end
 end
 
 function Branch:draw()
-    love.graphics.setLineJoin("bevel")
-    love.graphics.setLineWidth(5)
-    love.graphics.setLineStyle("smooth")
-    love.graphics.setColor({0.4, 0.2, 0, 1})
-    if self.length > 1 and not self.base.is_dead then
-        love.graphics.line(self.points)
+    if self.length <= 1 then
+        return
     end
+
+    love.graphics.setLineJoin("bevel")
+    love.graphics.setLineStyle("rough")
+    love.graphics.setColor(Branch.COLOR)
+    love.graphics.setLineWidth(Branch.LINE_WIDTH)
+    if self.base.is_dead then
+        local multiplier = 1 - math.max(0, (t - self.base.t_dead) / Branch.WITHER_TIME)
+        love.graphics.setLineWidth(Branch.LINE_WIDTH * multiplier)
+        love.graphics.setColor({
+            Branch.DEAD_COLOR[1] + (Branch.COLOR[1] - Branch.DEAD_COLOR[1]) * multiplier,
+            Branch.DEAD_COLOR[2] + (Branch.COLOR[2] - Branch.DEAD_COLOR[2]) * multiplier,
+            Branch.DEAD_COLOR[3] + (Branch.COLOR[3] - Branch.DEAD_COLOR[3]) * multiplier,
+            Branch.DEAD_COLOR[4] + (Branch.COLOR[4] - Branch.DEAD_COLOR[4]) * multiplier,
+        })
+    end
+    love.graphics.line(self.points)
 end
