@@ -45,8 +45,7 @@ function love.update(dt)
     roots:update(dt)
     t = t + dt
 
-    player:input()
-    player:move(dt)
+    player:update(dt)
 end
 
 function love.draw()

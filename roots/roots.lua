@@ -5,8 +5,18 @@ require "roots.tree_spot"
 require "roots.terminal"
 require "roots.node"
 
+AttackState = {
+    READY = 1,
+    ATTACKING = 2,
+    COOLDOWN = 3,
+}
+
 Roots = {
     SPEED = 2,
+    ATTACK_SPEED = 7,
+    ATTACK_TIME = 0.4,
+    ATTAK_CD = 2,
+    KILL_RADIUS = 12,
 
     nodes = nil,
     branches = nil,
@@ -14,6 +24,7 @@ Roots = {
     tree_spots = nil,
     terminals = nil,
     prospective = nil,
+    t_attack = nil,
 }
 setup_class("Roots")
 
@@ -34,12 +45,25 @@ function Roots.new()
         valid = nil,
         mouse_x = nil,
         mouse_y = nil,
+        speed = nil,
         tree_spot = nil,
         timer = nil,
         message = nil,
     }
 
     return obj
+end
+
+function Roots:get_attack_state()
+    if self.t_attack == nil then
+        return AttackState.READY
+    elseif (t - self.t_attack) < Roots.ATTACK_TIME then
+        return AttackState.ATTACKING
+    elseif (t - self.t_attack) < (Roots.ATTACK_TIME + Roots.ATTAK_CD) then
+        return AttackState.COOLDOWN
+    else
+        return AttackState.READY
+    end
 end
 
 function Roots:add_tree_spot(tree_spot)
@@ -142,6 +166,10 @@ end
 function Roots:mousepressed(x, y, button)
     if button == 1 then
         self.selected = self.prospective.selection
+    elseif button == 2 then
+        if self:get_attack_state() == AttackState.READY and love.mouse.isDown(1) then
+            self.t_attack = t
+        end
     end
 end
 
@@ -183,6 +211,12 @@ function Roots:update_prospective()
         return
     end
 
+    if self:get_attack_state() == AttackState.ATTACKING then
+        self.prospective.speed = Roots.ATTACK_SPEED
+    else
+        self.prospective.speed = Roots.SPEED
+    end
+
     local dx = self.prospective.mouse_x - self.prospective.selection.x
     local dy = self.prospective.mouse_y - self.prospective.selection.y
 
@@ -194,10 +228,10 @@ function Roots:update_prospective()
     local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
     self.prospective.dir_x = dx / dist
     self.prospective.dir_y = dy / dist
-    self.prospective.x = self.prospective.selection.x + self.prospective.dir_x * Roots.SPEED
-    self.prospective.y = self.prospective.selection.y + self.prospective.dir_y * Roots.SPEED
+    self.prospective.x = self.prospective.selection.x + self.prospective.dir_x * self.prospective.speed
+    self.prospective.y = self.prospective.selection.y + self.prospective.dir_y * self.prospective.speed
 
-    if dist < Roots.SPEED * 2 then
+    if dist < self.prospective.speed then
         self.prospective.valid = false
     elseif self:get_closest_node(self.prospective.x, self.prospective.y) ~= self.prospective.selection then
         self.prospective.valid = false
@@ -273,6 +307,10 @@ function Roots:update(dt)
                 self.selected = Node.new(self.prospective.x, self.prospective.y, self.selected, self)
             end
         end
+        if self:get_attack_state() == AttackState.ATTACKING and
+                (player.pos.x - self.selected.x) ^ 2 + (player.pos.y - self.selected.y) ^ 2 < Roots.KILL_RADIUS ^ 2 then
+            player:kill()
+        end
     end
     for _, branch in ipairs(self.branches) do
         branch:update(dt)
@@ -291,7 +329,11 @@ function Roots:draw()
     end
 
     if self.prospective.selection ~= nil then
-        love.graphics.setColor({0.4, 0.2, 0, 1})
+        if self:get_attack_state() == AttackState.ATTACKING then
+            love.graphics.setColor({0.8, 0.15, 0.1, 1})
+        else
+            love.graphics.setColor({0.4, 0.2, 0, 1})
+        end
         love.graphics.circle("fill", self.prospective.x, self.prospective.y, Branch.LINE_WIDTH / 2)
         love.graphics.polygon("fill",
             self.prospective.selection.x - self.prospective.dir_y * Branch.LINE_WIDTH / 2,

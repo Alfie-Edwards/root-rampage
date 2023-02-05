@@ -11,6 +11,7 @@ Player = {
     attack_radius = 12,
     attack_cooldown = 1,
     attack_centre_offset = 8,
+    respawn_time = 3,
 
     attack_duration = 0.25,
 
@@ -34,6 +35,12 @@ Player = {
             up = { "Playerbackswing1.png", "Playerbackswing2.png" },
             down = { "Playerfrontswing1.png", "Playerfrontswing2.png" },
         }),
+        dead = sprite.make_set("assets/player/", {
+            left = "PlayerleftIdle.png",
+            right = "PlayerrightIdle.png",
+            up = "PlayerbackIdle.png",
+            down = "PlayerfrontIdle.png",
+        }),
     },
 
     -- main state
@@ -51,6 +58,7 @@ Player = {
     },
 
     time_of_prev_attack = never,
+    time_of_death = never,
 }
 setup_class("Player")
 
@@ -225,6 +233,21 @@ function Player:move(dt)
     self.pos = moved(self.pos, vel)
 end
 
+function Player:update(dt)
+    if self.time_of_death == never then
+        self:input()
+        self:move(dt)
+    end
+end
+
+function Player:kill()
+    self.time_of_death = t
+end
+
+function Player:respawn()
+    self.time_of_death = never
+end
+
 function Player:draw()
     local sprite = self:sprite()
 
@@ -245,6 +268,13 @@ function Player:draw()
     -- draw player
     local x = round(player.pos.x)
     local y = round(player.pos.y)
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(sprite, x, y, 0, sx, sy, ox, oy)
+
+    if self.time_of_death == never then
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(sprite, x, y, 0, sx, sy, ox, oy)
+    else
+        local opacity = 1 - math.min(1, (t - self.time_of_death) / self.respawn_time)
+        love.graphics.setColor(1, 0.2, 0.2, opacity)
+        love.graphics.draw(sprite, x, y, 0, sx, -sy, ox, oy)
+    end
 end
