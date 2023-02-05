@@ -35,7 +35,7 @@ Player = {
             up = { "Playerbackswing1.png", "Playerbackswing2.png" },
             down = { "Playerfrontswing1.png", "Playerfrontswing2.png" },
         }),
-        dead = sprite.make_set("assets/player/", {
+        dead = sprite.make_set("player/", {
             left = "PlayerleftIdle.png",
             right = "PlayerrightIdle.png",
             up = "PlayerbackIdle.png",
