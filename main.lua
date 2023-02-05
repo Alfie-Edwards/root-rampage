@@ -12,17 +12,33 @@ require "roots.terminal"
 
 
 function love.load()
+    -- setup rendering
+    love.graphics.setDefaultFilter("nearest", "nearest", 0)
+    font = love.graphics.newFont("assets/font.ttf", 8, "none")
+    love.graphics.setFont(font)
+    love.graphics.setLineJoin("bevel")
+    love.graphics.setLineStyle("rough")
+    canvas = PixelCanvas.new({ 768, 432 })
+
+    level = Level.new()
 
     -- setup roots
     roots = Roots.new()
-    local starting_tree_spot = TreeSpot.new(200, 200)
+    local cs = level:cell_size()
+    local starting_tree_spot = TreeSpot.new(45.5 * cs, 13.5 * cs)
     roots:add_tree_spot(starting_tree_spot)
-    roots:add_tree_spot(TreeSpot.new(300, 230))
-    roots:add_tree_spot(TreeSpot.new(500, 200))
+    roots:add_tree_spot(TreeSpot.new(35.5 * cs,  8.5 * cs))
+    roots:add_tree_spot(TreeSpot.new(35.5 * cs, 18.5 * cs))
+    roots:add_tree_spot(TreeSpot.new(15.5 * cs,  8.5 * cs))
+    roots:add_tree_spot(TreeSpot.new(15.5 * cs, 18.5 * cs))
     starting_tree_spot:create_node()
 
-    roots:add_terminal(Terminal.new(550, 100))
-    roots:add_terminal(Terminal.new(150, 250))
+    roots:add_terminal(Terminal.new( 2.5 * cs,  2 * cs))
+    roots:add_terminal(Terminal.new( 2.5 * cs, 24 * cs))
+    roots:add_terminal(Terminal.new(45.5 * cs,  2 * cs))
+    roots:add_terminal(Terminal.new(45.5 * cs, 24 * cs))
+    roots:add_terminal(Terminal.new(26.5 * cs,  8 * cs))
+    roots:add_terminal(Terminal.new(26.5 * cs, 17 * cs))
 
     -- setup hacking
     door = Door.new(16 * 2, 16 * 15)
@@ -32,16 +48,7 @@ function love.load()
     -- setup win conditions
     wincon = Wincon.new(roots, hacking)
 
-    -- setup rendering
-    love.graphics.setDefaultFilter("nearest", "nearest", 0)
-    font = love.graphics.newFont("assets/font.ttf", 8, "none")
-    love.graphics.setFont(font)
-    love.graphics.setLineJoin("bevel")
-    love.graphics.setLineStyle("rough")
-    canvas = PixelCanvas.new({ 768, 432 })
-
     -- setup game state
-    level = Level.new()
     player = Player.new()
     timers = {}
 end
