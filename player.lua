@@ -8,9 +8,9 @@ Player = {
     -- config
     sprite_size = 24,
     size = 18,
-    max_speed = 100,
+    max_speed = 80,
     acceleration_time = 0.2,
-    root_speed = 50,
+    root_speed = 40,
     attack_radius = 12,
     attack_cooldown = 1,
     attack_centre_offset = 8,
