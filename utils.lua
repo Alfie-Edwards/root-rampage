@@ -53,3 +53,11 @@ function draw_centred_text(text, x, y, color)
     x = x - font:getWidth(text) / 2
     love.graphics.print({color, text}, x, y)
 end
+
+function reverse(x)
+    local rev = {}
+    for i=#x, 1, -1 do
+        rev[#rev+1] = x[i]
+    end
+    return rev
+end
