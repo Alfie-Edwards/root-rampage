@@ -181,41 +181,99 @@ function Player:velocity()
     end
 end
 
-function Player:collide()
-    local vel = self:velocity()
+function Player:bounds(pos)
+    if pos == nil then
+        pos = self.pos
+    end
+
+    local off = self.size / 2
+
+    return { left   = pos.x - off,
+             right  = pos.x + off,
+             top    = pos.y - off,
+             bottom = pos.y + off }
+end
+
+function Player:collision_x()
+    local vel = { x = self:velocity().x, y = 0 }
     local next_pos = moved(self.pos, vel)
 
-    if not level:solid(next_pos) then
-        return vel
-    end
+    local curr_bounds = self:bounds()
+    local next_bounds = self:bounds(next_pos)
 
-    local old_cell_x, old_cell_y = level:cell(self.pos.x, self.pos.y)
-    local new_cell_x, new_cell_y = level:cell(next_pos.x, next_pos.y)
+    local vel_x_adjustment = vel.x
 
-    local intersection_x, intersection_y = level:position_in_cell(next_pos.x, next_pos.y)
-    local cs = level:cell_size()
+    -- check player's left edge (right edge of obstacle)
+    local curr_left_cell_x, top_cell_y    = level:cell(curr_bounds.left, next_bounds.top)
+    local next_left_cell_x, bottom_cell_y = level:cell(next_bounds.left, next_bounds.bottom)
 
-    local adjusted_vel = shallowcopy(vel)
+    for vert_cell=top_cell_y, bottom_cell_y do
+        local vert_y = vert_cell * level:cell_size()
 
-    if old_cell_x ~= new_cell_x then
-        if vel.x > 0 then
-            -- left edge
-            adjusted_vel.x = adjusted_vel.x - (intersection_x + 1)
-        else
-            -- right edge
-            adjusted_vel.x = adjusted_vel.x + cs - intersection_x
-        end
-    else
-        if vel.y > 0 then
-            -- top edge
-            adjusted_vel.y = adjusted_vel.y - (intersection_y + 1)
-        else
-            -- bottom edge
-            adjusted_vel.y = adjusted_vel.y + cs - intersection_y
+        if level:solid({x = next_bounds.left, y = vert_y}) then
+            local intersection_x,_ = level:position_in_cell(next_bounds.left, vert_y)
+            vel_x_adjustment = level:cell_size() - intersection_x
+            break
         end
     end
 
-    return adjusted_vel
+    -- check player's right edge (left edge of obstacle)
+    local curr_right_cell_x = level:cell_x(curr_bounds.right)
+    local next_right_cell_x = level:cell_x(next_bounds.right)
+
+    for vert_cell=top_cell_y, bottom_cell_y do
+        local vert_y = vert_cell * level:cell_size()
+
+        if level:solid({x = next_bounds.right, y = vert_y}) then
+            local intersection_x,_ = level:position_in_cell(next_bounds.right, vert_y)
+            vel_x_adjustment = - (intersection_x + 1)
+            break
+        end
+    end
+
+    -- return x velocity adjustment
+    return vel_x_adjustment
+end
+
+function Player:collision_y()
+    local vel = { x = 0, y = self:velocity().y }
+    local next_pos = moved(self.pos, vel)
+
+    local curr_bounds = self:bounds()
+    local next_bounds = self:bounds(next_pos)
+
+    local vel_y_adjustment = vel.y
+
+    -- check player's top edge (bottom edge of obstacle)
+    local left_cell_x, curr_top_cell_y  = level:cell(next_bounds.left, curr_bounds.top)
+    local right_cell_x, next_top_cell_y = level:cell(next_bounds.right, next_bounds.top)
+
+    for horiz_cell=left_cell_x, right_cell_x do
+        local horiz_x = horiz_cell * level:cell_size()
+
+        if level:solid({x = horiz_x, y = next_bounds.top}) then
+            local _,intersection_y = level:position_in_cell(horiz_x, next_bounds.top)
+            vel_y_adjustment = level:cell_size() - intersection_y
+            break
+        end
+    end
+
+    -- check player's bottom edge (top edge of obstacle)
+    local curr_bottom_cell_y = level:cell_y(curr_bounds.bottom)
+    local next_bottom_cell_y = level:cell_y(next_bounds.bottom)
+
+    for horiz_cell=left_cell_x, right_cell_x do
+        local horiz_x = horiz_cell * level:cell_size()
+
+        if level:solid({x = horiz_x, y = next_bounds.bottom}) then
+            local _,intersection_y = level:position_in_cell(horiz_x, next_bounds.bottom)
+            vel_y_adjustment = - (intersection_y + 1)
+            break
+        end
+    end
+
+    -- return y velocity adjustment
+    return vel_y_adjustment
 end
 
 function Player:move(dt)
@@ -228,9 +286,15 @@ function Player:move(dt)
     self.speed = movement.speed * dt
     self.dir = movement.dir
 
-    local vel = self:collide(self.pos, self:velocity())
-
-    self.pos = moved(self.pos, vel)
+    local vel = self:velocity()
+    if vel.x ~= 0 then
+        vel.x = vel.x + self:collision_x()
+    end
+    self.pos = moved(self.pos, {x = vel.x, y = 0})
+    if vel.y ~= 0 then
+        vel.y = vel.y + self:collision_y()
+    end
+    self.pos = moved(self.pos, {x = 0, y = vel.y})
 end
 
 function Player:update(dt)
