@@ -4,8 +4,8 @@ require "time"
 Branch = {
     LINE_WIDTH = 5,
     WITHER_TIME = 3,
-    COLOR = {0.4, 0.2, 0, 1},
-    DEAD_COLOR = {0.25, 0.25, 0.15, 1},
+    COLOR = {0.2, 0.1, 0, 1},
+    DEAD_COLOR = {0.1, 0.1, 0.05, 1},
 
     base = nil,
     child_index = nil,

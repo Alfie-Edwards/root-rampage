@@ -348,7 +348,7 @@ function Roots:draw()
         if self:get_attack_state() == AttackState.ATTACKING then
             love.graphics.setColor({0.8, 0.15, 0.1, 1})
         else
-            love.graphics.setColor({0.4, 0.2, 0, 1})
+            love.graphics.setColor({0.2, 0.1, 0, 1})
         end
         love.graphics.circle("fill", self.prospective.x, self.prospective.y, Branch.LINE_WIDTH / 2)
         love.graphics.polygon("fill",
