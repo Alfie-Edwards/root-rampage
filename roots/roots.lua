@@ -26,9 +26,11 @@ function Roots.new()
     obj.tree_spots = {}
     obj.terminals = {}
     obj.prospective = {
-        node = nil,
+        selection = nil,
         x = nil,
         y = nil,
+        dir_x = nil,
+        dir_y = nil,
         valid = nil,
         mouse_x = nil,
         mouse_y = nil,
@@ -139,7 +141,7 @@ end
 
 function Roots:mousepressed(x, y, button)
     if button == 1 then
-        self.selected = self:get_closest_node(x, y)
+        self.selected = self.prospective.selection
     end
 end
 
@@ -185,13 +187,15 @@ function Roots:update_prospective()
     local dy = self.prospective.mouse_y - self.prospective.selection.y
 
     if dx == 0 and dy == 0 then
-        self.prospective_point = nil
+        self.prospective = {}
         return
     end
 
     local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
-    self.prospective.x = self.prospective.selection.x + (dx * Roots.SPEED / dist)
-    self.prospective.y = self.prospective.selection.y + (dy * Roots.SPEED / dist)
+    self.prospective.dir_x = dx / dist
+    self.prospective.dir_y = dy / dist
+    self.prospective.x = self.prospective.selection.x + self.prospective.dir_x * Roots.SPEED
+    self.prospective.y = self.prospective.selection.y + self.prospective.dir_y * Roots.SPEED
 
     if dist < Roots.SPEED * 2 then
         self.prospective.valid = false
@@ -223,7 +227,7 @@ function Roots:update_prospective()
 
     self.prospective.message = nil
     if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
-        self.prospective.message = "Grow tree"
+        self.prospective.message = TreeSpot.TOOLTIP
     end
 
     if self.prospective.tree_spot == nil then
@@ -247,7 +251,7 @@ function Roots:update_prospective()
 
         self.prospective.message = nil
         if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
-            self.prospective.message = "Hack terminal"
+            self.prospective.message = Terminal.TOOLTIP
         end
     end
 end
@@ -287,12 +291,18 @@ function Roots:draw()
     end
 
     if self.prospective.selection ~= nil then
-        love.graphics.setLineWidth(Branch.LINE_WIDTH)
-        love.graphics.setLineStyle("smooth")
         love.graphics.setColor({0.4, 0.2, 0, 1})
-        local projected_x = self.prospective.selection.x + (self.prospective.x - self.prospective.selection.x) * 3 / Roots.SPEED
-        local projected_y = self.prospective.selection.y + (self.prospective.y - self.prospective.selection.y) * 3 / Roots.SPEED
-        love.graphics.circle("fill", projected_x, projected_y, 4)
+        love.graphics.circle("fill", self.prospective.x, self.prospective.y, Branch.LINE_WIDTH / 2)
+        love.graphics.polygon("fill",
+            self.prospective.selection.x - self.prospective.dir_y * Branch.LINE_WIDTH / 2,
+            self.prospective.selection.y + self.prospective.dir_x * Branch.LINE_WIDTH / 2,
+            self.prospective.selection.x - self.prospective.dir_x * Branch.LINE_WIDTH / 2,
+            self.prospective.selection.y - self.prospective.dir_y * Branch.LINE_WIDTH / 2,
+            self.prospective.selection.x + self.prospective.dir_y * Branch.LINE_WIDTH / 2,
+            self.prospective.selection.y - self.prospective.dir_x * Branch.LINE_WIDTH / 2,
+            self.prospective.x + self.prospective.dir_x * Branch.LINE_WIDTH * 2,
+            self.prospective.y + self.prospective.dir_y * Branch.LINE_WIDTH * 2
+        )
     end
 
     for _, tree_spot in ipairs(self.tree_spots) do
@@ -304,6 +314,7 @@ function Roots:draw()
     end
 
     if self.prospective.message ~= nil then
+        love.graphics.setColor({0.2, 0.2, 0.2, 1})
         draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 30, {0.2, 0.2, 0.2, 1})
     end
 

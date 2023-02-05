@@ -4,6 +4,7 @@ require "roots.node"
 Terminal = {
     RADIUS = 16,
     TIME = 5,
+    TOOLTIP = "Hack terminal",
 
     x = nil,
     y = nil,
@@ -34,6 +35,11 @@ end
 function Terminal:update(dt)
     if self.node ~= nil and self.node.is_dead then
         self.node = nil
+    end
+    if self.roots.prospective.selection ~= nil and
+           self.roots.prospective.message == nil and
+           (self.x - self.roots.prospective.mouse_x) ^ 2 + (self.y - self.roots.prospective.mouse_y) ^ 2 < Terminal.RADIUS ^ 2 then
+        self.roots.prospective.message = Terminal.TOOLTIP
     end
 end
 
