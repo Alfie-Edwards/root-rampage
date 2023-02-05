@@ -31,7 +31,7 @@ function Wincon:AxeManWins()
 end
 
 function Wincon:update(dt)
-    if self.hacking.progress >= Hacking.MAX then
+    if self.hacking:get_progress() >= Hacking.MAX then
         self:RootsWin()
     elseif #(self.roots.nodes) == 0 then
         self:AxeManWins()

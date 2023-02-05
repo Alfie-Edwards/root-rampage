@@ -2,7 +2,7 @@ require "utils"
 
 Hacking = {
     MAX = 100,
-    SPEED_MULTIPLIER = 0.5,
+    SPEED_MULTIPLIER = 0.85,
 
     roots = nil,
     door = nil,
@@ -22,7 +22,7 @@ function Hacking.new(roots, door)
     return obj
 end
 
-function Hacking:progress()
+function Hacking:get_progress()
     return math.min(Hacking.MAX, self.progress)
 end
 
@@ -50,6 +50,11 @@ function Hacking:draw()
     end
 
     if #hacked_terminals > 0 then
-        draw_text("Hacking doors...", self.door.x, self.door.y - 48, {1, 1, 1, 1}, {0, 0, 0, 0.4})
+        draw_text("Hacking door...", self.door.x, self.door.y - 48, {1, 1, 1, 1}, {0, 0, 0, 0.4})
+        love.graphics.setColor({0, 0, 0, 0.4})
+        love.graphics.rectangle("fill", self.door.x, self.door.y - 38, 90, 10)
+        love.graphics.setColor({1, 1, 1, 1})
+        love.graphics.setLineWidth(1)
+        love.graphics.rectangle("fill", self.door.x + 1, self.door.y - 37 + 1, 88 * self:get_progress() / Hacking.MAX, 6)
     end
 end
