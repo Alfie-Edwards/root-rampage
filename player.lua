@@ -4,9 +4,22 @@ require "utils"
 
 Direction = { LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3 }
 
+function sprite_set(tab)
+    local res = {}
+    for k, v in pairs(tab) do
+        if type(v) == "string" then
+            res[k] = love.graphics.newImage("assets/player/"..v)
+        elseif type(v) == "table" then
+            res[k] = sprite_set(v)
+        else
+            assert(false)
+        end
+    end
+    return res
+end
+
 Player = {
     -- config
-    img = love.graphics.newImage("assets/player.png"),
     size = 24,
     max_speed = 200,
     attack_radius = 12,
@@ -15,10 +28,26 @@ Player = {
 
     attack_duration = 0.25,  -- (just for temp effect)
 
+    -- sprites
+    sprite_sets = {
+        idle = sprite_set({
+            left = "PlayerleftIdle.png",
+            right = "PlayerrightIdle.png",
+            up = "PlayerbackIdle.png",
+            down = "PlayerfrontIdle.png",
+        }),
+        walk = sprite_set({
+            left = { "Player walk/Leftwalk1.png", "Player walk/Leftwalk2.png" },
+            right = { "Player walk/Rightwalk1.png", "Player walk/Rightwalk2.png" },
+            up = { "Player walk/Backwalk1.png", "Player walk/Backwalk2.png" },
+            down = { "Player walk/Frontwalk1.png", "Player walk/Frontwalk2.png" },
+        }),
+    },
+
     -- main state
     pos = { x = 0, y = 0 },
     speed = 0,
-    dir = Direction.UP,
+    dir = Direction.DOWN,
     attack_centre = nil,
 
     -- other bits of state
@@ -41,6 +70,34 @@ function Player.new()
     obj.time_of_prev_attack = -obj.attack_cooldown
 
     return obj
+end
+
+function Player:directional_sprite(set)
+    if self.dir == Direction.UP then
+        return set.up
+    elseif self.dir == Direction.DOWN then
+        return set.down
+    elseif self.dir == Direction.LEFT then
+        return set.left
+    elseif self.dir == Direction.RIGHT then
+        return set.right
+    end
+
+    return set.down
+end
+
+function Player:cycling_sprite(set, period)
+    local progress = (t % period) / period
+    local index = math.floor(progress * #set) + 1
+    return set[index]
+end
+
+function Player:sprite()
+    if self.speed ~= 0 then
+        return self:cycling_sprite(self:directional_sprite(self.sprite_sets.walk), 0.5)
+    end
+
+    return self:directional_sprite(self.sprite_sets.idle)
 end
 
 function Player:attack_centre()
@@ -173,6 +230,7 @@ end
 function Player:move(dt)
     local movement = self:get_movement()
     if movement.when == never then
+        self.speed = 0
         return
     end
 
@@ -184,29 +242,26 @@ function Player:move(dt)
     self.pos = moved(self.pos, vel)
 end
 
-function Player:orientation()
-    if self.dir == Direction.UP then
-        return 0
-    elseif self.dir == Direction.DOWN then
-        return math.pi
-    elseif self.dir == Direction.LEFT then
-        return math.pi * 1.5
-    elseif self.dir == Direction.RIGHT then
-        return math.pi * 0.5
-    end
-end
+-- function Player:orientation()
+--     if self.dir == Direction.UP then
+--         return 0
+--     elseif self.dir == Direction.DOWN then
+--         return math.pi
+--     elseif self.dir == Direction.LEFT then
+--         return math.pi * 1.5
+--     elseif self.dir == Direction.RIGHT then
+--         return math.pi * 0.5
+--     end
+-- end
 
 function Player:draw()
-    local orientation = self:orientation()
+    local sprite = self:sprite()
 
-    local x = player.pos.x
-    local y = player.pos.y
+    local ox = sprite:getWidth() / 2
+    local oy = sprite:getHeight() / 2
 
-    local ox = player.img:getWidth() / 2
-    local oy = player.img:getHeight() / 2
-
-    local sx = self.size / self.img:getWidth()
-    local sy = self.size / self.img:getHeight()
+    local sx = self.size / sprite:getWidth()
+    local sy = self.size / sprite:getHeight()
 
     -- draw attack
     if t - self.time_of_prev_attack < self.attack_duration then
@@ -217,6 +272,8 @@ function Player:draw()
     end
 
     -- draw player
+    local x = round(player.pos.x)
+    local y = round(player.pos.y)
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(player.img, x, y, orientation, sx, sy, ox, oy)
+    love.graphics.draw(sprite, x, y, 0, sx, sy, ox, oy)
 end
