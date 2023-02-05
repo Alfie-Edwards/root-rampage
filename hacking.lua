@@ -43,7 +43,7 @@ end
 function Hacking:draw()
     local hacked_terminals = self:get_hacked_terminals()
 
-    love.graphics.setColor({0, 0.4, 0.4, 0.2})
+    love.graphics.setColor({0.4, 0.8, 0.8, 0.2})
     love.graphics.setLineWidth(1)
     for _, terminal in ipairs(hacked_terminals) do
         love.graphics.line({terminal.x, terminal.y, self.door.x - 7, self.door.y - 22})
