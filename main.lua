@@ -31,7 +31,7 @@ function love.load()
 
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
-    font = love.graphics.newFont("assets/font.ttf", 16, "none")
+    font = love.graphics.newFont("assets/font.ttf", 8, "none")
     love.graphics.setFont(font)
     love.graphics.setLineJoin("bevel")
     love.graphics.setLineStyle("rough")

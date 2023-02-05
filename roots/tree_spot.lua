@@ -6,6 +6,7 @@ TreeSpot = {
     RADIUS = 16,
     TIME = 5,
     TOOLTIP = "Grow tree",
+    TOOLTIP2 = "Taking root...",
 
     SPRITES = {
         patch = sprite.make("patch of soil.png"),

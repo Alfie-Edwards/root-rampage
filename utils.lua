@@ -48,10 +48,16 @@ function round(num)
     return math.floor(num + 0.5)
 end
 
-function draw_centred_text(text, x, y, color)
-    color = color or {1, 1, 1}
+function draw_centred_text(text, x, y, color, bg_color)
+    local width = font:getWidth(text)
+    local height = font:getHeight()
     x = x - font:getWidth(text) / 2
-    love.graphics.print({color, text}, x, y)
+    if bg_color ~= nil then 
+        love.graphics.setColor(bg_color)
+        love.graphics.rectangle("fill", x-2, y-1, width+4, height+4)
+    end
+    love.graphics.setColor(color or {1, 1, 1})
+    love.graphics.print(text, x, y)
 end
 
 function reverse(x)

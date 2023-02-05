@@ -5,6 +5,8 @@ Terminal = {
     RADIUS = 16,
     TIME = 5,
     TOOLTIP = "Hack terminal",
+    TOOLTIP2 = "Gaining root access...",
+
 
     x = nil,
     y = nil,

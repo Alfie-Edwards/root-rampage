@@ -7,11 +7,13 @@ require "utils"
 Player = {
     -- config
     size = 24,
-    max_speed = 200,
+    max_speed = 150,
+    root_speed = 75,
     attack_radius = 12,
     attack_cooldown = 1,
     attack_centre_offset = 8,
     respawn_time = 3,
+    spawn_pos = {x = 50, y = 50},
 
     attack_duration = 0.25,
 
@@ -66,8 +68,7 @@ function Player.new()
     local obj = {}
     setup_instance(obj, Player)
 
-    obj.pos = { x = 50, y = 50 }
-    obj.time_of_prev_attack = -obj.attack_cooldown
+    obj:spawn()
 
     return obj
 end
@@ -165,6 +166,9 @@ function Player:get_movement()
     end
 
     most_recent.speed = self.max_speed
+    if #(roots:get_within_radius(self.pos.x, self.pos.y, self.size / 2)) > 0 then
+        most_recent.speed = self.root_speed
+    end
 
     return most_recent
 end
@@ -237,6 +241,8 @@ function Player:update(dt)
     if self.time_of_death == never then
         self:input()
         self:move(dt)
+    elseif (t - self.time_of_death) >= self.respawn_time then
+        self:spawn()
     end
 end
 
@@ -244,8 +250,10 @@ function Player:kill()
     self.time_of_death = t
 end
 
-function Player:respawn()
+function Player:spawn()
     self.time_of_death = never
+    self.pos = shallowcopy(Player.spawn_pos)
+    self.time_of_prev_attack = -self.attack_cooldown
 end
 
 function Player:draw()

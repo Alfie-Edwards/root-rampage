@@ -43,6 +43,5 @@ function Wincon:draw()
         return
     end
     love.graphics.clear({0, 0, 0, 1})
-    love.graphics.setColor({1, 1, 1, 1})
-    draw_centred_text(self.end_screen, canvas:width() / 2, canvas:height() / 2)
+    draw_centred_text(self.end_screen, canvas:width() / 2, canvas:height() / 2, {1, 1, 1, 1})
 end

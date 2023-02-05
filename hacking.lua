@@ -1,8 +1,8 @@
 require "utils"
 
 Hacking = {
-    MAX = 5,
-    SPEED_MULTIPLIER = 1,
+    MAX = 100,
+    SPEED_MULTIPLIER = 0.5,
 
     progress = nil,
 }

@@ -261,7 +261,11 @@ function Roots:update_prospective()
 
     self.prospective.message = nil
     if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
-        self.prospective.message = TreeSpot.TOOLTIP
+        if self.prospective.timer == nil then
+            self.prospective.message = TreeSpot.TOOLTIP
+        else
+            self.prospective.message = TreeSpot.TOOLTIP2
+        end
     end
 
     if self.prospective.tree_spot == nil then
@@ -285,7 +289,11 @@ function Roots:update_prospective()
 
         self.prospective.message = nil
         if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
-            self.prospective.message = Terminal.TOOLTIP
+            if self.prospective.timer == nil then
+                self.prospective.message = Terminal.TOOLTIP
+            else
+                self.prospective.message = Terminal.TOOLTIP2
+            end
         end
     end
 end
@@ -356,8 +364,7 @@ function Roots:draw()
     end
 
     if self.prospective.message ~= nil then
-        love.graphics.setColor({0.2, 0.2, 0.2, 1})
-        draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 30, {0.2, 0.2, 0.2, 1})
+        draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 20, {1, 1, 1, 1}, {0, 0, 0, 0.4})
     end
 
     if self.prospective.timer ~= nil then
