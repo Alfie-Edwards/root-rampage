@@ -34,7 +34,7 @@ function Door:open()
 end
 
 function Door:close()
-    if self.open then 
+    if self.open then
         self.t_anim = t
         self.open = false
     end
@@ -49,7 +49,6 @@ function Door:draw(dt)
         anim = 1 - anim
     end
     local angle = math.pi + math.pi / 2 * anim
-    print(anim)
 
     love.graphics.draw(Door.SPRITE, self.x, self.y, angle, 1, 1, 3, 2)
 end
