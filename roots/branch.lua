@@ -97,7 +97,6 @@ function Branch:draw()
         return
     end
 
-    love.graphics.setLineJoin("bevel")
     love.graphics.setColor(Branch.COLOR)
     love.graphics.setLineWidth(Branch.LINE_WIDTH)
     if self.base.is_dead then

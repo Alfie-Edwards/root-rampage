@@ -3,7 +3,7 @@ require "utils"
 require "roots.node"
 
 TreeSpot = {
-    RADIUS = 16,
+    RADIUS = 24,
     TIME = 5,
     TOOLTIP = "Grow tree",
     TOOLTIP2 = "Taking root...",

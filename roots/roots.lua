@@ -364,12 +364,14 @@ function Roots:draw()
     end
 
     if self.prospective.message ~= nil then
-        draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 20, {1, 1, 1, 1}, {0, 0, 0, 0.4})
+        draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 10, {1, 1, 1, 1}, {0, 0, 0, 0.4})
     end
 
     if self.prospective.timer ~= nil then
         local angle = math.min(1, (t - self.prospective.timer) / TreeSpot.TIME) * math.pi * 2
-        love.graphics.setColor({0.2, 0.2, 0.2, 1})
-        love.graphics.arc("fill", self.prospective.mouse_x, self.prospective.mouse_y, 10, -math.pi / 2, angle - math.pi / 2)
+        love.graphics.setColor({0, 0, 0, 0.4})
+        love.graphics.circle("fill", self.prospective.mouse_x, self.prospective.mouse_y + 20, 12)
+        love.graphics.setColor({1, 1, 1, 1})
+        love.graphics.arc("fill", self.prospective.mouse_x, self.prospective.mouse_y + 20, 10, -math.pi / 2, angle - math.pi / 2)
     end
 end

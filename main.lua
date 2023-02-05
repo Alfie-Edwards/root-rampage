@@ -4,6 +4,7 @@ require "pixelcanvas"
 require "level"
 require "player"
 require "time"
+require "door"
 require "roots.roots"
 require "roots.node"
 require "roots.tree_spot"
@@ -24,7 +25,9 @@ function love.load()
     roots:add_terminal(Terminal.new(150, 250))
 
     -- setup hacking
-    hacking = Hacking.new(roots)
+    door = Door.new(16 * 2, 16 * 15)
+    door:close()
+    hacking = Hacking.new(roots, door)
 
     -- setup win conditions
     wincon = Wincon.new(roots, hacking)
@@ -67,6 +70,8 @@ function love.draw()
     level:draw()
     roots:draw()
     player:draw()
+    door:draw()
+    hacking:draw()
     wincon:draw()
 
     canvas:draw()
