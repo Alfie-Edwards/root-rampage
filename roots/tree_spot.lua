@@ -52,7 +52,8 @@ function TreeSpot:update(dt)
         self.t_cut = never
     end
 
-    if self.roots.prospective.selection ~= nil and
+    if self.node == nil and
+           self.roots.prospective.selection ~= nil and
            self.roots.prospective.message == nil and
            (self.x - self.roots.prospective.mouse_x) ^ 2 + (self.y - self.roots.prospective.mouse_y) ^ 2 < TreeSpot.RADIUS ^ 2 then
         self.roots.prospective.message = TreeSpot.TOOLTIP
