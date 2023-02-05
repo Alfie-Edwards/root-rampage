@@ -47,6 +47,12 @@ Player = {
         }),
     },
 
+    sounds = {
+        swing = love.audio.newSource("assets/woosh.mp3", "static"),
+        hit = love.audio.newSource("assets/wooshsmack.mp3", "static"),
+        death = love.audio.newSource("assets/deathsouth.mp3", "static"),
+    },
+
     -- main state
     pos = { x = 0, y = 0 },
     speed = 0,
@@ -110,13 +116,21 @@ function Player:attack_centre()
 end
 
 function Player:attack()
-    if t - self.time_of_prev_attack > self.attack_cooldown then
-        self.time_of_prev_attack = t
+    if self:is_swinging() then
+        return
     end
+
+    self.sounds.swing:play()
+
+    self.time_of_prev_attack = t
 
     local atk_centre = self:attack_centre()
     local nodes_to_cut = roots:get_within_radius(atk_centre.x, atk_centre.y,
                                                  self.attack_radius)
+
+    if #nodes_to_cut > 0 then
+        self.sounds.hit:play()
+    end
 
     for _,node in ipairs(nodes_to_cut) do
         node:cut()
@@ -316,6 +330,7 @@ end
 
 function Player:kill()
     self.time_of_death = t
+    self.sounds.death:play()
 end
 
 function Player:spawn()
