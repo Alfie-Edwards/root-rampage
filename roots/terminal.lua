@@ -1,7 +1,7 @@
 require "utils"
 require "roots.node"
 
-TreeSpot = {
+Terminal = {
     RADIUS = 16,
     TIME = 5,
 
@@ -10,11 +10,11 @@ TreeSpot = {
     node = nil,
     roots = nil,
 }
-setup_class("TreeSpot")
+setup_class("Terminal")
 
-function TreeSpot.new(x, y)
+function Terminal.new(x, y)
     local obj = {}
-    setup_instance(obj, TreeSpot)
+    setup_instance(obj, Terminal)
     assert(x ~= nil)
     assert(y ~= nil)
 
@@ -24,25 +24,25 @@ function TreeSpot.new(x, y)
     return obj
 end
 
-function TreeSpot:create_node(parent)
+function Terminal:create_node(parent)
     assert(self.node == nil)
     self.node = Node.new(self.x, self.y, parent, self.roots)
-    self.node.is_tree = true
+    self.node.is_terminal = true
     return self.node
 end
 
-function TreeSpot:update(dt)
+function Terminal:update(dt)
     if self.node ~= nil and self.node.is_dead then
         self.node = nil
     end
 end
 
-function TreeSpot:draw()
+function Terminal:draw()
     love.graphics.setLineWidth(1)
-    love.graphics.setColor({0.2, 0.4, 0, 0.2})
-    love.graphics.circle("line", self.x, self.y, TreeSpot.RADIUS)
+    love.graphics.setColor({0.0, 0.2, 0.4, 0.2})
+    love.graphics.circle("line", self.x, self.y, Terminal.RADIUS)
     if self.node ~= nil then
-        love.graphics.setColor({0.2, 0.4, 0, 1})
-        love.graphics.circle("fill", self.x, self.y, TreeSpot.RADIUS * 0.5)
+        love.graphics.setColor({0, 0.2, 0.4, 1})
+        love.graphics.circle("fill", self.x, self.y, Terminal.RADIUS * 0.5)
     end
 end

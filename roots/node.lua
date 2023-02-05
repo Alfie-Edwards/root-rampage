@@ -5,30 +5,27 @@ Node = {
     parent = nil,
     children = nil,
     is_tree = nil,
+    is_terminal = nil,
     is_dead = nil,
     roots = nil,
     t_dead = nil,
 }
 setup_class("Node")
 
-function Node.new(x, y, parent, is_tree, roots)
+function Node.new(x, y, parent, roots)
     local obj = {}
     setup_instance(obj, Node)
 
     assert(roots ~= nil)
 
-    if is_tree == nil then
-        is_tree = false
-    end
-
     obj.x = x
     obj.y = y
     obj.children = {}
-    obj.is_tree = is_tree
+    obj.is_tree = false
+    obj.is_terminal = is_terminal
     obj.is_dead = false
 
     if parent == nil then
-        assert(is_tree)
         roots:add_branch(Branch.new(obj, 1))
     else
         parent:add_child(obj)

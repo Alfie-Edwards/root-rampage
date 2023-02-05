@@ -2,6 +2,7 @@ require "utils"
 require "time"
 require "roots.branch"
 require "roots.tree_spot"
+require "roots.terminal"
 require "roots.node"
 
 Roots = {
@@ -11,6 +12,7 @@ Roots = {
     branches = nil,
     selected = nil,
     tree_spots = nil,
+    terminals = nil,
     prospective = nil,
 }
 setup_class("Roots")
@@ -22,10 +24,12 @@ function Roots.new()
     obj.nodes = {}
     obj.branches = {}
     obj.tree_spots = {}
+    obj.terminals = {}
     obj.prospective = {
         node = nil,
         x = nil,
         y = nil,
+        valid = nil,
         mouse_x = nil,
         mouse_y = nil,
         tree_spot = nil,
@@ -49,6 +53,18 @@ function Roots:remove_tree_spot(tree_spot)
     remove_value(self.tree_spots, tree_spot)
 end
 
+function Roots:add_terminal(terminal)
+    assert(terminal ~= nil)
+    assert(terminal.roots == nil)
+    table.insert(self.terminals, terminal)
+    terminal.roots = self
+end
+
+function Roots:remove_terminal(terminal)
+    assert(terminal ~= nil)
+    assert(terminal.roots == self)
+    remove_value(self.terminals, terminal)
+end
 
 function Roots:add_branch(branch)
     assert(branch ~= nil)
@@ -142,15 +158,13 @@ function Roots:find_tree_spot(x, y)
     return nil
 end
 
-function Roots:is_valid_node_pos(x, y)
-    -- Crude distance test to prevent self-intersection
-    if self:get_closest_node(x, y) ~= self.selected then
-        return false
+function Roots:find_terminal(x, y)
+    for _, terminal in ipairs(self.terminals) do
+        if ((x - terminal.x) ^ 2 + (y - terminal.y) ^ 2) < Terminal.RADIUS ^ 2 then
+            return terminal
+        end
     end
-    if level:solid({x = x, y = y}) then
-        return false
-    end
-    return true
+    return nil
 end
 
 function Roots:update_prospective()
@@ -179,6 +193,16 @@ function Roots:update_prospective()
     self.prospective.x = self.prospective.selection.x + (dx * Roots.SPEED / dist)
     self.prospective.y = self.prospective.selection.y + (dy * Roots.SPEED / dist)
 
+    if dist < Roots.SPEED * 2 then
+        self.prospective.valid = false
+    elseif self:get_closest_node(self.prospective.x, self.prospective.y) ~= self.prospective.selection then
+        self.prospective.valid = false
+    elseif level:solid({x = self.prospective.x, y = self.prospective.y}) then
+        self.prospective.valid = false
+    else
+        self.prospective.valid = true
+    end
+
     local new_tree_spot = self:find_tree_spot(self.prospective.x, self.prospective.y)
     if new_tree_spot ~= self.prospective.tree_spot then
         if new_tree_spot == nil or new_tree_spot.node ~= nil then
@@ -199,7 +223,32 @@ function Roots:update_prospective()
 
     self.prospective.message = nil
     if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
-        self.prospective.message = "Grow Tree"
+        self.prospective.message = "Grow tree"
+    end
+
+    if self.prospective.tree_spot == nil then
+        local new_terminal = self:find_terminal(self.prospective.x, self.prospective.y)
+        if new_terminal ~= self.prospective.terminal then
+            if new_terminal == nil or new_terminal.node ~= nil then
+                self.prospective.timer = nil
+            else
+                self.prospective.timer = t
+            end
+        end
+        self.prospective.terminal = new_terminal
+        if self.prospective.terminal ~= nil then
+            if self.prospective.timer == nil and self.prospective.terminal.node == nil and self.selected ~= nil then
+                self.prospective.timer = t
+            end
+            if self.prospective.timer ~= nil and self.prospective.terminal.node ~= nil or self.selected == nil then
+                self.prospective.timer = nil
+            end
+        end
+
+        self.prospective.message = nil
+        if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
+            self.prospective.message = "Hack terminal"
+        end
     end
 end
 
@@ -207,13 +256,17 @@ function Roots:update(dt)
     self:update_prospective()
 
     if love.mouse.isDown(1) and self.selected ~= nil then
-        if self:is_valid_node_pos(self.prospective.x, self.prospective.y) then
+        if self.prospective.valid then
             if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
                 if (t - self.prospective.timer) > TreeSpot.TIME then
                     self.selected = self.prospective.tree_spot:create_node(self.selected)
                 end
+            elseif self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
+                if (t - self.prospective.timer) > Terminal.TIME then
+                    self.selected = self.prospective.terminal:create_node(self.selected)
+                end
             else
-                self.selected = Node.new(self.prospective.x, self.prospective.y, self.selected, false, self)
+                self.selected = Node.new(self.prospective.x, self.prospective.y, self.selected, self)
             end
         end
     end
@@ -222,6 +275,9 @@ function Roots:update(dt)
     end
     for _, tree_spot in ipairs(self.tree_spots) do
         tree_spot:update(dt)
+    end
+    for _, terminal in ipairs(self.terminals) do
+        terminal:update(dt)
     end
 end
 
@@ -241,6 +297,10 @@ function Roots:draw()
 
     for _, tree_spot in ipairs(self.tree_spots) do
         tree_spot:draw()
+    end
+
+    for _, terminal in ipairs(self.terminals) do
+        terminal:draw()
     end
 
     if self.prospective.message ~= nil then

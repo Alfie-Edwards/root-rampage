@@ -5,6 +5,7 @@ require "time"
 require "roots.roots"
 require "roots.node"
 require "roots.tree_spot"
+require "roots.terminal"
 
 
 function love.load()
@@ -16,6 +17,9 @@ function love.load()
     roots:add_tree_spot(TreeSpot.new(300, 230))
     roots:add_tree_spot(TreeSpot.new(500, 200))
     starting_tree_spot:create_node()
+
+    roots:add_terminal(Terminal.new(550, 100))
+    roots:add_terminal(Terminal.new(150, 250))
 
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
