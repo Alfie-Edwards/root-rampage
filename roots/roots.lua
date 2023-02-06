@@ -303,13 +303,19 @@ function Roots:update_prospective()
             end
         end
 
-        self.prospective.message = nil
         if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
             if self.prospective.timer == nil then
                 self.prospective.message = Terminal.TOOLTIP
             else
                 self.prospective.message = Terminal.TOOLTIP2
             end
+        end
+    end
+
+    if self.prospective.message == nil and door.is_open then
+        local door_pos = door:get_center()
+        if (self.prospective.mouse_x - door_pos.x) ^ 2 + (self.prospective.mouse_y - door_pos.y) ^ 2 < 32 ^ 2 then
+            self.prospective.message = Door.TOOLTIP
         end
     end
 end

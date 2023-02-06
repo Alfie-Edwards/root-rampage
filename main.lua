@@ -41,12 +41,12 @@ function love.load()
     roots:add_terminal(Terminal.new(26.5 * cs, 17 * cs))
 
     -- setup hacking
-    door = Door.new(16 * 2 - 3, 16 * 15 - 2)
+    door = Door.new(16 * 2, 16 * 12)
     door:close()
     hacking = Hacking.new(roots, door)
 
     -- setup win conditions
-    wincon = Wincon.new(roots, hacking)
+    wincon = Wincon.new(roots, door, hacking)
 
     -- setup game state
     player = Player.new()
@@ -56,6 +56,13 @@ end
 function love.mousepressed(x, y, button, istouch, presses)
     canvas_x, canvas_y = canvas:screen_to_canvas(x, y)
     roots:mousepressed(canvas_x, canvas_y, button)
+    if button == 3 then
+        if door.is_open then
+            door:close()
+        else
+            door:open()
+        end
+    end
 end
 
 function love.mousereleased(x, y, button, istouch, presses)
