@@ -312,10 +312,14 @@ function Roots:update_prospective()
         end
     end
 
-    if self.prospective.message == nil and door.is_open then
+    if self.prospective.message == nil then
         local door_pos = door:get_center()
         if (self.prospective.mouse_x - door_pos.x) ^ 2 + (self.prospective.mouse_y - door_pos.y) ^ 2 < 32 ^ 2 then
-            self.prospective.message = Door.TOOLTIP
+            if door.is_open then
+                self.prospective.message = Door.TOOLTIP_OPEN
+            else
+                self.prospective.message = Door.TOOLTIP_CLOSED
+            end
         end
     end
 end

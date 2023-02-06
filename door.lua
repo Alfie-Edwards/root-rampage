@@ -8,7 +8,8 @@ Door = {
     ORIGIN_Y = 45.5,
     WIDTH = 24,
     HEIGHT = 48,
-    TOOLTIP = "< Escape",
+    TOOLTIP_OPEN = "< Escape",
+    TOOLTIP_CLOSED = "Locked",
 
     x = nil,
     y = nil,
