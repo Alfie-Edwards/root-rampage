@@ -78,3 +78,11 @@ function reverse(x)
     end
     return rev
 end
+
+function list_to_set(t)
+    local result = {}
+    for _, v in ipairs(t) do
+        result[v] = true
+    end
+    return result
+end

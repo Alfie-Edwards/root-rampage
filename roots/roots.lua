@@ -7,15 +7,18 @@ require "roots.node"
 
 AttackState = {
     READY = 1,
-    ATTACKING = 2,
-    COOLDOWN = 3,
+    WINDUP = 2,
+    ATTACKING = 3,
+    COOLDOWN = 4,
 }
 
 Roots = {
     SPEED = 2,
     ATTACK_SPEED = 7,
-    ATTACK_TIME = 0.4,
-    ATTAK_CD = 2,
+    ATTACK_WINDUP_SPEED = 0.5,
+    ATTACK_WINDUP_TIME = 0.3,
+    ATTACK_TIME = 0.1,
+    ATTACK_CD = 4,
     KILL_RADIUS = 12,
 
     nodes = nil,
@@ -57,9 +60,11 @@ end
 function Roots:get_attack_state()
     if self.t_attack == nil then
         return AttackState.READY
-    elseif (t - self.t_attack) < Roots.ATTACK_TIME then
+    elseif (t - self.t_attack) < Roots.ATTACK_WINDUP_TIME then
+        return AttackState.WINDUP
+    elseif (t - self.t_attack) < (Roots.ATTACK_WINDUP_TIME + Roots.ATTACK_TIME) then
         return AttackState.ATTACKING
-    elseif (t - self.t_attack) < (Roots.ATTACK_TIME + Roots.ATTAK_CD) then
+    elseif (t - self.t_attack) < (Roots.ATTACK_WINDUP_TIME + Roots.ATTACK_TIME + Roots.ATTACK_CD) then
         return AttackState.COOLDOWN
     else
         return AttackState.READY
@@ -219,7 +224,10 @@ function Roots:update_prospective()
         return
     end
 
-    if self:get_attack_state() == AttackState.ATTACKING then
+    local atack_state = self:get_attack_state()
+    if atack_state == AttackState.WINDUP then
+        self.prospective.speed = Roots.ATTACK_WINDUP_SPEED
+    elseif atack_state == AttackState.ATTACKING then
         self.prospective.speed = Roots.ATTACK_SPEED
     else
         self.prospective.speed = Roots.SPEED
@@ -348,7 +356,8 @@ function Roots:draw()
     end
 
     if self.prospective.selection ~= nil then
-        if self:get_attack_state() == AttackState.ATTACKING then
+        local attacK_state = self:get_attack_state()
+        if attacK_state == AttackState.ATTACKING then
             love.graphics.setColor({0.4, 0.08, 0.02, 1})
         else
             love.graphics.setColor({0.2, 0.1, 0, 1})
