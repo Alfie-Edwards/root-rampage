@@ -41,7 +41,7 @@ function love.load()
     roots:add_terminal(Terminal.new(26.5 * cs, 17 * cs))
 
     -- setup hacking
-    door = Door.new(16 * 2, 16 * 12)
+    door = Door.new(2 * cs, 12 * cs)
     door:close()
     hacking = Hacking.new(roots, door)
 

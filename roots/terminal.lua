@@ -42,7 +42,7 @@ end
 
 function Terminal:create_node(parent)
     assert(self.node == nil)
-    self.node = Node.new(self.x, self.y, parent, self.roots)
+    self.node = Node.new(self.x - 19, self.y - 8, parent, self.roots)
     self.node.is_terminal = true
     return self.node
 end

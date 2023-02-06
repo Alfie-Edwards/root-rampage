@@ -188,7 +188,7 @@ end
 
 function Roots:find_tree_spot(x, y)
     for _, tree_spot in ipairs(self.tree_spots) do
-        if ((x - tree_spot.x) ^ 2 + (y - tree_spot.y) ^ 2) < TreeSpot.RADIUS ^ 2 then
+        if tree_spot.node == nil and ((x - tree_spot.x) ^ 2 + (y - tree_spot.y) ^ 2) < TreeSpot.RADIUS ^ 2 then
             return tree_spot
         end
     end
@@ -197,7 +197,7 @@ end
 
 function Roots:find_terminal(x, y)
     for _, terminal in ipairs(self.terminals) do
-        if ((x - terminal.x) ^ 2 + (y - terminal.y) ^ 2) < Terminal.RADIUS ^ 2 then
+        if terminal.node == nil and ((x - terminal.x) ^ 2 + (y - terminal.y) ^ 2) < Terminal.RADIUS ^ 2 then
             return terminal
         end
     end
@@ -207,7 +207,7 @@ end
 function Roots:update_prospective()
     self.prospective.mouse_x, self.prospective.mouse_y = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
 
-    if self.selected ~= nil then
+    if self.selected ~= nil and self.prospective.timer == nil then
         self.prospective.selection = self.selected
     else
         self.prospective.selection = self:get_closest_node(self.prospective.mouse_x, self.prospective.mouse_y)
@@ -215,12 +215,6 @@ function Roots:update_prospective()
 
     if self.prospective.selection == nil then
         self.prospective = {}
-        return
-    end
-
-    if self.selected ~= nil and not self.prospective.selection.is_dead and self.prospective.timer ~= nil and
-        ((self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil) or
-         (self.prospective.terminal ~= nil and self.prospective.terminal.node == nil)) then
         return
     end
 
@@ -257,20 +251,21 @@ function Roots:update_prospective()
         self.prospective.valid = true
     end
 
-    local new_tree_spot = self:find_tree_spot(self.prospective.x, self.prospective.y)
-    if new_tree_spot ~= self.prospective.tree_spot then
-        if new_tree_spot == nil or new_tree_spot.node ~= nil then
-            self.prospective.timer = nil
+    if self.prospective.timer == nil then
+        self.prospective.tree_spot = self:find_tree_spot(self.prospective.x, self.prospective.y)
+        if self.prospective.tree_spot ~= nil then
+            self.prospective.timer = t
         else
-            self.prospective.timer = t
+            self.prospective.terminal = self:find_terminal(self.prospective.x, self.prospective.y)
+            if self.prospective.terminal ~= nil then
+                self.prospective.timer = t
+            end
         end
-    end
-    self.prospective.tree_spot = new_tree_spot
-    if self.prospective.tree_spot ~= nil then
-        if self.prospective.timer == nil and self.prospective.tree_spot.node == nil and self.selected ~= nil then
-            self.prospective.timer = t
+    else
+        if self.prospective.tree_spot ~= nil and (self.prospective.tree_spot.node ~= nil or self.selected == nil) then
+            self.prospective.timer = nil
         end
-        if self.prospective.timer ~= nil and self.prospective.tree_spot.node ~= nil or self.selected == nil then
+        if self.prospective.terminal ~= nil and (self.prospective.terminal.node ~= nil or self.selected == nil) then
             self.prospective.timer = nil
         end
     end
@@ -284,25 +279,7 @@ function Roots:update_prospective()
         end
     end
 
-    if self.prospective.tree_spot == nil then
-        local new_terminal = self:find_terminal(self.prospective.x, self.prospective.y)
-        if new_terminal ~= self.prospective.terminal then
-            if new_terminal == nil or new_terminal.node ~= nil then
-                self.prospective.timer = nil
-            else
-                self.prospective.timer = t
-            end
-        end
-        self.prospective.terminal = new_terminal
-        if self.prospective.terminal ~= nil then
-            if self.prospective.timer == nil and self.prospective.terminal.node == nil and self.selected ~= nil then
-                self.prospective.timer = t
-            end
-            if self.prospective.timer ~= nil and self.prospective.terminal.node ~= nil or self.selected == nil then
-                self.prospective.timer = nil
-            end
-        end
-
+    if self.prospective.message == nil then
         if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
             if self.prospective.timer == nil then
                 self.prospective.message = Terminal.TOOLTIP
@@ -334,14 +311,14 @@ function Roots:update(dt)
         if self.prospective.valid then
             if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
                 if (t - self.prospective.timer) > TreeSpot.TIME then
-                    self.selected = self.prospective.tree_spot:create_node(self.selected)
+                    self.prospective.tree_spot:create_node(self.selected)
                 end
             elseif self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
                 if (t - self.prospective.timer) > Terminal.TIME then
-                    self.selected = self.prospective.terminal:create_node(self.selected)
+                    self.prospective.terminal:create_node(self.selected)
                 end
             else
-                self.selected = Node.new(self.prospective.x, self.prospective.y, self.selected, self)
+                self.selected = Node.new(self.prospective.x, self.prospective.y, self.prospective.selection, self)
             end
         end
         if self:get_attack_state() == AttackState.ATTACKING and
@@ -366,35 +343,49 @@ function Roots:draw()
     end
 
     if self.prospective.selection ~= nil then
-        local attacK_state = self:get_attack_state()
-        if attacK_state == AttackState.ATTACKING then
-            love.graphics.setColor({0.4, 0.08, 0.02, 1})
-        else
-            love.graphics.setColor({0.2, 0.1, 0, 1})
+        local attack_state = self:get_attack_state()
+        local color = nil
+        if attack_state == AttackState.ATTACKING then
+            color = {0.4, 0.08, 0.02, 1}
         end
-        love.graphics.circle("fill", self.prospective.x, self.prospective.y, Branch.LINE_WIDTH / 2)
-        love.graphics.polygon("fill",
-            self.prospective.selection.x - self.prospective.dir_y * Branch.LINE_WIDTH / 2,
-            self.prospective.selection.y + self.prospective.dir_x * Branch.LINE_WIDTH / 2,
-            self.prospective.selection.x - self.prospective.dir_x * Branch.LINE_WIDTH / 2,
-            self.prospective.selection.y - self.prospective.dir_y * Branch.LINE_WIDTH / 2,
-            self.prospective.selection.x + self.prospective.dir_y * Branch.LINE_WIDTH / 2,
-            self.prospective.selection.y - self.prospective.dir_x * Branch.LINE_WIDTH / 2,
-            self.prospective.x + self.prospective.dir_x * Branch.LINE_WIDTH * 2,
-            self.prospective.y + self.prospective.dir_y * Branch.LINE_WIDTH * 2
-        )
+        Branch.draw_spike(
+            self.prospective.selection.x,
+            self.prospective.selection.y,
+            self.prospective.dir_x,
+            self.prospective.dir_y,
+            self.prospective.speed, color)
     end
 
-    if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
-        love.graphics.setColor({0, 0, 0, 0.4})
-        love.graphics.setLineWidth(1)
-        love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.tree_spot.x, self.prospective.tree_spot.y})
-    end
+    if self.prospective.timer ~= nil and self.selected ~= nil then
+        if self.prospective.tree_spot ~= nil then
+            love.graphics.setColor({0, 0, 0, 0.4})
+            love.graphics.setLineWidth(1)
+            love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.tree_spot.x, self.prospective.tree_spot.y})
+            local dx = (self.prospective.tree_spot.x - self.selected.x)
+            local dy = (self.prospective.tree_spot.y - self.selected.y)
+            local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
+            Branch.draw_spike(
+                self.selected.x,
+                self.selected.y,
+                dx / dist,
+                dy / dist,
+                Roots.SPEED)
+        end
 
-    if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
-        love.graphics.setColor({0, 0, 0, 0.4})
-        love.graphics.setLineWidth(1)
-        love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.terminal.x, self.prospective.terminal.y})
+        if self.prospective.terminal ~= nil then
+            love.graphics.setColor({0, 0, 0, 0.4})
+            love.graphics.setLineWidth(1)
+            love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.terminal.x, self.prospective.terminal.y})
+            local dx = (self.prospective.terminal.x - self.selected.x)
+            local dy = (self.prospective.terminal.y - self.selected.y)
+            local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
+            Branch.draw_spike(
+                self.selected.x,
+                self.selected.y,
+                dx / dist,
+                dy / dist,
+                Roots.SPEED)
+        end
     end
 
     for _, tree_spot in ipairs(self.tree_spots) do

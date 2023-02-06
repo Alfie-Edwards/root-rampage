@@ -92,6 +92,21 @@ function Branch:update(dt)
     end
 end
 
+function Branch.draw_spike(x, y, dir_x, dir_y, extension, color)
+    love.graphics.setColor(color or Branch.COLOR)
+    love.graphics.circle("fill", x, y, Branch.LINE_WIDTH / 2)
+    love.graphics.polygon("fill",
+        x - dir_y * Branch.LINE_WIDTH / 2,
+        y + dir_x * Branch.LINE_WIDTH / 2,
+        x - dir_x * Branch.LINE_WIDTH / 2,
+        y - dir_y * Branch.LINE_WIDTH / 2,
+        x + dir_y * Branch.LINE_WIDTH / 2,
+        y - dir_x * Branch.LINE_WIDTH / 2,
+        x + dir_x * (extension + Branch.LINE_WIDTH * 2),
+        y + dir_y * (extension + Branch.LINE_WIDTH * 2)
+    )
+end
+
 function Branch:draw()
     if self.length <= 1 then
         return
