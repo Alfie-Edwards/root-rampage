@@ -54,8 +54,8 @@ function love.load()
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
-    canvas_x, canvas_y = canvas:screen_to_canvas(x, y)
-    roots:mousepressed(canvas_x, canvas_y, button)
+    canvas_pos = canvas:screen_to_canvas(x, y)
+    roots:mousepressed(canvas_pos.x, canvas_pos.x, button)
     if button == 3 then
         if door.is_open then
             door:close()

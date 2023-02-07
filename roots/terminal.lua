@@ -78,10 +78,10 @@ function Terminal:update(dt)
         self.t_cut = never
     end
     if self.node == nil and
-           self.roots.prospective.selection ~= nil and
-           self.roots.prospective.message == nil and
-           (self.x - self.roots.prospective.mouse_x) ^ 2 + (self.y - self.roots.prospective.mouse_y) ^ 2 < Terminal.RADIUS ^ 2 then
-        self.roots.prospective.message = Terminal.TOOLTIP
+           self.roots.state.grow_node ~= nil and
+           self.roots.state.message == nil and
+           sq_dist(self.x, self.y, self.roots.state.mouse_pos.x, self.roots.state.mouse_pos.y) < Terminal.RADIUS ^ 2 then
+        self.roots.state.message = Terminal.TOOLTIP
     end
 end
 

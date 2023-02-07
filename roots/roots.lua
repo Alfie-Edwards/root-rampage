@@ -26,7 +26,7 @@ Roots = {
     selected = nil,
     tree_spots = nil,
     terminals = nil,
-    prospective = nil,
+    state = nil,
     t_attack = nil,
 }
 setup_class("Roots")
@@ -39,15 +39,12 @@ function Roots.new()
     obj.branches = {}
     obj.tree_spots = {}
     obj.terminals = {}
-    obj.prospective = {
-        selection = nil,
-        x = nil,
-        y = nil,
-        dir_x = nil,
-        dir_y = nil,
+    obj.state = {
+        selected = nil,
+        grow_node = nil,
+        new_pos = nil,
+        mouse_pos = nil,
         valid = nil,
-        mouse_x = nil,
-        mouse_y = nil,
         speed = nil,
         tree_spot = nil,
         timer = nil,
@@ -146,7 +143,7 @@ function Roots:get_within_radius(x, y, radius)
     local res = {}
     for _, node in ipairs(self.nodes) do
         if not node.is_dead then
-            local dist = (x - node.x) ^ 2 + (y - node.y) ^ 2
+            local dist = sq_dist(x, y, node.x, node.y)
             if dist < radius ^ 2 then
                 table.insert(res, node)
             end
@@ -160,7 +157,7 @@ function Roots:get_closest_node(x, y)
     local dist = nil
     for _, node in ipairs(self.nodes) do
         if not node.is_dead then
-            local new_dist = ((x - node.x) ^ 2 + (y - node.y) ^ 2) ^ (1 / 2)
+            local new_dist = sq_dist(x, y, node.x, node.y)
             if dist == nil or new_dist < dist then
                 closest = node
                 dist = new_dist
@@ -172,7 +169,7 @@ end
 
 function Roots:mousepressed(x, y, button)
     if button == 1 then
-        self.selected = self.prospective.selection
+        self.state.selected = self.state.grow_node
     elseif button == 2 then
         if self:get_attack_state() == AttackState.READY and love.mouse.isDown(1) then
             self.t_attack = t
@@ -182,13 +179,13 @@ end
 
 function Roots:mousereleased(x, y, button)
     if button == 1 then
-        self.selected = nil
+        self.state.selected = nil
     end
 end
 
 function Roots:find_tree_spot(x, y)
     for _, tree_spot in ipairs(self.tree_spots) do
-        if tree_spot.node == nil and ((x - tree_spot.x) ^ 2 + (y - tree_spot.y) ^ 2) < TreeSpot.RADIUS ^ 2 then
+        if tree_spot.node == nil and sq_dist(x, y, tree_spot.x, tree_spot.y) < TreeSpot.RADIUS ^ 2 then
             return tree_spot
         end
     end
@@ -197,132 +194,130 @@ end
 
 function Roots:find_terminal(x, y)
     for _, terminal in ipairs(self.terminals) do
-        if terminal.node == nil and ((x - terminal.x) ^ 2 + (y - terminal.y) ^ 2) < Terminal.RADIUS ^ 2 then
+        if terminal.node == nil and sq_dist(x, y, terminal.x, terminal.y) < Terminal.RADIUS ^ 2 then
             return terminal
         end
     end
     return nil
 end
 
-function Roots:update_prospective()
-    self.prospective.mouse_x, self.prospective.mouse_y = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
+function Roots:update_state()
+    local state = self.state
+    state.mouse_pos = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
 
-    if self.selected ~= nil and self.prospective.timer == nil then
-        self.prospective.selection = self.selected
+    if state.selected ~= nil and state.timer == nil then
+        state.grow_node = state.selected
     else
-        self.prospective.selection = self:get_closest_node(self.prospective.mouse_x, self.prospective.mouse_y)
+        state.grow_node = self:get_closest_node(state.mouse_pos.x, state.mouse_pos.y)
     end
 
-    if self.prospective.selection == nil then
-        self.prospective = {}
+    if state.grow_node == nil then
+        self.state = {}
         return
     end
 
     local atack_state = self:get_attack_state()
     if atack_state == AttackState.WINDUP then
-        self.prospective.speed = Roots.ATTACK_WINDUP_SPEED
+        state.speed = Roots.ATTACK_WINDUP_SPEED
     elseif atack_state == AttackState.ATTACKING then
-        self.prospective.speed = Roots.ATTACK_SPEED
+        state.speed = Roots.ATTACK_SPEED
     else
-        self.prospective.speed = Roots.SPEED
+        state.speed = Roots.SPEED
     end
 
-    local dx = self.prospective.mouse_x - self.prospective.selection.x
-    local dy = self.prospective.mouse_y - self.prospective.selection.y
+    local v = Vector.new(state.grow_node.x, state.grow_node.y,
+                         state.mouse_pos.x, state.mouse_pos.y)
 
-    if dx == 0 and dy == 0 then
-        self.prospective = {}
+    if v:length() == 0 then
+        self.state = {}
         return
     end
 
-    local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
-    self.prospective.dir_x = dx / dist
-    self.prospective.dir_y = dy / dist
-    self.prospective.x = self.prospective.selection.x + self.prospective.dir_x * self.prospective.speed
-    self.prospective.y = self.prospective.selection.y + self.prospective.dir_y * self.prospective.speed
+    state.new_pos = {x = state.grow_node.x + v:direction_x() * state.speed,
+                     y = state.grow_node.y + v:direction_y() * state.speed}
 
-    if dist < self.prospective.speed then
-        self.prospective.valid = false
-    elseif self:get_closest_node(self.prospective.x, self.prospective.y) ~= self.prospective.selection then
-        self.prospective.valid = false
-    elseif level:solid({x = self.prospective.x, y = self.prospective.y}) then
-        self.prospective.valid = false
+    if v:length() < state.speed then
+        state.valid = false
+    elseif self:get_closest_node(state.new_pos.x, state.new_pos.y) ~= state.grow_node then
+        state.valid = false
+    elseif level:solid(state.new_pos) then
+        state.valid = false
     else
-        self.prospective.valid = true
+        state.valid = true
     end
 
-    if self.prospective.timer == nil then
-        self.prospective.tree_spot = self:find_tree_spot(self.prospective.x, self.prospective.y)
-        if self.prospective.tree_spot ~= nil then
-            self.prospective.timer = t
+    if state.timer == nil then
+        state.tree_spot = self:find_tree_spot(state.new_pos.x, state.new_pos.y)
+        if state.tree_spot ~= nil then
+            state.timer = t
         else
-            self.prospective.terminal = self:find_terminal(self.prospective.x, self.prospective.y)
-            if self.prospective.terminal ~= nil then
-                self.prospective.timer = t
+            state.terminal = self:find_terminal(state.new_pos.x, state.new_pos.y)
+            if state.terminal ~= nil then
+                state.timer = t
             end
         end
     else
-        if self.prospective.tree_spot ~= nil and (self.prospective.tree_spot.node ~= nil or self.selected == nil) then
-            self.prospective.timer = nil
+        if state.tree_spot ~= nil and (state.tree_spot.node ~= nil or state.selected == nil) then
+            state.timer = nil
         end
-        if self.prospective.terminal ~= nil and (self.prospective.terminal.node ~= nil or self.selected == nil) then
-            self.prospective.timer = nil
+        if state.terminal ~= nil and (state.terminal.node ~= nil or state.selected == nil) then
+            state.timer = nil
         end
     end
 
-    self.prospective.message = nil
-    if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
-        if self.prospective.timer == nil then
-            self.prospective.message = TreeSpot.TOOLTIP
+    state.message = nil
+    if state.tree_spot ~= nil and state.tree_spot.node == nil then
+        if state.timer == nil then
+            state.message = TreeSpot.TOOLTIP
         else
-            self.prospective.message = TreeSpot.TOOLTIP2
+            state.message = TreeSpot.TOOLTIP2
         end
     end
 
-    if self.prospective.message == nil then
-        if self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
-            if self.prospective.timer == nil then
-                self.prospective.message = Terminal.TOOLTIP
+    if state.message == nil then
+        if state.terminal ~= nil and state.terminal.node == nil then
+            if state.timer == nil then
+                state.message = Terminal.TOOLTIP
             else
-                self.prospective.message = Terminal.TOOLTIP2
+                state.message = Terminal.TOOLTIP2
             end
         end
     end
 
-    if self.prospective.message == nil then
+    if state.message == nil then
         local door_pos = door:get_center()
-        if (self.prospective.mouse_x - door_pos.x) ^ 2 + (self.prospective.mouse_y - door_pos.y) ^ 2 < 32 ^ 2 then
+        if sq_dist(state.mouse_pos.x, state.mouse_pos.y, door_pos.x, door_pos.y) < 32 ^ 2 then
             if door.is_open then
-                self.prospective.message = Door.TOOLTIP_OPEN
+                state.message = Door.TOOLTIP_OPEN
             else
-                self.prospective.message = Door.TOOLTIP_CLOSED
+                state.message = Door.TOOLTIP_CLOSED
             end
         end
     end
 end
 
 function Roots:update(dt)
-    if self.selected ~= nil and self.selected.is_dead then
-        self.selected  = nil
+    if self.state.selected ~= nil and self.state.selected.is_dead then
+        self.state.selected  = nil
     end
-    self:update_prospective()
+    self:update_state()
 
-    if love.mouse.isDown(1) and self.selected ~= nil then
-        if self.prospective.valid then
-            if self.prospective.tree_spot ~= nil and self.prospective.tree_spot.node == nil then
-                if (t - self.prospective.timer) > TreeSpot.TIME then
-                    self.prospective.tree_spot:create_node(self.selected)
+    if love.mouse.isDown(1) and self.state.selected ~= nil then
+        if self.state.valid then
+            if self.state.tree_spot ~= nil and self.state.tree_spot.node == nil then
+                if (t - self.state.timer) > TreeSpot.TIME then
+                    self.state.tree_spot:create_node(self.state.selected)
                 end
-            elseif self.prospective.terminal ~= nil and self.prospective.terminal.node == nil then
-                if (t - self.prospective.timer) > Terminal.TIME then
-                    self.prospective.terminal:create_node(self.selected)
+            elseif self.state.terminal ~= nil and self.state.terminal.node == nil then
+                if (t - self.state.timer) > Terminal.TIME then
+                    self.state.terminal:create_node(self.state.selected)
                 end
             else
-                self.selected = Node.new(self.prospective.x, self.prospective.y, self.prospective.selection, self)
+                self.state.selected = Node.new(self.state.new_pos.x, self.state.new_pos.y, self.state.grow_node, self)
             end
         end
         if self:get_attack_state() == AttackState.ATTACKING and
-                (player.pos.x - self.selected.x) ^ 2 + (player.pos.y - self.selected.y) ^ 2 < Roots.KILL_RADIUS ^ 2 then
+                sq_dist(player.pos.x, player.pos.y, self.state.selected.x, self.state.selected.y) < Roots.KILL_RADIUS ^ 2 then
             player:kill()
         end
     end
@@ -342,48 +337,50 @@ function Roots:draw()
         branch:draw()
     end
 
-    if self.prospective.selection ~= nil then
+    if self.state.grow_node ~= nil then
         local attack_state = self:get_attack_state()
         local color = nil
         if attack_state == AttackState.ATTACKING then
             color = {0.4, 0.08, 0.02, 1}
         end
+        local v = Vector.new(self.state.grow_node.x, self.state.grow_node.y,
+                             self.state.new_pos.x, self.state.new_pos.y)
         Branch.draw_spike(
-            self.prospective.selection.x,
-            self.prospective.selection.y,
-            self.prospective.dir_x,
-            self.prospective.dir_y,
-            self.prospective.speed, color)
+            self.state.grow_node.x,
+            self.state.grow_node.y,
+            v:direction_x(),
+            v:direction_y(),
+            self.state.speed, color)
     end
 
-    if self.prospective.timer ~= nil and self.selected ~= nil then
-        if self.prospective.tree_spot ~= nil then
+    if self.state.timer ~= nil and self.state.selected ~= nil then
+        if self.state.tree_spot ~= nil then
             love.graphics.setColor({0, 0, 0, 0.4})
             love.graphics.setLineWidth(1)
-            love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.tree_spot.x, self.prospective.tree_spot.y})
-            local dx = (self.prospective.tree_spot.x - self.selected.x)
-            local dy = (self.prospective.tree_spot.y - self.selected.y)
-            local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
+            love.graphics.line({self.state.mouse_pos.x, self.state.mouse_pos.y + 20,
+                                self.state.tree_spot.x, self.state.tree_spot.y})
+            local v = Vector.new(self.state.selected.x, self.state.selected.y,
+                                 self.state.tree_spot.x, self.state.tree_spot.y)
             Branch.draw_spike(
-                self.selected.x,
-                self.selected.y,
-                dx / dist,
-                dy / dist,
+                self.state.selected.x,
+                self.state.selected.y,
+                v:direction_x(),
+                v:direction_y(),
                 Roots.SPEED)
         end
 
-        if self.prospective.terminal ~= nil then
+        if self.state.terminal ~= nil then
             love.graphics.setColor({0, 0, 0, 0.4})
             love.graphics.setLineWidth(1)
-            love.graphics.line({self.prospective.mouse_x, self.prospective.mouse_y + 20, self.prospective.terminal.x, self.prospective.terminal.y})
-            local dx = (self.prospective.terminal.x - self.selected.x)
-            local dy = (self.prospective.terminal.y - self.selected.y)
-            local dist = (dx ^ 2 + dy ^ 2) ^ (1 / 2)
+            love.graphics.line({self.state.mouse_pos.x, self.state.mouse_pos.y + 20,
+                                self.state.terminal.x, self.state.terminal.y})
+            local v = Vector.new(self.state.selected.x, self.state.selected.y,
+                                 self.state.terminal.x, self.state.terminal.y)
             Branch.draw_spike(
-                self.selected.x,
-                self.selected.y,
-                dx / dist,
-                dy / dist,
+                self.state.selected.x,
+                self.state.selected.y,
+                v:direction_x(),
+                v:direction_y(),
                 Roots.SPEED)
         end
     end
@@ -396,15 +393,15 @@ function Roots:draw()
         terminal:draw()
     end
 
-    if self.prospective.message ~= nil then
-        draw_centred_text(self.prospective.message, self.prospective.mouse_x, self.prospective.mouse_y - 10, {1, 1, 1, 1}, {0, 0, 0, 0.4})
+    if self.state.message ~= nil then
+        draw_centred_text(self.state.message, self.state.mouse_pos.x, self.state.mouse_pos.y - 10, {1, 1, 1, 1}, {0, 0, 0, 0.4})
     end
 
-    if self.prospective.timer ~= nil then
-        local angle = math.min(1, (t - self.prospective.timer) / TreeSpot.TIME) * math.pi * 2
+    if self.state.timer ~= nil then
+        local angle = math.min(1, (t - self.state.timer) / TreeSpot.TIME) * math.pi * 2
         love.graphics.setColor({0, 0, 0, 0.4})
-        love.graphics.circle("fill", self.prospective.mouse_x, self.prospective.mouse_y + 20, 12)
+        love.graphics.circle("fill", self.state.mouse_pos.x, self.state.mouse_pos.y + 20, 12)
         love.graphics.setColor({1, 1, 1, 1})
-        love.graphics.arc("fill", self.prospective.mouse_x, self.prospective.mouse_y + 20, 10, -math.pi / 2, angle - math.pi / 2)
+        love.graphics.arc("fill", self.state.mouse_pos.x, self.state.mouse_pos.y + 20, 10, -math.pi / 2, angle - math.pi / 2)
     end
 end
