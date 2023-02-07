@@ -41,6 +41,10 @@ function Hacking:update(dt)
 end
 
 function Hacking:draw()
+    if self:get_progress() == Hacking.MAX then
+        return
+    end
+
     local hacked_terminals = self:get_hacked_terminals()
 
     love.graphics.setColor({0.4, 0.8, 0.8, 0.2})
