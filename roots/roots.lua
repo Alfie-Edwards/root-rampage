@@ -170,10 +170,6 @@ end
 function Roots:mousepressed(x, y, button)
     if button == 1 then
         self.state.selected = self.state.grow_node
-    elseif button == 2 then
-        if self:get_attack_state() == AttackState.READY and love.mouse.isDown(1) then
-            self.t_attack = t
-        end
     end
 end
 
@@ -203,7 +199,20 @@ end
 
 function Roots:update_state()
     local state = self.state
+    local attack_state = self:get_attack_state()
+
     state.mouse_pos = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
+
+    if love.mouse.isDown(2) and attack_state == AttackState.READY and self.state.timer == nil then
+        self.t_attack = t
+        attack_state = self:get_attack_state()
+        if state.selected == nil then
+            state.selected = self:get_closest_node(state.mouse_pos.x, state.mouse_pos.y)
+        end
+    elseif state.selected ~= nil and not love.mouse.isDown(1) and
+            attack_state ~= AttackState.WINDUP and attack_state ~= AttackState.ATTACKING then
+        state.selected = nil
+    end
 
     if state.selected ~= nil and state.timer == nil then
         state.grow_node = state.selected
@@ -216,10 +225,9 @@ function Roots:update_state()
         return
     end
 
-    local atack_state = self:get_attack_state()
-    if atack_state == AttackState.WINDUP then
+    if attack_state == AttackState.WINDUP then
         state.speed = Roots.ATTACK_WINDUP_SPEED
-    elseif atack_state == AttackState.ATTACKING then
+    elseif attack_state == AttackState.ATTACKING then
         state.speed = Roots.ATTACK_SPEED
     else
         state.speed = Roots.SPEED
@@ -302,7 +310,7 @@ function Roots:update(dt)
     end
     self:update_state()
 
-    if love.mouse.isDown(1) and self.state.selected ~= nil then
+    if self.state.selected ~= nil then
         if self.state.valid then
             if self.state.tree_spot ~= nil and self.state.tree_spot.node == nil then
                 if (t - self.state.timer) > TreeSpot.TIME then
