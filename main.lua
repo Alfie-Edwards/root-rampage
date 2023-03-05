@@ -49,7 +49,7 @@ function love.load()
     wincon = Wincon.new(roots, door, hacking)
 
     -- setup game state
-    player = Player.new()
+    player = Player.new({ x = 50, y = 50 })
     timers = {}
 end
 
