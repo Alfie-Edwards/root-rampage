@@ -8,15 +8,15 @@ Player = {
     -- config
     sprite_size = 24,
     size = 18,
-    max_speed = 80,
+    max_speed = 160,
     acceleration_time = 0.2,
-    root_speed = 40,
+    root_speed = 80,
     attack_radius = 12,
     attack_cooldown = 1,
     attack_centre_offset = 8,
     respawn_time = 3,
-    spawn_pos = {x = 50, y = 50},
 
+    spawn_pos = {x = 50, y = 50},
     attack_duration = 0.25,
 
     -- sprites
@@ -72,9 +72,13 @@ Player = {
 }
 setup_class("Player")
 
-function Player.new()
+function Player.new(pos)
     local obj = {}
     setup_instance(obj, Player)
+
+    if pos ~= nil then
+        obj.spawn_pos = pos
+    end
 
     obj:spawn()
 
@@ -223,7 +227,7 @@ function Player:collision_x()
     local curr_bounds = self:bounds()
     local next_bounds = self:bounds(next_pos)
 
-    local vel_x_adjustment = vel.x
+    local vel_x_adjustment = 0
 
     -- check player's left edge (right edge of obstacle)
     local curr_left_cell_x, top_cell_y    = level:cell(curr_bounds.left, next_bounds.top)
@@ -248,7 +252,7 @@ function Player:collision_x()
 
         if level:solid({x = next_bounds.right, y = vert_y}) then
             local intersection_x,_ = level:position_in_cell(next_bounds.right, vert_y)
-            vel_x_adjustment = - (intersection_x + 1)
+            vel_x_adjustment = - (intersection_x + 1)  -- +1 puts you just outside the solid cell
             break
         end
     end
@@ -264,7 +268,7 @@ function Player:collision_y()
     local curr_bounds = self:bounds()
     local next_bounds = self:bounds(next_pos)
 
-    local vel_y_adjustment = vel.y
+    local vel_y_adjustment = 0
 
     -- check player's top edge (bottom edge of obstacle)
     local left_cell_x, curr_top_cell_y  = level:cell(next_bounds.left, curr_bounds.top)
@@ -289,7 +293,7 @@ function Player:collision_y()
 
         if level:solid({x = horiz_x, y = next_bounds.bottom}) then
             local _,intersection_y = level:position_in_cell(horiz_x, next_bounds.bottom)
-            vel_y_adjustment = - (intersection_y + 1)
+            vel_y_adjustment = - (intersection_y + 1)  -- +1 puts you just outside the solid cell
             break
         end
     end
@@ -312,11 +316,10 @@ function Player:move(dt)
     if vel.x ~= 0 then
         vel.x = vel.x + self:collision_x()
     end
-    self.pos = moved(self.pos, {x = vel.x, y = 0})
     if vel.y ~= 0 then
         vel.y = vel.y + self:collision_y()
     end
-    self.pos = moved(self.pos, {x = 0, y = vel.y})
+    self.pos = moved(self.pos, {x = vel.x, y = vel.y})
 end
 
 function Player:update(dt)
@@ -335,8 +338,32 @@ end
 
 function Player:spawn()
     self.time_of_death = never
-    self.pos = shallowcopy(Player.spawn_pos)
+    self.pos = shallowcopy(self.spawn_pos)
     self.time_of_prev_attack = -self.attack_cooldown
+end
+
+function Player:draw_bounds(pos)
+    -- draw player's bounding box
+    local b = self:bounds(pos)
+
+    love.graphics.setColor(1, 0, 0, 1)
+    love.graphics.rectangle("line", b.left, b.top, self.size, self.size)
+    love.graphics.setColor(1, 1, 1, 1)
+end
+
+function Player:draw_cells(pos)
+    -- draw cells occupied by the player
+    local b = self:bounds(pos)
+
+    love.graphics.setColor(0, 0, 1, 1)
+    for horiz_cell=level:cell_x(b.left) - 0, level:cell_x(b.right) + 0 do
+        local horiz_x = horiz_cell * level:cell_size()
+        for vert_cell=level:cell_y(b.top) - 0, level:cell_y(b.bottom) + 0 do
+            local vert_y = vert_cell * level:cell_size()
+            love.graphics.rectangle("line", horiz_x, vert_y, level:cell_size(), level:cell_size())
+        end
+    end
+    love.graphics.setColor(1, 1, 1, 1)
 end
 
 function Player:draw()

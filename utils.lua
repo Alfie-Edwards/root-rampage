@@ -118,7 +118,7 @@ function draw_centred_text(text, x, y, color, bg_color)
     local width = font:getWidth(text)
     local height = font:getHeight()
     x = x - font:getWidth(text) / 2
-    if bg_color ~= nil then 
+    if bg_color ~= nil then
         love.graphics.setColor(bg_color)
         love.graphics.rectangle("fill", x-2, y-1, width+4, height+4)
     end
@@ -129,7 +129,7 @@ end
 function draw_text(text, x, y, color, bg_color)
     local width = font:getWidth(text)
     local height = font:getHeight()
-    if bg_color ~= nil then 
+    if bg_color ~= nil then
         love.graphics.setColor(bg_color)
         love.graphics.rectangle("fill", x-2, y-1, width+4, height+4)
     end
