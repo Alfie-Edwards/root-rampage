@@ -1,6 +1,5 @@
 require "direction"
 
-
 sprite = {}
 
 function sprite.make(path)
@@ -35,22 +34,16 @@ function sprite.directional(set, dir)
     return set.down
 end
 
-function sprite.sequence(set, duration, start_time)
+function sprite.sequence(set, duration, t)
     -- always return the final sprite after the duration is up
-    local time_since = t - start_time
-    local progress = time_since / duration
+    local progress = t / duration
     local index = math.floor(progress * #set) + 1
     index = math.min(index, #set)
     return set[index]
 end
 
-function sprite.cycling(set, period, start_time)
-    if start_time == nil then
-        start_time = 0
-    end
-
-    local time_since = t - start_time
-    local progress = (time_since % period) / period
+function sprite.cycling(set, period, t)
+    local progress = (t % period) / period
     local index = math.floor(progress * #set) + 1
     return set[index]
 end

@@ -1,6 +1,6 @@
 function setup_instance(inst, class)
     assert(class ~= nil)
-    setmetatable(inst, {__index = class})
+    setmetatable(inst, generate_inheritance_metatable(class))
 end
 
 function setup_class(name, super)
@@ -8,8 +8,36 @@ function setup_class(name, super)
         super = Object
     end
     local template = _G[name]
-    setmetatable(template, {__index = super})
+    setmetatable(template, { __index = super})
     template.type = function(obj) return name end
+end
+
+function generate_inheritance_metatable(class)
+    local mt = {}
+
+    if class == nil then
+        return mt
+    end
+
+    -- Special case for __index.
+    mt.__index = function(t, name)
+        if class[name] == nil and class.__index ~= nil then
+            return class.__index(t, name)
+        end
+        return class[name]
+    end
+
+    local metamethods = {
+        "__newindex",
+        "__call",
+        "__tostring",
+    }
+
+    for _, metamethod in ipairs(metamethods) do
+        mt[metamethod] = class[metamethod]
+    end
+
+    return mt
 end
 
 Vector = {
@@ -86,6 +114,14 @@ function moved(pos, vel)
     return res
 end
 
+function type_string(obj)
+    -- LOVE objects have their own type field.
+    if (obj ~= nil and obj.type ~= nil) then
+        return obj:type()
+    end
+    return type(obj)
+end
+
 function shallowcopy(tab)
     res = {}
     for k, v in pairs(tab) do
@@ -152,3 +188,33 @@ function list_to_set(t)
     end
     return result
 end
+
+function keys_to_set(t)
+    local result = {}
+    for k, _ in pairs(t) do
+        result[k] = true
+    end
+    return result
+end
+
+function values_to_set(t)
+    local result = {}
+    for _, v in pairs(t) do
+        result[v] = true
+    end
+    return result
+end
+
+function is_valid_set(t)
+    if t == nil then
+        return false
+    end
+    for _, v in pairs(t) do
+        if v ~= true then
+            return false
+        end
+    end
+    return true
+end
+
+NEVER = -1
