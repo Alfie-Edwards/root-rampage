@@ -1,9 +1,10 @@
 require "direction"
+require "asset_cache"
 
 sprite = {}
 
 function sprite.make(path)
-    return love.graphics.newImage("assets/"..path)
+    return assets:get_image(path)
 end
 
 function sprite.make_set(prefix, tab)

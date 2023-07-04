@@ -3,7 +3,7 @@ require "utils"
 Event = {
     handlers = nil
 }
-setup_class("Event")
+setup_class(Event)
 
 function Event.new()
     local obj = {}

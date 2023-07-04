@@ -6,11 +6,10 @@ require "engine.snapshot"
 RollbackModel = {
     state = nil
 }
-setup_class("RollbackModel", RollbackModelInterface)
+setup_class(RollbackModel, RollbackModelInterface)
 
 function RollbackModel.new(state)
-    local obj = RollbackModelInterface.new()
-    setup_instance(obj, RollbackModel)
+    local obj = magic_new()
 
     assert(state ~= nil)
     obj.state = state

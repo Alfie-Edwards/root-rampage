@@ -2,13 +2,12 @@ require "utils"
 require "engine.state"
 
 HackingState = {}
-setup_class("HackingState", State)
+setup_class(HackingState, State)
 
 function HackingState.new()
-    local obj = State.new({
+    local obj = magic_new({
         progress = 0,
     })
-    setup_instance(obj, HackingState)
 
     return obj
 end

@@ -2,10 +2,10 @@ require "utils"
 require "engine.state"
 
 RootsState = {}
-setup_class("RootsState", State)
+setup_class(RootsState, State)
 
 function RootsState.new()
-    local obj = State.new({
+    local obj = magic_new({
         t_attack = NEVER,
         selected = NONE,
         grow_node = NONE,
@@ -16,7 +16,6 @@ function RootsState.new()
         tree_spot = NONE,
         terminal = NONE,
     })
-    setup_instance(obj, RootsState)
 
     return obj
 end

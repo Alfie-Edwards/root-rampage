@@ -10,9 +10,9 @@ TERMINAL = {
     TOOLTIP2 = "Gaining root access...",
 
     SPRITES = {
-        unhacked = sprite.make_set("Terminal/", { "Terminal1.png","Terminal2.png" }),
-        hacking = sprite.make_set("Terminal/", { "TerminalPlant1.png","TerminalPlant2.png" }),
-        hacked = sprite.make_set("Terminal/", { "TerminalPlantFULLYHACKED1.png","TerminalPlantFULLYHACKED2.png" }),
+        unhacked = sprite.make_set("Terminal/", { "Terminal1","Terminal2" }),
+        hacking = sprite.make_set("Terminal/", { "TerminalPlant1","TerminalPlant2" }),
+        hacked = sprite.make_set("Terminal/", { "TerminalPlantFULLYHACKED1","TerminalPlantFULLYHACKED2" }),
     },
 
     GROW_DURATION = 2,

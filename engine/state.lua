@@ -7,13 +7,13 @@ State = {
     properties_set = nil,
     property_changed = nil,
 }
-setup_class("State")
+setup_class(State)
 
 function State.new(properties)
     local obj = {}
     assert(properties ~= nil)
 
-    obj.property_changed = Event.new() -- (state, name, old_value,.new_value)
+    obj.property_changed = Event.new() -- (state, name, old_value, new_value)
     obj.properties_set = keys_to_set(properties)
 
     -- The properties aren't directly accessable outside of this function.

@@ -1,29 +1,47 @@
+require "asset_cache"
+require "ui.view"
 require "utils"
-require "game"
-require "pixelcanvas"
 
 function love.load()
+    assets = AssetCache.new()
+    require "screens.game"
+    require "screens.main_menu"
+    require "pixelcanvas"
 
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
-    font = love.graphics.newFont("assets/font.ttf", 8, "none")
+    font = assets:get_font("font")
     love.graphics.setFont(font)
     love.graphics.setLineJoin("bevel")
     love.graphics.setLineStyle("rough")
     canvas = PixelCanvas.new({ 768, 432 })
 
-    game = Game.new(Game.MODE_ALL)
-    tick_offset = 0
+    view = View.new()
+    view:set_content(MainMenu.new())
+end
+
+function love.mousemoved(x, y, dx, dy, istouch)
+    local pos = canvas:screen_to_canvas(x, y)
+    view:mousemoved(pos.x, pos.y, dx, dy)
+end
+
+function love.mousepressed(x, y, button)
+    local pos = canvas:screen_to_canvas(x, y)
+    view:click(pos.x, pos.y, button)
+end
+
+function love.keypressed(key, scancode, isrepeat)
+   view:keypressed(key)
 end
 
 function love.update(dt)
-    tick_offset = tick_offset + dt
-    while tick_offset / game.state.dt > 1 do
-        tick_offset = tick_offset - game.state.dt
-        game:tick()
-    end
+    view:update(dt)
 end
 
 function love.draw()
-    game:draw()
+    canvas:set()
+
+    view:draw()
+
+    canvas:draw()
 end

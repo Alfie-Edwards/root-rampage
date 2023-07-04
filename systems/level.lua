@@ -1,9 +1,9 @@
 require "utils"
 
 LEVEL = {
-    img = love.graphics.newImage("assets/map3.png"),
+    img = assets:get_image("map3"),
 
-    geom = love.image.newImageData("assets/level-geom.bmp"),
+    geom = assets:get_image_data("level-geom", "bmp"),
 }
 
 function LEVEL.draw(state, inputs, dt)

@@ -2,7 +2,7 @@ require "utils"
 require "sprite"
 
 DOOR = {
-    SPRITE = sprite.make("VaultDoor.png"),
+    SPRITE = sprite.make("VaultDoor"),
     ANIM_TIME = 2,
     ORIGIN_X = 17.5,
     ORIGIN_Y = 45.5,

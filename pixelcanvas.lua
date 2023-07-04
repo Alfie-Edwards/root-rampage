@@ -6,7 +6,7 @@ PixelCanvas = {
     offset = nil,
     canvas = nil,
 }
-setup_class("PixelCanvas")
+setup_class(PixelCanvas)
 
 function PixelCanvas.new(size, offset)
     if size == nil then
@@ -17,8 +17,7 @@ function PixelCanvas.new(size, offset)
         offset = { 0, 0 }
     end
 
-    local obj = {}
-    setup_instance(obj, PixelCanvas)
+    local obj = magic_new()
 
     obj.size = { w = size[1], h = size[2] }
     obj.offset = { x = offset[1], y = offset[2] }

@@ -42,6 +42,7 @@ function ROOTS.update(state, inputs)
     local tooltip = state.tooltip
 
     if roots.selected ~= nil and roots.selected.is_dead then
+        
         roots.selected = nil
     end
 

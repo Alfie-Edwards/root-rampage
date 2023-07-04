@@ -28,18 +28,16 @@ Inputs = {
         roots_pos_y = 0,
     },
 }
-setup_class("Inputs", State)
+setup_class(Inputs, State)
 
 function Inputs.new_undefined()
-    local obj = State.new(Inputs.ALL_UNDEFINED)
-    setup_instance(obj, Inputs)
+    local obj = magic_new(Inputs.UNDEFINED)
 
     return obj
 end
 
 function Inputs.new_defaults()
-    local obj = State.new(Inputs.DEFAULTS)
-    setup_instance(obj, Inputs)
+    local obj = magic_new(Inputs.DEFAULTS)
 
     return obj
 end

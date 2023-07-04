@@ -9,11 +9,10 @@ RollbackEngine = {
     snapshot = nil,
     model = nil,
 }
-setup_class("RollbackEngine")
+setup_class(RollbackEngine)
 
 function RollbackEngine.new(model)
-    local obj = {}
-    setup_instance(obj, RollbackEngine)
+    local obj = magic_new()
 
     obj.target_tick = -1
     obj.current_tick = -1

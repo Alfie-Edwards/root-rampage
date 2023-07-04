@@ -22,13 +22,12 @@ Snapshot = {
     saved_names_set = nil,
     children = nil,
 }
-setup_class("Snapshot")
+setup_class(Snapshot)
 
 -- Save the current properties of a state object so they can be restored later.
 -- To avoid duplicating the whole state, only values which change are saved.
 function Snapshot.new()
-    local obj = {}
-    setup_instance(obj, Snapshot)
+    local obj = magic_new()
 
     obj.saved = {}
     obj.saved_name_set = {}

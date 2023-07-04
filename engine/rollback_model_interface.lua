@@ -2,11 +2,10 @@ require "utils"
 
 RollbackModelInterface = {
 }
-setup_class("RollbackModelInterface")
+setup_class(RollbackModelInterface)
 
 function RollbackModelInterface.new()
-    local obj = {}
-    setup_instance(obj, RollbackModelInterface)
+    local obj = magic_new()
 
     return obj
 end

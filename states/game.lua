@@ -15,7 +15,7 @@ require "systems.terminal"
 require "systems.tree_spot"
 
 GameState = {}
-setup_class("GameState", State)
+setup_class(GameState, State)
 
 function GameState.new()
     local cs = LEVEL.cell_size()
@@ -30,7 +30,7 @@ function GameState.new()
         table.insert(tree_spots, TreeSpotState.new(pos.x * cs, pos.y * cs))
     end
 
-    local obj = State.new({
+    local obj = magic_new({
         branches = {},
         nodes = {},
         terminals = terminals,
@@ -45,7 +45,6 @@ function GameState.new()
         t = 0,
         dt = 1/60,
     })
-    setup_instance(obj, GameState)
 
     TREE_SPOT.create_node(tree_spots[1], nil, obj)
 

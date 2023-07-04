@@ -1,4 +1,5 @@
 require "utils"
+require "asset_cache"
 require "direction"
 require "sprite"
 require "states.player"
@@ -22,35 +23,35 @@ PLAYER = {
     -- sprites
     sprite_sets = {
         idle = sprite.make_set("player/", {
-            left = "PlayerleftIdle.png",
-            right = "PlayerrightIdle.png",
-            up = "PlayerbackIdle.png",
-            down = "PlayerfrontIdle.png",
+            left = "PlayerleftIdle",
+            right = "PlayerrightIdle",
+            up = "PlayerbackIdle",
+            down = "PlayerfrontIdle",
         }),
         walk = sprite.make_set("player/", {
-            left = { "Player walk/Leftwalk1.png", "Player walk/Leftwalk2.png" },
-            right = { "Player walk/Rightwalk1.png", "Player walk/Rightwalk2.png" },
-            up = { "Player walk/Backwalk1.png", "Player walk/Backwalk2.png" },
-            down = { "Player walk/Frontwalk1.png", "Player walk/Frontwalk2.png" },
+            left = { "Player walk/Leftwalk1", "Player walk/Leftwalk2" },
+            right = { "Player walk/Rightwalk1", "Player walk/Rightwalk2" },
+            up = { "Player walk/Backwalk1", "Player walk/Backwalk2" },
+            down = { "Player walk/Frontwalk1", "Player walk/Frontwalk2" },
         }),
         swing = sprite.make_set("player/", {
-            left = { "Playerleftswing1.png", "Playerleftswing2.png" },
-            right = { "Playerrightswing1.png", "Playerrightswing2.png" },
-            up = { "Playerbackswing1.png", "Playerbackswing2.png" },
-            down = { "Playerfrontswing1.png", "Playerfrontswing2.png" },
+            left = { "Playerleftswing1", "Playerleftswing2" },
+            right = { "Playerrightswing1", "Playerrightswing2" },
+            up = { "Playerbackswing1", "Playerbackswing2" },
+            down = { "Playerfrontswing1", "Playerfrontswing2" },
         }),
         dead = sprite.make_set("player/", {
-            left = "PlayerleftIdle.png",
-            right = "PlayerrightIdle.png",
-            up = "PlayerbackIdle.png",
-            down = "PlayerfrontIdle.png",
+            left = "PlayerleftIdle",
+            right = "PlayerrightIdle",
+            up = "PlayerbackIdle",
+            down = "PlayerfrontIdle",
         }),
     },
 
     sounds = {
-        swing = love.audio.newSource("assets/woosh.mp3", "static"),
-        hit = love.audio.newSource("assets/wooshsmack.mp3", "static"),
-        death = love.audio.newSource("assets/deathsouth.mp3", "static"),
+        swing = assets:get_sound("woosh"),
+        hit = assets:get_sound("wooshsmack"),
+        death = assets:get_sound("deathsouth"),
     },
 }
 

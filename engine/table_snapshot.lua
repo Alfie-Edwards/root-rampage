@@ -5,14 +5,13 @@ require "engine.snapshot"
 TableSnapshot = {
     t = nil,
 }
-setup_class("TableSnapshot", Snapshot)
+setup_class(TableSnapshot, Snapshot)
 SnapshotFactory.register("table", TableSnapshot)
 
 -- A snapshot class for any table.
 -- Generic but copies the whole state.
 function TableSnapshot.new(t)
-    local obj = Snapshot.new()
-    setup_instance(obj, TableSnapshot)
+    local obj = magic_new()
 
     assert(t ~= nil)
     obj.t = t

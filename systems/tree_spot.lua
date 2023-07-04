@@ -10,8 +10,8 @@ TREE_SPOT = {
     TOOLTIP2 = "Taking root...",
 
     SPRITES = {
-        patch = sprite.make("patch of soil.png"),
-        plant = sprite.make_set("tree/", { "tree 1.png", "tree 2.png", "tree 3.png" }),
+        patch = sprite.make("patch of soil"),
+        plant = sprite.make_set("tree/", { "tree 1", "tree 2", "tree 3" }),
     },
 
     GROW_DURATION = 2,

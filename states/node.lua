@@ -2,10 +2,10 @@ require "utils"
 require "engine.state"
 
 NodeState = {}
-setup_class("NodeState", State)
+setup_class(NodeState, State)
 
 function NodeState.new(x, y, parent)
-    local obj = State.new({
+    local obj = magic_new({
         x = x,
         y = y,
         children = {},
@@ -15,7 +15,6 @@ function NodeState.new(x, y, parent)
         is_dead = false,
         parent = parent,
     })
-    setup_instance(obj, NodeState)
 
     return obj
 end

@@ -3,6 +3,7 @@ require "rollback_model"
 require "engine.rollback_engine"
 require "states.game"
 require "systems.game"
+require "ui.simple_element"
 
 Game = {
     MODE_PLAYER = {},
@@ -15,13 +16,21 @@ Game = {
     rollback_model = nil,
     rollback_controller = nil,
     current_tick = nil,
+    tick_offset = nil,
 }
-setup_class("Game")
+setup_class(Game, SimpleElement)
 
 function Game.new(mode)
-    local obj = {}
-    setup_instance(obj, Game)
+    local obj = magic_new()
 
+    obj:set_properties(
+        {
+            width = canvas:width(),
+            height = canvas:height(),
+        }
+    )
+
+    obj.tick_offset = 0
     obj.mode = mode
     obj.state = GameState.new()
     obj.rollback_model = RollbackModel.new(obj.state)
@@ -73,9 +82,20 @@ function Game:tick()
     self.rollback_engine:tick()
 end
 
+function Game:update(dt)
+    super().update(self, dt)
+
+    self.tick_offset = self.tick_offset + dt
+    while self.tick_offset / self.state.dt > 1 do
+        self.tick_offset = self.tick_offset - self.state.dt
+        self:tick()
+    end
+end
+
 function Game:draw()
+    super().draw(self)
+
     local dt = love.timer.getTime() - self.t0 - self.state.t
-    canvas:set()
 
     GAME.draw(self.state, self:get_inputs(), dt)
 
@@ -83,6 +103,4 @@ function Game:draw()
     love.graphics.setBlendMode("add")
     love.graphics.rectangle("fill", 0, 0, canvas:width(), canvas:height())
     love.graphics.setBlendMode("alpha")
-
-    canvas:draw()
 end

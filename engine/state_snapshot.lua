@@ -6,14 +6,13 @@ StateSnapshot = {
     state = nil,
     handler = nil,
 }
-setup_class("StateSnapshot", Snapshot)
+setup_class(StateSnapshot, Snapshot)
 SnapshotFactory.register("State", StateSnapshot)
 
 -- A snapshot class specialised for State objects.
 -- Avoid duplicating the whole state by only saving values which change.
 function StateSnapshot.new(state)
-    local obj = Snapshot.new()
-    setup_instance(obj, StateSnapshot)
+    local obj = magic_new()
 
     assert(state ~= nil)
     obj.state = state
