@@ -145,7 +145,7 @@ function Text:_total_wrap_width()
 end
 
 function Text:draw()
-    super():draw(self)
+    super().draw(self)
 
     local text_align = self.text_align or "left"
 

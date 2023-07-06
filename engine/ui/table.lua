@@ -23,7 +23,7 @@ function Table:set_cols(value)
         self:_value_error("Value must be a positive integer, or nil.")
     end
     if self:_set_property("cols", value) then
-        self:update_cells()
+        self:update_layout()
     end
 end
 
@@ -32,7 +32,7 @@ function Table:set_rows(value)
         self:_value_error("Value must be a positive integer, or nil.")
     end
     if self:_set_property("rows", value) then
-        self:update_cells()
+        self:update_layout()
     end
 end
 
@@ -60,7 +60,7 @@ function Table:set_column_widths(value)
         end
     end
     if self:_set_property("col_widths", value) then
-        self:update_cells()
+        self:update_layout()
     end
 end
 
@@ -76,7 +76,7 @@ function Table:set_row_heights(value)
         end
     end
     if self:_set_property("row_heights", value) then
-        self:update_cells()
+        self:update_layout()
     end
 end
 
@@ -104,7 +104,9 @@ function Table:get_row_height(row)
     return self.row_heights[row]
 end
 
-function Table:update_cells()
+function Table:update_layout()
+    super().update_layout(self)
+
     self:clear_children()
 
     local cols = self.cols or 1

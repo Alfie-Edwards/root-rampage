@@ -12,7 +12,7 @@ function ImageButton.new()
 end
 
 function ImageButton:draw()
-    Image.draw(self)
+    super().draw(self)
 
     local mouse_x, mouse_y = self:get_mouse_pos()
 
