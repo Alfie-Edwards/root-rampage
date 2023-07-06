@@ -13,7 +13,7 @@ function Drawable.new()
 end
 
 function Drawable:set_drawable(value)
-    if value ~= nil and not value:typeOf("Drawable") then
+    if value ~= nil and not is_type(value, "Drawable", "nil") then
         self:_value_error("Value must be a love.graphics.Drawable, or nil.")
     end
     if self:_set_property("drawable", value) then

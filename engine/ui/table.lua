@@ -49,7 +49,7 @@ function Table:cell(col, row)
 end
 
 function Table:set_column_widths(value)
-    if not value_in(type_string(value), {"table", nil}) then
+    if not is_type(value, "table", "nil") then
         self:_value_error("Value must be a table of {positive integer -> number}, or nil.")
     end
     if value ~= nil then
@@ -65,7 +65,7 @@ function Table:set_column_widths(value)
 end
 
 function Table:set_row_heights(value)
-    if not value_in(type_string(value), {"table", nil}) then
+    if not is_type(value, "table", "nil") then
         self:_value_error("Value must be a table of {positive integer -> number}, or nil.")
     end
     if value ~= nil then

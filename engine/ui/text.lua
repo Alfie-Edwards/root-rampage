@@ -21,7 +21,7 @@ function Text.new()
 end
 
 function Text:set_text(value)
-    if not value_in(type_string(value), {"string", "table", nil}) then
+    if not is_type(value, "string", "table", "nil") then
         self:_value_error("Value must be a string, a list of strings, or nil.")
     end
     if self:_set_property("text", value) then
@@ -44,7 +44,7 @@ function Text:set_color(value)
 end
 
 function Text:set_font(value)
-    if not value_in(type_string(value), {"Font", nil})  then
+    if not is_type(value, "Font", "nil")  then
         self:_value_error("Value must be a love.graphics.Font, or nil.")
     end
     if self:_set_property("font", value) then
@@ -53,7 +53,7 @@ function Text:set_font(value)
 end
 
 function Text:set_wrap_width(value)
-    if not value_in(type(value), {"number", nil})  then
+    if not is_type(value, "number", "nil")  then
         self:_value_error("Value must be a number, or nil.")
     end
     if self:_set_property("wrap_width", value) then
@@ -62,7 +62,7 @@ function Text:set_wrap_width(value)
 end
 
 function Text:set_line_spacing(value)
-    if not value_in(type(value), {"number", nil})  then
+    if not is_type(value, "number", "nil")  then
         self:_value_error("Value must be a number, or nil.")
     end
     if self:_set_property("line_spacing", value) then

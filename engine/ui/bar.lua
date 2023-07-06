@@ -18,21 +18,21 @@ function Bar.new()
 end
 
 function Bar:set_progress(value)
-    if not value_in(type(value), {"number", "nil"}) then
+    if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
     self:_set_property("progress", value)
 end
 
 function Bar:set_label(value)
-    if not value_in(type(value), {"string", "nil"}) then
+    if not is_type(value, "string", "nil") then
         self:_value_error("Value must be a string, or nil.")
     end
     self:_set_property("label", value)
 end
 
 function Bar:set_border_thickness(value)
-    if not value_in(type(value), {"number", "nil"}) then
+    if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
     self:_set_property("border_thickness", value)

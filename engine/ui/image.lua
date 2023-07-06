@@ -17,14 +17,14 @@ function Image.new()
 end
 
 function Image:set_pixel_hit_detection(value)
-    if type_string(value) ~= "boolean" then
+    if not is_type(value, "boolean") then
         self:_value_error("Value must be a boolean.")
     end
     self:_set_property("pixel_hit_detection", value)
 end
 
 function Image:set_image(value)
-    if value ~= nil and not value:typeOf("Texture") then
+    if not is_type(value, "Texture", "nil") then
         self:_value_error("Value must be a love.graphics.Texture, a love.graphics.Image, or nil.")
     end
     if self:_set_property("image", value) then
@@ -33,7 +33,7 @@ function Image:set_image(value)
 end
 
 function Image:set_image_data(value)
-    if not value_in(type_string(value), {"ImageData", nil}) then
+    if not is_type(value, "ImageData", "nil") then
         self:_value_error("Value must be a love.image.ImageData, or nil.")
     end
     if self:_set_property("image_data", value) then

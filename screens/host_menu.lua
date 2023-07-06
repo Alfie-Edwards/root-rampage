@@ -26,37 +26,48 @@ function HostMenu.new()
     )
     obj:add_child(bg)
 
+    local grid = Table.new()
+    grid:set_properties(
+        {
+            cols = 3,
+            rows = 3,
+            width = canvas:width(),
+            height = canvas:height(),
+        }
+    )
+    obj:add_child(grid)
+
     local button_host = ImageButton.new()
     button_host:set_properties(
         {
             image = assets:get_image("ui/button-host"),
             image_data = assets:get_image_data("ui/button-host"),
             x_align = "center",
-            y_align = "bottom",
-            x = canvas:width() / 2,
-            y = canvas:height() - 15,
+            y_align = "center",
+            x = grid:cell(2, 3).width / 2,
+            y = grid:cell(2, 3).height / 2,
             click = function()
                 view:set_content(Game.new(Game.MODE_ALL))
             end,
         }
     )
-    obj:add_child(button_host)
+    grid:cell(2, 3):add_child(button_host)
 
     local button_back = ImageButton.new()
     button_back:set_properties(
         {
             image = assets:get_image("ui/button-back"),
             image_data = assets:get_image_data("ui/button-back"),
-            x_align = "left",
-            y_align = "bottom",
-            x = 15,
-            y = canvas:height() - 15,
+            x_align = "center",
+            y_align = "center",
+            x = grid:cell(1, 3).width / 2,
+            y = grid:cell(1, 3).height / 2,
             click = function()
                 view:set_content(MainMenu.new())
             end,
         }
     )
-    obj:add_child(button_back)
+    grid:cell(1, 3):add_child(button_back)
 
     return obj
 end

@@ -49,42 +49,42 @@ function Element:get_mouse_pos()
 end
 
 function Element:set_bb(value)
-    if type_string(value) ~= "BoundingBox" then
+    if not is_type(value, "BoundingBox") then
         self:_value_error("Value must be a BoundingBox.")
     end
     self:_set_property("bb", value)
 end
 
 function Element:set_transform(value)
-    if not value_in(type_string(value), {"Transform", "nil"}) then
+    if not is_type(value, "Transform", "nil") then
         self:_value_error("Value must be a love.math.Transform, or nil.")
     end
     self:_set_property("transform", value)
 end
 
 function Element:set_keypressed(value)
-    if not value_in(type_string(value), {"function", "nil"}) then
+    if not is_type(value, "function", "nil") then
         self:_value_error("Value must be a function with the signature (key) => bool (returns whether to consume the event), or nil.")
     end
     self:_set_property("keypressed", value)
 end
 
 function Element:set_click(value)
-    if not value_in(type_string(value), {"function", "nil"}) then
+    if not is_type(value, "function", "nil") then
         self:_value_error("Value must be a function with the signature (x, y, button) => bool (returns whether to consume the event), or nil.")
     end
     self:_set_property("click", value)
 end
 
 function Element:set_mousemove(value)
-    if not value_in(type_string(value), {"function", "nil"}) then
+    if not is_type(value, "function", "nil") then
         self:_value_error("Value must be a function with the signature (x, y, dx, dy) => bool (returns whether to consume the event), or nil.")
     end
     self:_set_property("mousemove", value)
 end
 
 function Element:set_cursor(value)
-    if not value_in(type_string(value), {"Cursor", "nil"}) then
+    if not is_type(value, "Cursor", "nil") then
         self:_value_error("Value must be a love.mouse.Cursor, or nil.")
     end
     self:_set_property("cursor", value)

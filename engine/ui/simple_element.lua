@@ -26,7 +26,7 @@ function SimpleElement:set_background_color(value)
 end
 
 function SimpleElement:set_x(value)
-    if not value_in(type(value), {"number", nil}) then
+    if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
     if self:_set_property("x", value) then
@@ -35,7 +35,7 @@ function SimpleElement:set_x(value)
 end
 
 function SimpleElement:set_y(value)
-    if not value_in(type(value), {"number", nil}) then
+    if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
     if self:_set_property("y", value) then
@@ -44,7 +44,7 @@ function SimpleElement:set_y(value)
 end
 
 function SimpleElement:set_width(value)
-    if not value_in(type(value), {"number", nil}) then
+    if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
     if self:_set_property("width", value) then
@@ -53,7 +53,7 @@ function SimpleElement:set_width(value)
 end
 
 function SimpleElement:set_height(value)
-    if not value_in(type(value), {"number", nil}) then
+    if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
     if self:_set_property("height", value) then
@@ -62,7 +62,7 @@ function SimpleElement:set_height(value)
 end
 
 function SimpleElement:set_x_align(value)
-    if not value_in(value, {"left", "center", "right", nil}) then
+    if not value_in(value, {"left", "center", "right", "nil"}) then
         self:_value_error("Valid values are 'left', 'center', 'right', or nil.")
     end
     if self:_set_property("x_align", value) then
@@ -71,7 +71,7 @@ function SimpleElement:set_x_align(value)
 end
 
 function SimpleElement:set_y_align(value)
-    if not value_in(value, {"top", "center", "bottom", nil}) then
+    if not value_in(value, {"top", "center", "bottom", "nil"}) then
         self:_value_error("Valid values are 'top', 'center', 'bottom', or nil.")
     end
     if self:_set_property("y_align", value) then
