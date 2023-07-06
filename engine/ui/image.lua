@@ -1,4 +1,4 @@
-require "ui.simple_element"
+require "engine.ui.simple_element"
 require "utils"
 
 Image = {
@@ -16,43 +16,29 @@ function Image.new()
     return obj
 end
 
-function Image:get_pixel_hit_detection()
-    return self.pixel_hit_detection
-end
-
 function Image:set_pixel_hit_detection(value)
-    self.pixel_hit_detection = value
-end
-
-function Image:get_image()
-    return self.image
+    if type_string(value) ~= "boolean" then
+        self:_value_error("Value must be a boolean.")
+    end
+    self:_set_property("pixel_hit_detection", value)
 end
 
 function Image:set_image(value)
     if value ~= nil and not value:typeOf("Texture") then
         self:_value_error("Value must be a love.graphics.Texture, a love.graphics.Image, or nil.")
     end
-    if self.image == value then
-        return
+    if self:_set_property("image", value) then
+        self:update_layout()
     end
-    self.image = value
-    self:update_layout()
-end
-
-function Image:get_image_data()
-    return self.image_data
 end
 
 function Image:set_image_data(value)
     if not value_in(type_string(value), {"ImageData", nil}) then
         self:_value_error("Value must be a love.image.ImageData, or nil.")
     end
-    if self.image_data == value then
-        return
+    if self:_set_property("image_data", value) then
+        self:update_layout()
     end
-    self.image_data = value
-
-    self:update_layout()
 end
 
 function Image:update_layout()

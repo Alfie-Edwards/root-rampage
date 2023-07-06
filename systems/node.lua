@@ -145,16 +145,6 @@ function NODE.cut(state, node)
 
     -- Create branch containing just this node.
     BRANCH.add_branch(state, node, 1)
-
-    print("Branches ("..tostring(get_key(state.nodes, node))..")")
-    for _, branch in ipairs(state.branches) do
-        if not branch.base.is_dead then
-            print("  "..tostring(get_key(state.nodes, branch.base)).."."..tostring(branch.child_index).."("..tostring(branch.length)..") ALIVE")
-        else
-            print("  "..tostring(get_key(state.nodes, branch.base)).."."..tostring(branch.child_index).."("..tostring(branch.length)..") DEAD")
-        end
-    end
-    print("")
 end
 
 function NODE.cull(state, node)

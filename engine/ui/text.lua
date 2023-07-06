@@ -1,4 +1,4 @@
-require "ui.simple_element"
+require "engine.ui.simple_element"
 require "utils"
 
 Text = {
@@ -20,86 +20,54 @@ function Text.new()
     return obj
 end
 
-function Text:get_text()
-    return self.text
-end
-
 function Text:set_text(value)
     if not value_in(type_string(value), {"string", "table", nil}) then
         self:_value_error("Value must be a string, a list of strings, or nil.")
     end
-    if self.text == value then
-        return
+    if self:_set_property("text", value) then
+        self:update_layout()
     end
-    self.text = value
-    self:update_layout()
-end
-
-function Text:get_text_align()
-    return self.text_align
 end
 
 function Text:set_text_align(value)
     if not value_in(value, {"left", "center", "right", nil}) then
         self:_value_error("Valid values are 'left', 'center', right', or nil.")
     end
-    self.text_align = value
-end
-
-function Text:get_color()
-    return self.color
+    self:_set_property("text_align", value)
 end
 
 function Text:set_color(value)
     if value ~= nil and #value ~= 4 then
         self:_value_error("Value must be in the form {r, g, b, a}, or nil.")
     end
-    self.color = value
-end
-
-function Text:get_font()
-    return self.font
+    self:_set_property("color", value)
 end
 
 function Text:set_font(value)
     if not value_in(type_string(value), {"Font", nil})  then
         self:_value_error("Value must be a love.graphics.Font, or nil.")
     end
-    if self.font == value then
-        return
+    if self:_set_property("font", value) then
+        self:update_layout()
     end
-    self.font = value
-    self:update_layout()
-end
-
-function Text:get_wrap_width()
-    return self.wrap_width
 end
 
 function Text:set_wrap_width(value)
     if not value_in(type(value), {"number", nil})  then
         self:_value_error("Value must be a number, or nil.")
     end
-    if self.wrap_width == value then
-        return
+    if self:_set_property("wrap_width", value) then
+        self:update_layout()
     end
-    self.wrap_width = value
-    self:update_layout()
-end
-
-function Text:get_line_spacing()
-    return self.line_spacing
 end
 
 function Text:set_line_spacing(value)
     if not value_in(type(value), {"number", nil})  then
         self:_value_error("Value must be a number, or nil.")
     end
-    if self.line_spacing == value then
-        return
+    if self:_set_property("line_spacing", value) then
+        self:update_layout()
     end
-    self.line_spacing = value
-    self:update_layout()
 end
 
 function Text:update_layout()

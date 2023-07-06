@@ -1,6 +1,6 @@
-require "ui.simple_element"
-require "ui.image"
-require "ui.image_button"
+require "engine.ui.simple_element"
+require "engine.ui.image"
+require "engine.ui.image_button"
 
 JoinMenu = {}
 

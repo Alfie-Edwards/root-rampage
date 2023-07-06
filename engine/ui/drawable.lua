@@ -1,4 +1,4 @@
-require "ui.simple_element"
+require "engine.ui.simple_element"
 require "utils"
 
 Drawable = {
@@ -12,19 +12,13 @@ function Drawable.new()
     return obj
 end
 
-function Drawable:get_drawable()
-    return self.drawable
-end
-
 function Drawable:set_drawable(value)
     if value ~= nil and not value:typeOf("Drawable") then
         self:_value_error("Value must be a love.graphics.Drawable, or nil.")
     end
-    if self.drawable == value then
-        return
+    if self:_set_property("drawable", value) then
+        self:update_layout()
     end
-    self.drawable = value
-    self:update_layout()
 end
 
 function Drawable:update_layout()

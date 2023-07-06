@@ -1,4 +1,4 @@
-require "ui.element"
+require "engine.ui.element"
 require "utils"
 
 SimpleElement = {
@@ -18,105 +18,65 @@ function SimpleElement.new()
     return obj
 end
 
-function SimpleElement:get_background_color()
-    return self.background_color
-end
-
 function SimpleElement:set_background_color(value)
     if value ~= nil and #value ~= 4 then
         self:_value_error("Value must be in the form {r, g, b, a}, or nil.")
     end
-    self.background_color = value
-end
-
-function SimpleElement:get_x()
-    return self.x
+    self:_set_property("background_color", value)
 end
 
 function SimpleElement:set_x(value)
     if not value_in(type(value), {"number", nil}) then
         self:_value_error("Value must be a number, or nil.")
     end
-    if self.x == value then
-        return
+    if self:_set_property("x", value) then
+        self:update_layout()
     end
-    self.x = value
-    self:update_layout()
-end
-
-function SimpleElement:get_y()
-    return self.y
 end
 
 function SimpleElement:set_y(value)
     if not value_in(type(value), {"number", nil}) then
         self:_value_error("Value must be a number, or nil.")
     end
-    if self.y == value then
-        return
+    if self:_set_property("y", value) then
+        self:update_layout()
     end
-    self.y = value
-    self:update_layout()
-end
-
-function SimpleElement:get_width()
-    return self.width
 end
 
 function SimpleElement:set_width(value)
     if not value_in(type(value), {"number", nil}) then
         self:_value_error("Value must be a number, or nil.")
     end
-    if self.width == value then
-        return
+    if self:_set_property("width", value) then
+        self:update_layout()
     end
-    self.width = value
-    self:update_layout()
-end
-
-function SimpleElement:get_height()
-    return self.height
 end
 
 function SimpleElement:set_height(value)
     if not value_in(type(value), {"number", nil}) then
         self:_value_error("Value must be a number, or nil.")
     end
-    if self.height == value then
-        return
+    if self:_set_property("height", value) then
+        self:update_layout()
     end
-    self.height = value
-    self:update_layout()
-end
-
-function SimpleElement:get_x_align()
-    return self.x_align
 end
 
 function SimpleElement:set_x_align(value)
     if not value_in(value, {"left", "center", "right", nil}) then
         self:_value_error("Valid values are 'left', 'center', 'right', or nil.")
     end
-    if self.x_align == value then
-        return
+    if self:_set_property("x_align", value) then
+        self:update_layout()
     end
-    self.x_align = value
-    self:update_layout()
-end
-
-function SimpleElement:get_y_align()
-    return self.y_align
 end
 
 function SimpleElement:set_y_align(value)
     if not value_in(value, {"top", "center", "bottom", nil}) then
         self:_value_error("Valid values are 'top', 'center', 'bottom', or nil.")
     end
-    if self.y_align == value then
-        return
+    if self:_set_property("y_align", value) then
+        self:update_layout()
     end
-    self.y_align = value
-    self:update_layout()
 end
 
 function SimpleElement:update_layout()

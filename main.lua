@@ -1,12 +1,12 @@
-require "asset_cache"
-require "ui.view"
 require "utils"
+require "asset_cache"
+assets = AssetCache.new()
+require "engine.ui.view"
+require "screens.game"
+require "screens.main_menu"
+require "pixelcanvas"
 
 function love.load()
-    assets = AssetCache.new()
-    require "screens.game"
-    require "screens.main_menu"
-    require "pixelcanvas"
 
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)

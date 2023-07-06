@@ -3,7 +3,7 @@ require "rollback_model"
 require "engine.rollback_engine"
 require "states.game"
 require "systems.game"
-require "ui.simple_element"
+require "engine.ui.simple_element"
 
 Game = {
     MODE_PLAYER = {},

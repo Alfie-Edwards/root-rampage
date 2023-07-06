@@ -9,10 +9,11 @@ end
 
 function type_string(obj)
     -- LOVE objects have their own type field.
-    if (obj ~= nil and obj.type ~= nil) then
+    local type = type(obj)
+    if ((type == "table" or type == "userdata") and obj.type ~= nil) then
         return obj:type()
     end
-    return type(obj)
+    return type
 end
 
 classes = {}
@@ -422,7 +423,6 @@ function get_local(name, default, stack_level)
     local var_index = 1
     while true do
         local var_name, value = debug.getlocal(stack_level, var_index)
-        print(tostring(var_name)..": "..tostring(value))
         if var_name == name then
             return value
         elseif var_name == nil then
@@ -430,4 +430,20 @@ function get_local(name, default, stack_level)
         end
         var_index = var_index + 1
     end
+end
+
+function is_positive_integer(x)
+    if type(x) ~= "number" then
+        return false
+    end
+
+    if x ~= math.floor(x) then
+        return false
+    end
+
+    if x < 1 then
+        return false
+    end
+
+    return true
 end

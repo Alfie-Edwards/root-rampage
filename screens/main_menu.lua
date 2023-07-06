@@ -1,6 +1,7 @@
-require "ui.simple_element"
-require "ui.image"
-require "ui.image_button"
+require "engine.ui.simple_element"
+require "engine.ui.image"
+require "engine.ui.image_button"
+require "engine.ui.table"
 require "screens.host_menu"
 require "screens.join_menu"
 require "screens.game"
@@ -29,21 +30,33 @@ function MainMenu.new()
     )
     obj:add_child(bg)
 
+    local grid = Table.new()
+    grid:set_properties(
+        {
+            rows = 3,
+            x_align = "center",
+            y_align = "center",
+            x = canvas:width() / 2,
+            y = canvas:height() / 2,
+            height = canvas:height(),
+        }
+    )
+    obj:add_child(grid)
+
     local button_local = ImageButton.new()
     button_local:set_properties(
         {
             image = assets:get_image("ui/button-local"),
             image_data = assets:get_image_data("ui/button-local"),
             x_align = "center",
-            y_align = "top",
-            x = canvas:width() / 2,
-            y = 15,
+            y_align = "center",
+            y = grid:cell(1, 1).height / 2,
             click = function()
                 view:set_content(Game.new(Game.MODE_ALL))
             end,
         }
     )
-    obj:add_child(button_local)
+    grid:cell(1, 1):add_child(button_local)
 
     local button_host = ImageButton.new()
     button_host:set_properties(
@@ -52,14 +65,13 @@ function MainMenu.new()
             image_data = assets:get_image_data("ui/button-host"),
             x_align = "center",
             y_align = "center",
-            x = canvas:width() / 2,
-            y = canvas:height() / 2,
+            y = grid:cell(1, 2).height / 2,
             click = function()
                 view:set_content(HostMenu.new())
             end,
         }
     )
-    obj:add_child(button_host)
+    grid:cell(1, 2):add_child(button_host)
 
     local button_join = ImageButton.new()
     button_join:set_properties(
@@ -67,15 +79,14 @@ function MainMenu.new()
             image = assets:get_image("ui/button-join"),
             image_data = assets:get_image_data("ui/button-join"),
             x_align = "center",
-            y_align = "bottom",
-            x = canvas:width() / 2,
-            y = canvas:height() - 15,
+            y_align = "center",
+            y = grid:cell(1, 3).height / 2,
             click = function()
                 view:set_content(JoinMenu.new())
             end,
         }
     )
-    obj:add_child(button_join)
+    grid:cell(1, 3):add_child(button_join)
 
     return obj
 end

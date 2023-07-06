@@ -1,4 +1,4 @@
-require "ui.simple_element"
+require "engine.ui.simple_element"
 require "utils"
 
 Bar = {
@@ -17,70 +17,45 @@ function Bar.new()
     return obj
 end
 
-function Bar:get_progress()
-    return self.progress
-end
-
 function Bar:set_progress(value)
     if not value_in(type(value), {"number", "nil"}) then
         self:_value_error("Value must be a number, or nil.")
     end
-    self.progress = value
-end
-
-function Bar:get_label()
-    return self.label
+    self:_set_property("progress", value)
 end
 
 function Bar:set_label(value)
     if not value_in(type(value), {"string", "nil"}) then
         self:_value_error("Value must be a string, or nil.")
     end
-    self.label = value
-end
-
-function Bar:get_border_thickness()
-    return self.border_thickness
+    self:_set_property("label", value)
 end
 
 function Bar:set_border_thickness(value)
     if not value_in(type(value), {"number", "nil"}) then
         self:_value_error("Value must be a number, or nil.")
     end
-    self.border_thickness = value
+    self:_set_property("border_thickness", value)
 end
-
-function Bar:get_border_color()
-    return self.border_color
-end
-
 function Bar:set_border_color(value)
     if value ~= nil and #value ~= 4 then
         self:_value_error("Value must be in the form {r, g, b, a}, or nil.")
     end
-    self.border_color = value
-end
-
-function Bar:get_bar_color()
-    return self.bar_color
+    self:_set_property("border_color", value)
 end
 
 function Bar:set_bar_color(value)
     if value ~= nil and #value ~= 4 then
         self:_value_error("Value must be in the form {r, g, b, a}, or nil.")
     end
-    self.bar_color = value
-end
-
-function Bar:get_label_color()
-    return self.label_color
+    self:_set_property("bar_color", value)
 end
 
 function Bar:set_label_color(value)
     if value ~= nil and #value ~= 4 then
         self:_value_error("Value must be in the form {r, g, b, a}, or nil.")
     end
-    self.label_color = value
+    self:_set_property("label_color", value)
 end
 
 function Bar:draw()
