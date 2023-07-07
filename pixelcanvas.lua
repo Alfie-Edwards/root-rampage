@@ -1,5 +1,3 @@
-
-
 PixelCanvas = {
     size = nil,
     offset = nil,

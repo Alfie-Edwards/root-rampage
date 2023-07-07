@@ -1,4 +1,3 @@
-
 Element = {
     parent = nil,
     children = nil,

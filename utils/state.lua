@@ -81,4 +81,3 @@ end
 function State:__newindex(name, value)
     self:set(name, value)
 end
-
