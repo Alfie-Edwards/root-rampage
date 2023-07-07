@@ -1,4 +1,3 @@
-require "utils"
 require "sprite"
 require "states.tree_spot"
 require "systems.node"

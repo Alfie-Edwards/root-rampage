@@ -1,7 +1,6 @@
-require "utils"
 require "inputs"
-require "engine.rollback_model_interface"
-require "engine.snapshot"
+require "rollback_model_interface"
+require "snapshot"
 
 RollbackModel = {
     state = nil

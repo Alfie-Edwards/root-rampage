@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 HackingState = {}
 setup_class(HackingState, State)

@@ -1,6 +1,4 @@
-require "utils"
-require "engine.state"
-require "engine.snapshot"
+require "snapshot"
 
 StateSnapshot = {
     state = nil,

@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 require "systems.door"
 
 DoorState = {}

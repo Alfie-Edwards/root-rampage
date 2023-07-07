@@ -1,7 +1,7 @@
-require "utils"
+require "utils.utils"
 require "asset_cache"
 assets = AssetCache.new()
-require "engine.ui.view"
+require "ui.view"
 require "screens.game"
 require "screens.main_menu"
 require "pixelcanvas"

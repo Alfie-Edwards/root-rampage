@@ -1,6 +1,3 @@
-require "utils"
-require "engine.event"
-
 NONE = {}
 
 State = {
@@ -10,6 +7,11 @@ State = {
 setup_class(State)
 
 function State.new(properties)
+    -- An object with a fixed set of properties specified on construction.
+    -- Only these properties may be set, anything else will error.
+    -- It can be interacted with like any normal table.
+    -- Has a property_changed event to track changes.
+    -- Has a nice tostring which lists all of the properties (recursively for states within states).
     local obj = {}
     assert(properties ~= nil)
 

@@ -1,5 +1,4 @@
-require "engine.ui.element"
-require "utils"
+require "ui.element"
 
 View = {
     content = nil,

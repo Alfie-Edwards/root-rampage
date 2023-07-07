@@ -1,5 +1,3 @@
-require "utils"
-
 Event = {
     handlers = nil
 }

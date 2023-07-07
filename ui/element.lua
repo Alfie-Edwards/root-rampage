@@ -1,4 +1,3 @@
-require "utils"
 
 Element = {
     parent = nil,

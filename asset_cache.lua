@@ -1,4 +1,3 @@
-require "utils"
 
 AssetCache = {
     images = nil,

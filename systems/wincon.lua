@@ -1,4 +1,3 @@
-require "utils"
 require "states.wincon"
 require "systems.hacking"
 require "systems.level"

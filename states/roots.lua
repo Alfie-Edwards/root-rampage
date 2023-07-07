@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 RootsState = {}
 setup_class(RootsState, State)

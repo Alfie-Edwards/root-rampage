@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 TooltipState = {}
 setup_class(TooltipState, State)

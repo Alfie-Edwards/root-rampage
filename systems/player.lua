@@ -1,4 +1,3 @@
-require "utils"
 require "asset_cache"
 require "direction"
 require "sprite"

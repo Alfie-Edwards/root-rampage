@@ -1,4 +1,3 @@
-require "utils"
 require "systems.door"
 require "systems.terminal"
 require "systems.tree_spot"

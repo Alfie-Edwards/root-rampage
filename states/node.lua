@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 NodeState = {}
 setup_class(NodeState, State)

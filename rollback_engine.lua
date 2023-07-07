@@ -1,4 +1,3 @@
-require "utils"
 
 RollbackEngine = {
     target_tick = nil,

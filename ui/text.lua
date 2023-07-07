@@ -1,5 +1,4 @@
-require "engine.ui.simple_element"
-require "utils"
+require "ui.simple_element"
 
 Text = {
     text = nil,

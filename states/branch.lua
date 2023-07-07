@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 BranchState = {}
 setup_class(BranchState, State)

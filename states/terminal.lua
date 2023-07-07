@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 TerminalState = {}
 setup_class(TerminalState, State)

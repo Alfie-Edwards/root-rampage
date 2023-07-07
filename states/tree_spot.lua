@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 TreeSpotState = {}
 setup_class(TreeSpotState, State)

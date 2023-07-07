@@ -1,5 +1,3 @@
-require "utils"
-require "engine.state"
 
 PlayerState = {}
 setup_class(PlayerState, State)

@@ -1,4 +1,3 @@
-require "utils"
 
 LEVEL = {
     img = assets:get_image("map3"),

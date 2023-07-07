@@ -1,4 +1,3 @@
-require "utils"
 require "sprite"
 require "states.terminal"
 require "systems.node"

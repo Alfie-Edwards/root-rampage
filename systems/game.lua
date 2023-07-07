@@ -1,4 +1,3 @@
-require "utils"
 require "systems.branch"
 require "systems.door"
 require "systems.hacking"
