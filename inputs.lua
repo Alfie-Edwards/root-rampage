@@ -2,7 +2,6 @@
 INPUT_UNDEFINED = {}
 
 Inputs = {
-    UNDEFINED = {},
     ALL_UNDEFINED = {
         player_up = INPUT_UNDEFINED,
         player_down = INPUT_UNDEFINED,
@@ -26,16 +25,12 @@ Inputs = {
         roots_pos_y = 0,
     },
 }
-setup_class(Inputs, State)
+setup_class(Inputs, FixedPropertyTable)
 
 function Inputs.new_undefined()
-    local obj = magic_new(Inputs.UNDEFINED)
-
-    return obj
+    return Inputs(Inputs.ALL_UNDEFINED)
 end
 
 function Inputs.new_defaults()
-    local obj = magic_new(Inputs.DEFAULTS)
-
-    return obj
+    return Inputs(Inputs.DEFAULTS)
 end

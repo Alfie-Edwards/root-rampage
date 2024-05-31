@@ -1,6 +1,6 @@
 require "utils.utils"
 require "asset_cache"
-assets = AssetCache.new()
+assets = AssetCache()
 require "ui.view"
 require "screens.game"
 require "screens.main_menu"
@@ -14,20 +14,34 @@ function love.load()
     love.graphics.setFont(font)
     love.graphics.setLineJoin("bevel")
     love.graphics.setLineStyle("rough")
-    canvas = PixelCanvas.new({ 768, 432 })
+    canvas = PixelCanvas({ 768, 432 })
 
-    view = View.new()
-    view:set_content(MainMenu.new())
+    view = View()
+    view:set_content(MainMenu())
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
     local pos = canvas:screen_to_canvas(x, y)
-    view:mousemoved(pos.x, pos.y, dx, dy)
+    local disp = canvas:screen_to_canvas(dx, dy)
+    view:mousemoved(pos.x, pos.y, disp.x, disp.y)
 end
 
 function love.mousepressed(x, y, button)
     local pos = canvas:screen_to_canvas(x, y)
-    view:click(pos.x, pos.y, button)
+    view:mousepressed(pos.x, pos.y, button)
+end
+
+function love.mousereleased(x, y, button)
+    local pos = canvas:screen_to_canvas(x, y)
+    view:mousereleased(pos.x, pos.y, button)
+end
+
+function love.textinput(t)
+    view:textinput(t)
+end
+
+function love.wheelmoved(x, y)
+    view:wheelmoved(-x, -y)
 end
 
 function love.keypressed(key, scancode, isrepeat)

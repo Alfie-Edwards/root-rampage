@@ -10,19 +10,17 @@ RollbackEngine = {
 }
 setup_class(RollbackEngine)
 
-function RollbackEngine.new(model)
-    local obj = magic_new()
+function RollbackEngine:__init(model)
+    super().__init(self)
 
-    obj.target_tick = -1
-    obj.current_tick = -1
-    obj.snapshot_tick = -1
-    obj.input_record = {}
-    obj.prediction_record = {}
-    obj.snapshot = model:take_snapshot() 
+    self.target_tick = -1
+    self.current_tick = -1
+    self.snapshot_tick = -1
+    self.input_record = {}
+    self.prediction_record = {}
+    self.snapshot = model:take_snapshot() 
 
-    obj.model = model
-
-    return obj
+    self.model = model
 end
 
 function RollbackEngine:tick()

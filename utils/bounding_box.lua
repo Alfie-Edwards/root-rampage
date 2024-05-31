@@ -6,14 +6,12 @@ BoundingBox = {
 }
 setup_class(BoundingBox)
 
-function BoundingBox.new(x1, y1, x2, y2)
-    local obj = magic_new()
-    obj.x1 = x1
-    obj.y1 = y1
-    obj.x2 = x2
-    obj.y2 = y2
-
-    return obj
+function BoundingBox:__init(x1, y1, x2, y2)
+    super().__init(self)
+    self.x1 = x1
+    self.y1 = y1
+    self.x2 = x2
+    self.y2 = y2
 end
 
 function BoundingBox:contains(x, y)

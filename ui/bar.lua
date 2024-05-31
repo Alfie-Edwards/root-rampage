@@ -1,4 +1,4 @@
-require "ui.simple_element"
+require "ui.layout_element"
 
 Bar = {
     progress = nil,
@@ -8,12 +8,10 @@ Bar = {
     bar_color = nil,
     label_color = nil,
 }
-setup_class(Bar, SimpleElement)
+setup_class(Bar, LayoutElement)
 
-function Bar.new()
-    local obj = magic_new()
-
-    return obj
+function Bar:__init()
+    super().__init(self)
 end
 
 function Bar:set_progress(value)

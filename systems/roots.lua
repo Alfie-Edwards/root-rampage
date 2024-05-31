@@ -80,7 +80,7 @@ function ROOTS.update(state, inputs)
         roots.speed = ROOTS.SPEED
     end
 
-    local v = Vector.new(roots.grow_node.x, roots.grow_node.y,
+    local v = Vector(roots.grow_node.x, roots.grow_node.y,
                          inputs.roots_pos_x, inputs.roots_pos_y)
 
     if v:length() == 0 then
@@ -138,7 +138,7 @@ function ROOTS.update(state, inputs)
                     TERMINAL.create_node(roots.terminal, roots.selected, state)
                 end
             else
-                roots.selected = NODE.add_node(roots.new_pos_x, roots.new_pos_y, roots.grow_node, state)
+                roots.selected = NODE.add_node(roots.new_pos_x, roots.new_pos_y, roots.grow_node, state, NODE_TYPE.NORMAL)
             end
         end
         if attack_state == AttackState.ATTACKING and
@@ -158,7 +158,7 @@ function ROOTS.draw(state, inputs, dt)
         if attack_state == AttackState.ATTACKING then
             color = {0.4, 0.08, 0.02, 1}
         end
-        local v = Vector.new(roots.grow_node.x, roots.grow_node.y,
+        local v = Vector(roots.grow_node.x, roots.grow_node.y,
                              roots.new_pos_x, roots.new_pos_y)
         BRANCH.draw_spike(
             roots.grow_node.x,
@@ -174,7 +174,7 @@ function ROOTS.draw(state, inputs, dt)
             love.graphics.setLineWidth(1)
             love.graphics.line({inputs.roots_pos_x, inputs.roots_pos_y + 20,
                                 roots.tree_spot.x, roots.tree_spot.y})
-            local v = Vector.new(roots.selected.x, roots.selected.y,
+            local v = Vector(roots.selected.x, roots.selected.y,
                                  roots.tree_spot.x, roots.tree_spot.y)
             BRANCH.draw_spike(
                 roots.selected.x,
@@ -189,7 +189,7 @@ function ROOTS.draw(state, inputs, dt)
             love.graphics.setLineWidth(1)
             love.graphics.line({inputs.roots_pos_x, inputs.roots_pos_y + 20,
                                 roots.terminal.x, roots.terminal.y})
-            local v = Vector.new(roots.selected.x, roots.selected.y,
+            local v = Vector(roots.selected.x, roots.selected.y,
                                  roots.terminal.x, roots.terminal.y)
             BRANCH.draw_spike(
                 roots.selected.x,

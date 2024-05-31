@@ -2,8 +2,8 @@ require "states.node"
 
 NODE = {}
 
-function NODE.add_node(x, y, parent, state)
-    local node = NodeState.new(x, y, parent)
+function NODE.add_node(x, y, parent, state, type)
+    local node = NodeState(x, y, parent, type)
     table.insert(state.nodes, node)
 
     if parent == nil then
@@ -104,7 +104,7 @@ end
 
 function NODE.cut(state, node)
     -- Cache children and parent.
-    local children = shallowcopy(node.children)
+    local children = shallow_copy(node.children)
     local parent = node.parent
 
     -- Update all branches starting at this node.

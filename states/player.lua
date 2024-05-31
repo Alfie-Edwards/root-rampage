@@ -1,15 +1,15 @@
 
 PlayerState = {}
-setup_class(PlayerState, State)
+setup_class(PlayerState, FixedPropertyTable)
 
-function PlayerState.new(cell_size, pos)
+function PlayerState:__init(cell_size, pos)
     assert(cell_size ~= nil)
 
-    pos = shallowcopy(pos or PLAYER.spawn_pos)
+    pos = shallow_copy(pos or PLAYER.spawn_pos)
     pos.x = pos.x * cell_size
     pos.y = pos.y * cell_size
 
-    local obj = magic_new({
+    super().__init(self, {
         -- main state
         spawn_pos = pos,
         pos = pos,
@@ -28,6 +28,4 @@ function PlayerState.new(cell_size, pos)
         time_of_prev_attack = NEVER,
         time_of_death = NEVER,
     })
-
-    return obj
 end

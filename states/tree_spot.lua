@@ -1,18 +1,16 @@
 
 TreeSpotState = {}
-setup_class(TreeSpotState, State)
+setup_class(TreeSpotState, FixedPropertyTable)
 
-function TreeSpotState.new(x, y)
+function TreeSpotState:__init(x, y)
     assert(x ~= nil)
     assert(y ~= nil)
 
-    local obj = magic_new({
+    super().__init(self, {
         x = x,
         y = y,
         node = NONE,
         t_grown = NEVER,
         t_cut = NEVER,
     })
-
-    return obj
 end

@@ -1,18 +1,16 @@
 
 TerminalState = {}
-setup_class(TerminalState, State)
+setup_class(TerminalState, FixedPropertyTable)
 
-function TerminalState.new(x, y)
+function TerminalState:__init(x, y)
     assert(x ~= nil)
     assert(y ~= nil)
 
-    local obj = magic_new({
+    super().__init(self, {
         x = x,
         y = y,
         node = NONE,
         t_hacked = NEVER,
         t_cut = NEVER,
     })
-
-    return obj
 end

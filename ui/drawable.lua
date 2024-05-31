@@ -1,14 +1,12 @@
-require "ui.simple_element"
+require "ui.layout_element"
 
 Drawable = {
     drawable = nil,
 }
-setup_class(Drawable, SimpleElement)
+setup_class(Drawable, LayoutElement)
 
-function Drawable.new()
-    local obj = magic_new()
-
-    return obj
+function Drawable:__init()
+    super().__init(self)
 end
 
 function Drawable:set_drawable(value)

@@ -98,8 +98,7 @@ end
 
 function TREE_SPOT.create_node(tree_spot, parent, state)
     assert(tree_spot.node == nil)
-    tree_spot.node = NODE.add_node(tree_spot.x, tree_spot.y, parent, state)
-    tree_spot.node.is_tree = true
+    tree_spot.node = NODE.add_node(tree_spot.x, tree_spot.y, parent, state, NODE_TYPE.TREE)
     return tree_spot.node
 end
 

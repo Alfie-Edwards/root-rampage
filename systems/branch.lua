@@ -36,7 +36,7 @@ function BRANCH.draw(state, inputs, dt)
             love.graphics.line(branch.points)
 
             if state.roots.selected ~= branch.tip then
-                local v = Vector.new(branch.tip.parent.x, branch.tip.parent.y,
+                local v = Vector(branch.tip.parent.x, branch.tip.parent.y,
                                      branch.tip.x, branch.tip.y)
                 BRANCH.draw_spike(
                     branch.tip.x,
@@ -48,7 +48,7 @@ function BRANCH.draw(state, inputs, dt)
             end
 
             if branch.base.parent == nil then
-                local v = Vector.new(branch.base.children[branch.child_index].x,
+                local v = Vector(branch.base.children[branch.child_index].x,
                                      branch.base.children[branch.child_index].y,
                                      branch.base.x, branch.base.y)
                 BRANCH.draw_spike(
@@ -118,7 +118,7 @@ function BRANCH.cull(state, branch)
 end
 
 function BRANCH.add_branch(state, base, child_index)
-    local branch = BranchState.new(base, child_index)
+    local branch = BranchState(base, child_index)
     BRANCH.update_tip(branch)
     table.insert(state.branches, branch)
     return branch

@@ -1,73 +1,49 @@
-require "ui.simple_element"
 require "ui.image"
 require "ui.image_button"
+require "ui.containers.grid_box"
+require "ui.containers.box"
 
 JoinMenu = {}
 
-setup_class(JoinMenu, SimpleElement)
+setup_class(JoinMenu, Box)
 
-function JoinMenu.new()
-    local obj = magic_new()
+function JoinMenu:__init()
+    super().__init(self)
 
-    obj:set_properties(
-        {
-            width = canvas:width(),
-            height = canvas:height(),
-        }
-    )
+    local bg = Image()
+    bg.image = assets:get_image("map3")
+    bg.width = canvas:width()
+    bg.height = canvas:height()
+    self:add(bg)
 
-    local bg = Image.new()
-    bg:set_properties(
-        {
-            image = assets:get_image("map3"),
-            width = canvas:width(),
-            height = canvas:height(),
-        }
-    )
-    obj:add_child(bg)
+    local grid = GridBox()
+    grid.cols = 3
+    grid.rows = 3
+    grid.width = canvas:width()
+    grid.height = canvas:height()
+    self:add(grid)
 
-    local grid = Table.new()
-    grid:set_properties(
-        {
-            cols = 3,
-            rows = 3,
-            width = canvas:width(),
-            height = canvas:height(),
-        }
-    )
-    obj:add_child(grid)
+    local button_join = ImageButton()
+    button_join.image = assets:get_image("ui/button-join")
+    button_join.image_data = assets:get_image_data("ui/button-join")
+    button_join.x_align = "center"
+    button_join.y_align = "center"
+    button_join.x = grid:cell(2, 3).bb:width() / 22
+    button_join.y = grid:cell(2, 3).bb:height() / 2
+    button_join.mousepressed = function()
+        view:set_content(Game(Game.MODE_ALL))
+    end
+    grid:cell(2, 3):add(button_join)
 
-    local button_join = ImageButton.new()
-    button_join:set_properties(
-        {
-            image = assets:get_image("ui/button-join"),
-            image_data = assets:get_image_data("ui/button-join"),
-            x_align = "center",
-            y_align = "center",
-            x = grid:cell(2, 3).width / 2,
-            y = grid:cell(2, 3).height / 2,
-            click = function()
-                view:set_content(Game.new(Game.MODE_ALL))
-            end,
-        }
-    )
-    grid:cell(2, 3):add_child(button_join)
-
-    local button_back = ImageButton.new()
-    button_back:set_properties(
-        {
-            image = assets:get_image("ui/button-back"),
-            image_data = assets:get_image_data("ui/button-back"),
-            x_align = "center",
-            y_align = "center",
-            x = grid:cell(1, 3).width / 2,
-            y = grid:cell(1, 3).height / 2,
-            click = function()
-                view:set_content(MainMenu.new())
-            end,
-        }
-    )
-    grid:cell(1, 3):add_child(button_back)
-
-    return obj
+    local button_back = ImageButton()
+    button_back.image = assets:get_image("ui/button-back")
+    button_back.image_data = assets:get_image_data("ui/button-back")
+    button_back.x_align = "center"
+    button_back.y_align = "center"
+    button_back.x = grid:cell(1, 3).bb:width() / 2
+    button_back.y = grid:cell(1, 3).bb:height() / 2
+    button_back.mousepressed = function()
+        view:set_content(MainMenu())
+    end
+    grid:cell(1, 3):add(button_back)
 end

@@ -1,7 +1,6 @@
 require "ui.element"
 
-SimpleElement = {
-    background = nil,
+LayoutElement = {
     x = nil,
     y = nil,
     width = nil,
@@ -9,22 +8,13 @@ SimpleElement = {
     x_align = nil, -- left, center, right
     y_align = nil, -- top, center, bottom
 }
-setup_class(SimpleElement, Element)
+setup_class(LayoutElement, Element)
 
-function SimpleElement.new()
-    local obj = magic_new()
-
-    return obj
+function LayoutElement:__init()
+    super().__init(self)
 end
 
-function SimpleElement:set_background_color(value)
-    if value ~= nil and #value ~= 4 then
-        self:_value_error("Value must be in the form {r, g, b, a}, or nil.")
-    end
-    self:_set_property("background_color", value)
-end
-
-function SimpleElement:set_x(value)
+function LayoutElement:set_x(value)
     if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
@@ -33,7 +23,7 @@ function SimpleElement:set_x(value)
     end
 end
 
-function SimpleElement:set_y(value)
+function LayoutElement:set_y(value)
     if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
@@ -42,7 +32,7 @@ function SimpleElement:set_y(value)
     end
 end
 
-function SimpleElement:set_width(value)
+function LayoutElement:set_width(value)
     if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
@@ -51,7 +41,7 @@ function SimpleElement:set_width(value)
     end
 end
 
-function SimpleElement:set_height(value)
+function LayoutElement:set_height(value)
     if not is_type(value, "number", "nil") then
         self:_value_error("Value must be a number, or nil.")
     end
@@ -60,7 +50,7 @@ function SimpleElement:set_height(value)
     end
 end
 
-function SimpleElement:set_x_align(value)
+function LayoutElement:set_x_align(value)
     if not value_in(value, {"left", "center", "right", "nil"}) then
         self:_value_error("Valid values are 'left', 'center', 'right', or nil.")
     end
@@ -69,7 +59,7 @@ function SimpleElement:set_x_align(value)
     end
 end
 
-function SimpleElement:set_y_align(value)
+function LayoutElement:set_y_align(value)
     if not value_in(value, {"top", "center", "bottom", "nil"}) then
         self:_value_error("Valid values are 'top', 'center', 'bottom', or nil.")
     end
@@ -78,18 +68,8 @@ function SimpleElement:set_y_align(value)
     end
 end
 
-function SimpleElement:update_layout()
+function LayoutElement:update_layout()
     self.bb = calculate_bb(self.x, self.y, self.width, self.height, self.x_align, self.y_align)
-end
-
-function SimpleElement:draw()
-    super().draw(self)
-
-    -- Draw background.
-    if self.background_color ~= nil and self.background_color[4] ~= 0 then
-        love.graphics.setColor(self.background_color)
-        love.graphics.rectangle("fill", 0, 0, self.bb:width(), self.bb:height())
-    end
 end
 
 function calculate_bb(x, y, width, height, x_align, y_align)
@@ -130,5 +110,5 @@ function calculate_bb(x, y, width, height, x_align, y_align)
         y2 = y
     end
 
-    return BoundingBox.new(x1, y1, x2, y2)
+    return BoundingBox(x1, y1, x2, y2)
 end

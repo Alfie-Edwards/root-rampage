@@ -1,24 +1,29 @@
-require "ui.simple_element"
+require "ui.layout_element"
+require "ui.containers.grid_cell"
 
-Table = {
+GridBox = {
     cols = nil,
     rows = nil,
     cells = nil,
+    cell_margin = nil,
+    outer_margin = nil,
     column_widths = nil,
     row_heights = nil,
 }
-setup_class(Table, SimpleElement)
+setup_class(GridBox, LayoutElement)
 
-function Table.new()
-    local obj = magic_new()
+function GridBox:__init()
+    super().__init(self)
 
-    obj.cells = {}
-
-    return obj
+    self.cells = HashMap()
 end
 
-function Table:set_cols(value)
-    if not (value == nil or is_positive_integer(value)) then
+function GridBox:get_cols()
+    return nil_coalesce(self:_get_property("cols"), 1)
+end
+
+function GridBox:set_cols(value)
+    if not (value == nil or is_positive_integer(value, true)) then
         self:_value_error("Value must be a positive integer, or nil.")
     end
     if self:_set_property("cols", value) then
@@ -26,8 +31,12 @@ function Table:set_cols(value)
     end
 end
 
-function Table:set_rows(value)
-    if not (value == nil or is_positive_integer(value)) then
+function GridBox:get_rows()
+    return nil_coalesce(self:_get_property("rows"), 1)
+end
+
+function GridBox:set_rows(value)
+    if not (value == nil or is_positive_integer(value, true)) then
         self:_value_error("Value must be a positive integer, or nil.")
     end
     if self:_set_property("rows", value) then
@@ -35,19 +44,20 @@ function Table:set_rows(value)
     end
 end
 
-function Table:cell(col, row)
+function GridBox:cell(col, row)
     assert(is_positive_integer(col))
     assert(is_positive_integer(row))
-    local key = tostring(col)..","..tostring(row)
 
-    if self.cells[key] == nil then
-        self.cells[key] = SimpleElement.new()
+    if self.cells:contains_key(Cell(col, row)) then
+        return self.cells[Cell(col, row)]
     end
 
-    return self.cells[key]
+    local cell = GridCell(col, row)
+    self.cells[Cell(col, row)] = cell
+    return cell
 end
 
-function Table:set_column_widths(value)
+function GridBox:set_column_widths(value)
     if not is_type(value, "table", "nil") then
         self:_value_error("Value must be a table of {positive integer -> number}, or nil.")
     end
@@ -63,7 +73,7 @@ function Table:set_column_widths(value)
     end
 end
 
-function Table:set_row_heights(value)
+function GridBox:set_row_heights(value)
     if not is_type(value, "table", "nil") then
         self:_value_error("Value must be a table of {positive integer -> number}, or nil.")
     end
@@ -79,7 +89,33 @@ function Table:set_row_heights(value)
     end
 end
 
-function Table:get_column_width(col)
+function GridBox:get_cell_margin()
+    return nil_coalesce(self:_get_property("cell_margin"), 0)
+end
+
+function GridBox:set_cell_margin(value)
+    if not is_type(value, "number", "nil") then
+        self:_value_error("Value must be a number, or nil.")
+    end
+    if self:_set_property("cell_margin", value) then
+        self:update_layout()
+    end
+end
+
+function GridBox:get_outer_margin()
+    return nil_coalesce(self:_get_property("outer_margin"), 0)
+end
+
+function GridBox:set_outer_margin(value)
+    if not is_type(value, "number", "nil") then
+        self:_value_error("Value must be a number, or nil.")
+    end
+    if self:_set_property("outer_margin", value) then
+        self:update_layout()
+    end
+end
+
+function GridBox:get_column_width(col)
     assert(is_positive_integer(col))
 
     if self.column_widths == nil then
@@ -91,7 +127,7 @@ function Table:get_column_width(col)
     return self.column_widths[col]
 end
 
-function Table:get_row_height(row)
+function GridBox:get_row_height(row)
     assert(is_positive_integer(row))
 
     if self.row_heights == nil then
@@ -103,23 +139,22 @@ function Table:get_row_height(row)
     return self.row_heights[row]
 end
 
-function Table:update_layout()
+function GridBox:update_layout()
     super().update_layout(self)
 
-    self:clear_children()
+    self:_clear_visual_children()
 
-    local cols = self.cols or 1
-    local rows = self.rows or 1
+    local height_minus_margins = self.bb:height() - self.cell_margin * (self.rows - 1)
+    local width_minus_margins = self.bb:width() - self.cell_margin * (self.cols - 1)
+
     local total_col_width = 0
     local total_row_height = 0
-
-    for col=1, cols do
+    for col=1, self.cols do
         total_col_width = total_col_width + self:get_column_width(col)
     end
-    for row=1, rows do
+    for row=1, self.rows do
         total_row_height = total_row_height + self:get_row_height(row)
     end
-
     -- Avoid divide by zero.
     if total_col_width == 0 then
         total_col_width = 1
@@ -129,21 +164,20 @@ function Table:update_layout()
     end
 
     local y = 0
-    for row=1, rows do
-        local height = self.bb:height() * self:get_row_height(row) / total_row_height
+    for row=1, self.rows do
+        local height = height_minus_margins * (self:get_row_height(row) / total_row_height)
+
         local x = 0
-        for col=1, cols do
-            local width = self.bb:width() * self:get_column_width(col) / total_col_width
+        for col=1, self.cols do
+            local width = width_minus_margins * (self:get_column_width(col) / total_col_width)
 
             local cell = self:cell(col, row)
-            cell.x = x
-            cell.y = y
-            cell.width = width
-            cell.height = height
-            self:add_child(cell)
+            cell.bb = BoundingBox(x, y, x + width, y + height)
+            self:_add_visual_child(cell)
 
-            x = x + width
+            x = x + width + self.cell_margin
         end
-        y = y + height
+
+        y = y + height + self.cell_margin
     end
 end

@@ -8,16 +8,14 @@ SnapshotFactory.register("table", TableSnapshot)
 
 -- A snapshot class for any table.
 -- Generic but copies the whole state.
-function TableSnapshot.new(t)
-    local obj = magic_new()
+function TableSnapshot:__init(t)
+    super().__init(self)
 
     assert(t ~= nil)
-    obj.t = t
+    self.t = t
     for name, value in pairs(t) do
-        obj:save(name, value)
+        self:save(name, value)
     end
-
-    return obj
 end
 
 function TableSnapshot:restore_impl()

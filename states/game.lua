@@ -13,38 +13,36 @@ require "systems.terminal"
 require "systems.tree_spot"
 
 GameState = {}
-setup_class(GameState, State)
+setup_class(GameState, FixedPropertyTable)
 
-function GameState.new()
+function GameState:__init()
     local cs = LEVEL.cell_size()
 
     local terminals = {}
     for _, pos in ipairs(TERMINAL.POSITIONS) do
-        table.insert(terminals, TerminalState.new(pos.x * cs, pos.y * cs))
+        table.insert(terminals, TerminalState(pos.x * cs, pos.y * cs))
     end
 
     local tree_spots = {}
     for _, pos in ipairs(TREE_SPOT.POSITIONS) do
-        table.insert(tree_spots, TreeSpotState.new(pos.x * cs, pos.y * cs))
+        table.insert(tree_spots, TreeSpotState(pos.x * cs, pos.y * cs))
     end
 
-    local obj = magic_new({
+    super().__init(self, {
         branches = {},
         nodes = {},
         terminals = terminals,
         tree_spots = tree_spots,
 
-        door = DoorState.new(cs, 0),
-        hacking = HackingState.new(),
-        player = PlayerState.new(cs),
-        roots = RootsState.new(),
-        tooltip = TooltipState.new(),
-        wincon = WinconState.new(),
+        door = DoorState(cs, 0),
+        hacking = HackingState(),
+        player = PlayerState(cs),
+        roots = RootsState(),
+        tooltip = TooltipState(),
+        wincon = WinconState(),
         t = 0,
         dt = 1/60,
     })
 
-    TREE_SPOT.create_node(tree_spots[1], nil, obj)
-
-    return obj
+    TREE_SPOT.create_node(tree_spots[1], nil, self)
 end

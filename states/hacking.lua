@@ -1,11 +1,9 @@
 
 HackingState = {}
-setup_class(HackingState, State)
+setup_class(HackingState, FixedPropertyTable)
 
-function HackingState.new()
-    local obj = magic_new({
+function HackingState:__init()
+    super().__init(self, {
         progress = 0,
     })
-
-    return obj
 end

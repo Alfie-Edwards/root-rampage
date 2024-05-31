@@ -5,18 +5,16 @@ StateSnapshot = {
     handler = nil,
 }
 setup_class(StateSnapshot, Snapshot)
-SnapshotFactory.register("State", StateSnapshot)
+SnapshotFactory.register("FixedPropertyTable", StateSnapshot)
 
 -- A snapshot class specialised for State objects.
 -- Avoid duplicating the whole state by only saving values which change.
-function StateSnapshot.new(state)
-    local obj = magic_new()
+function StateSnapshot:__init(state)
+    super().__init(self)
 
     assert(state ~= nil)
-    obj.state = state
-    obj:subscribe()
-
-    return obj
+    self.state = state
+    self:subscribe()
 end
 
 function StateSnapshot:subscribe()

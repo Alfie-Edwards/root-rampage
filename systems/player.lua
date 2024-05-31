@@ -343,7 +343,7 @@ end
 
 function PLAYER.spawn(player)
     player.time_of_death = NEVER
-    player.pos = shallowcopy(player.spawn_pos)
+    player.pos = shallow_copy(player.spawn_pos)
     player.time_of_prev_attack = -PLAYER.attack_cooldown
 end
 

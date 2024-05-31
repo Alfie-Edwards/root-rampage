@@ -1,9 +1,9 @@
 
 RootsState = {}
-setup_class(RootsState, State)
+setup_class(RootsState, FixedPropertyTable)
 
-function RootsState.new()
-    local obj = magic_new({
+function RootsState:__init()
+    super().__init(self, {
         t_attack = NEVER,
         selected = NONE,
         grow_node = NONE,
@@ -14,6 +14,4 @@ function RootsState.new()
         tree_spot = NONE,
         terminal = NONE,
     })
-
-    return obj
 end

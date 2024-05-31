@@ -5,7 +5,7 @@ PixelCanvas = {
 }
 setup_class(PixelCanvas)
 
-function PixelCanvas.new(size, offset)
+function PixelCanvas:__init(size, offset)
     if size == nil then
         size = { 1280, 720 }
     end
@@ -14,13 +14,11 @@ function PixelCanvas.new(size, offset)
         offset = { 0, 0 }
     end
 
-    local obj = magic_new()
+    super().__init(self)
 
-    obj.size = { w = size[1], h = size[2] }
-    obj.offset = { x = offset[1], y = offset[2] }
-    obj.canvas = love.graphics.newCanvas(obj.size.w, obj.size.h)
-
-    return obj
+    self.size = { w = size[1], h = size[2] }
+    self.offset = { x = offset[1], y = offset[2] }
+    self.canvas = love.graphics.newCanvas(self.size.w, self.size.h)
 end
 
 function PixelCanvas:width()

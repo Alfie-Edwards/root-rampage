@@ -7,15 +7,13 @@ AssetCache = {
 }
 setup_class(AssetCache)
 
-function AssetCache.new()
-    local obj = magic_new()
+function AssetCache:__init()
+    super().__init(self)
 
-    obj.images = {}
-    obj.image_data = {}
-    obj.fonts = {}
-    obj.sounds = {}
-
-    return obj
+    self.images = {}
+    self.image_data = {}
+    self.fonts = {}
+    self.sounds = {}
 end
 
 function AssetCache:get_image(name, extension)

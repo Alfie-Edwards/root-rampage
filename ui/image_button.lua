@@ -1,19 +1,18 @@
-require "ui.simple_element"
+require "ui.layout_element"
 require "ui.image"
 
 ImageButton = {}
 
 setup_class(ImageButton, Image)
 
-function ImageButton.new()
-    local obj = magic_new()
-    return obj
+function ImageButton:__init()
+    super().__init(self)
 end
 
 function ImageButton:draw()
     super().draw(self)
 
-    local mouse_x, mouse_y = self:get_mouse_pos()
+    local mouse_x, mouse_y = unpack(self.mouse_pos)
 
     if self:contains(mouse_x, mouse_y) then
         if love.mouse.isDown(1) then

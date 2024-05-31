@@ -1,18 +1,26 @@
 
 NodeState = {}
-setup_class(NodeState, State)
 
-function NodeState.new(x, y, parent)
-    local obj = magic_new({
+NODE_TYPE = {
+    NORMAL = 1,
+    TERMINAL = 2,
+    TREE = 3,
+}
+
+setup_class(NodeState, FixedPropertyTable)
+
+function NodeState:__init(x, y, parent, type)
+    assert(x ~= nil)
+    assert(y ~= nil)
+
+    super().__init(self, {
         x = x,
         y = y,
         children = {},
-        is_tree = false,
-        is_terminal = is_terminal,
+        is_tree = (type == NODE_TYPE.TREE),
+        is_terminal = (type == NODE_TYPE.TERMINAL),
         t_dead = NEVER,
         is_dead = false,
-        parent = parent,
+        parent = nil_coalesce(parent, NONE),
     })
-
-    return obj
 end

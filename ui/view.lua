@@ -6,12 +6,10 @@ View = {
 }
 setup_class(View)
 
-function View.new()
-    local obj = magic_new()
+function View:__init(width, height)
+    super().__init(self)
 
-    obj.mouse_pos = {love.mouse.getPosition()}
-
-    return obj
+    self.mouse_pos = {love.mouse.getPosition()}
 end
 
 function View:get_content()
@@ -22,8 +20,8 @@ function View:set_content(value)
     self.content = value
 end
 
-function View:click(x, y, button)
-    local function click(element, x, y)
+function View:mousepressed(x, y, button)
+    local function mousepressed(element, x, y)
         -- Transform position into local coords.
         local transform = love.math.newTransform()
         transform:translate(element.bb.x1, element.bb.y1)
@@ -33,8 +31,8 @@ function View:click(x, y, button)
         x, y = transform:inverseTransformPoint(x, y)
 
         -- Iterate from topmost element down.
-        for i = #(element.children), 1, -1 do
-            if click(element.children[i], x, y) then
+        for i = #(element._visual_children), 1, -1 do
+            if mousepressed(element._visual_children[i], x, y) then
                 return true
             end
         end
@@ -44,8 +42,8 @@ function View:click(x, y, button)
         end
 
         local result = false
-        if element.click ~= nil then
-            result = element:click(x, y, button)
+        if element.mousepressed ~= nil then
+            result = element:mousepressed(x, y, button)
         end
         if result == nil then
             -- If a handler is set, assume it is consuming the event if not expicitly stated.
@@ -55,15 +53,52 @@ function View:click(x, y, button)
     end
 
     if self.content ~= nil then
-        click(self.content, x, y)
+        mousepressed(self.content, x, y)
+    end
+end
+
+function View:mousereleased(x, y, button)
+    local function mousereleased(element, x, y)
+        -- Transform position into local coords.
+        local transform = love.math.newTransform()
+        transform:translate(element.bb.x1, element.bb.y1)
+        if element.transform ~= nil then
+            transform:apply(element.transform)
+        end
+        x, y = transform:inverseTransformPoint(x, y)
+
+        -- Iterate from topmost element down.
+        for i = #(element._visual_children), 1, -1 do
+            if mousereleased(element._visual_children[i], x, y) then
+                return true
+            end
+        end
+
+        if not element:contains(x, y) then
+            return false
+        end
+
+        local result = false
+        if element.mousereleased ~= nil then
+            result = element:mousereleased(x, y, button)
+        end
+        if result == nil then
+            -- If a handler is set, assume it is consuming the event if not expicitly stated.
+            result = true
+        end
+        return result
+    end
+
+    if self.content ~= nil then
+        mousereleased(self.content, x, y)
     end
 end
 
 function View:keypressed(key)
     local function keypressed(element)
         -- Iterate from topmost element down.
-        for i = #(element.children), 1, -1 do
-            if keypressed(element.children[i]) then
+        for i = #(element._visual_children), 1, -1 do
+            if keypressed(element._visual_children[i]) then
                 return true
             end
         end
@@ -84,19 +119,44 @@ function View:keypressed(key)
     end
 end
 
+function View:textinput(t)
+    local function textinput(element)
+        -- Iterate from topmost element down.
+        for i = #(element._visual_children), 1, -1 do
+            if textinput(element._visual_children[i]) then
+                return true
+            end
+        end
+
+        local result = false
+        if element.textinput ~= nil then
+            result = element:textinput(t)
+        end
+        if result == nil then
+            -- If a handler is set, assume it is consuming the event if not expicitly stated.
+            result = true
+        end
+        return result
+    end
+
+    if self.content ~= nil then
+        textinput(self.content)
+    end
+end
+
 function View:update_cursor()
     local cursor = nil
 
     local function get_cursor(element)
         -- Iterate from topmost element down.
-        for i = #(element.children), 1, -1 do
-            local child_cursor = get_cursor(element.children[i])
+        for i = #(element._visual_children), 1, -1 do
+            local child_cursor = get_cursor(element._visual_children[i])
             if child_cursor ~= nil then
                 return child_cursor
             end
         end
 
-        local x, y = element:get_mouse_pos()
+        local x, y = unpack(element.mouse_pos)
         if not element:contains(x, y) then
             return nil
         end
@@ -129,8 +189,8 @@ function View:update_mouse_pos(x, y)
         x, y = transform:inverseTransformPoint(x, y)
 
         -- Iterate from topmost element down.
-        for i = #(element.children), 1, -1 do
-            update_mouse_pos(element.children[i], x, y)
+        for i = #(element._visual_children), 1, -1 do
+            update_mouse_pos(element._visual_children[i], x, y)
         end
 
         element.mouse_pos = {x, y}
@@ -147,13 +207,13 @@ function View:mousemoved(x, y, dx, dy)
 
     local function mousemoved(element)
         -- Iterate from topmost element down.
-        for i = #(element.children), 1, -1 do
-            if mousemoved(element.children[i]) then
+        for i = #(element._visual_children), 1, -1 do
+            if mousemoved(element._visual_children[i]) then
                 return true
             end
         end
 
-        local local_x, local_y = element:get_mouse_pos()
+        local local_x, local_y = unpack(element.mouse_pos)
         if not element:contains(local_x, local_y) then
             return false
         end
@@ -175,12 +235,43 @@ function View:mousemoved(x, y, dx, dy)
     end
 end
 
+function View:wheelmoved(x, y)
+    local function wheelmoved(element)
+        -- Iterate from topmost element down.
+        for i = #(element._visual_children), 1, -1 do
+            if wheelmoved(element._visual_children[i]) then
+                return true
+            end
+        end
+
+        local local_x, local_y = unpack(element.mouse_pos)
+        if not element:contains(local_x, local_y) then
+            return false
+        end
+
+        -- Handle mousemoved.
+        if element.wheelmoved ~= nil then
+            local result = element:wheelmoved(x, y)
+            if result or (result == nil) then
+                -- If a handler is set, assume it is consuming the event if not expicitly stated.
+                return true
+            end
+        end
+
+        return false
+    end
+
+    if self.content ~= nil then
+        wheelmoved(self.content, x, y)
+    end
+end
+
 function View:update(dt)
 
     -- Update elements in tree.
     local function update(element)
         element:update(dt)
-        for _,child in ipairs(element.children) do
+        for _,child in ipairs(element._visual_children) do
             update(child)
         end
     end
@@ -194,9 +285,21 @@ end
 
 function View:draw()
     -- Draw elements in tree.
+    local scissor_stack = Stack()
 
     local function draw(element)
-        draw_bb(element.bb, element.background)
+        if element.clip then
+            local x, y = love.graphics.transformPoint(element.bb.x1, element.bb.y1)
+            local x2, y2 = love.graphics.transformPoint(element.bb.x2, element.bb.y2)
+            local w = x2 - x
+            local h = y2 - y
+            if love.graphics.getScissor() == nil then
+                love.graphics.setScissor(x, y, w, h)
+            else
+                love.graphics.intersectScissor(x, y, w, h)
+            end
+        end
+        scissor_stack:push({love.graphics.getScissor()})
 
         love.graphics.push()
         love.graphics.translate(element.bb.x1, element.bb.y1)
@@ -206,10 +309,17 @@ function View:draw()
         end
 
         element:draw()
-        for _,child in ipairs(element.children) do
+
+        for _,child in ipairs(element._visual_children) do
             draw(child)
         end
 
+        scissor_stack:pop()
+        if scissor_stack:head() ~= nil then
+            love.graphics.setScissor(unpack(scissor_stack:head()))
+        else
+            love.graphics.setScissor()
+        end
         love.graphics.pop()
     end
 

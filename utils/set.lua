@@ -37,3 +37,7 @@ function is_set(t)
     end
     return true
 end
+
+function set_to_sorted_list(s, sort_function)
+    return keys_to_sorted_list(s, sort_function)
+end

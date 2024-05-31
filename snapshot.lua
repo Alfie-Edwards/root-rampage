@@ -11,7 +11,7 @@ SnapshotFactory = {
         if class == nil then
             return nil
         end
-        return class.new(x)
+        return class(x)
     end,
 }
 
@@ -24,14 +24,12 @@ setup_class(Snapshot)
 
 -- Save the current properties of a state object so they can be restored later.
 -- To avoid duplicating the whole state, only values which change are saved.
-function Snapshot.new()
-    local obj = magic_new()
+function Snapshot:__init()
+    super().__init(self)
 
-    obj.saved = {}
-    obj.saved_name_set = {}
-    obj.children = {}
-
-    return obj
+    self.saved = {}
+    self.saved_name_set = {}
+    self.children = {}
 end
 
 function save(name, value)

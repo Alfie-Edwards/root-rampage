@@ -3,10 +3,9 @@ RollbackModelInterface = {
 }
 setup_class(RollbackModelInterface)
 
-function RollbackModelInterface.new()
-    local obj = magic_new()
+function RollbackModelInterface:__init()
+    super().__init(self)
 
-    return obj
 end
 
 function RollbackModelInterface:tick(inputs)

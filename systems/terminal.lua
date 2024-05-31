@@ -69,8 +69,7 @@ end
 
 function TERMINAL.create_node(terminal, parent, state)
     assert(terminal.node == nil)
-    terminal.node = NODE.add_node(terminal.x - 19, terminal.y - 8, parent, state)
-    terminal.node.is_terminal = true
+    terminal.node = NODE.add_node(terminal.x - 19, terminal.y - 8, parent, state, NODE_TYPE.TERMINAL)
     return terminal.node
 end
 

@@ -1,12 +1,10 @@
 
 WinconState = {}
-setup_class(WinconState, State)
+setup_class(WinconState, FixedPropertyTable)
 
-function WinconState.new()
-    local obj = magic_new({
+function WinconState:__init()
+    super().__init(self, {
         game_over = false,
         end_screen = NONE,
     })
-
-    return obj
 end

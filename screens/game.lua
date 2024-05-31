@@ -2,7 +2,7 @@ require "rollback_model"
 require "rollback_engine"
 require "states.game"
 require "systems.game"
-require "ui.simple_element"
+require "ui.layout_element"
 
 Game = {
     MODE_PLAYER = {},
@@ -17,27 +17,21 @@ Game = {
     current_tick = nil,
     tick_offset = nil,
 }
-setup_class(Game, SimpleElement)
+setup_class(Game, LayoutElement)
 
-function Game.new(mode)
-    local obj = magic_new()
+function Game:__init(mode)
+    super().__init(self)
 
-    obj:set_properties(
-        {
-            width = canvas:width(),
-            height = canvas:height(),
-        }
-    )
+    self.width = canvas:width()
+    self.height = canvas:height()
 
-    obj.tick_offset = 0
-    obj.mode = mode
-    obj.state = GameState.new()
-    obj.rollback_model = RollbackModel.new(obj.state)
-    obj.rollback_engine = RollbackEngine.new(obj.rollback_model)
-    obj.current_tick = -1
-    obj.t0 = love.timer.getTime()
-
-    return obj
+    self.tick_offset = 0
+    self.mode = mode
+    self.state = GameState()
+    self.rollback_model = RollbackModel(self.state)
+    self.rollback_engine = RollbackEngine(self.rollback_model)
+    self.current_tick = -1
+    self.t0 = love.timer.getTime()
 end
 
 function Game:get_inputs()

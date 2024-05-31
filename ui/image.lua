@@ -1,18 +1,16 @@
-require "ui.simple_element"
+require "ui.layout_element"
 
 Image = {
     image_data = nil,
     image = nil,
     pixel_hit_detection = nil,
 }
-setup_class(Image, SimpleElement)
+setup_class(Image, LayoutElement)
 
-function Image.new()
-    local obj = magic_new()
+function Image:__init()
+    super().__init(self)
 
-    obj.pixel_hit_detection = true
-
-    return obj
+    self.pixel_hit_detection = true
 end
 
 function Image:set_pixel_hit_detection(value)
@@ -105,7 +103,7 @@ function Image:contains(x, y)
         return false
     end
 
-    -- Return false if pixel is transparent.
+    -- Return false if pixel is trans_visual_parent.
     local pixel_x = x * self.image_data:getWidth() / self.bb:width()
     local pixel_y = y * self.image_data:getHeight() / self.bb:height()
     local _, _, _, alpha = self.image_data:getPixel(pixel_x, pixel_y)

@@ -3,24 +3,10 @@ Event = {
 }
 setup_class(Event)
 
-function Event.new()
-    local obj = {}
+function Event:__init()
+    super().__init(self)
 
-    -- Intermediate instance with customised __call method to avoid passing this.
-    local closure = {}
-    setup_instance(closure, Event)
-
-    closure.__call = function(...)
-        for _, handler in ipairs(obj.handlers) do
-            handler(...)
-        end
-    end
-
-    obj.handlers = {}
-
-    setup_instance(obj, closure)
-
-    return obj
+    self.handlers = {}
 end
 
 function Event:subscribe(handler)
@@ -37,6 +23,8 @@ function Event:unsubscribe_all()
     self.handlers = {}
 end
 
-function Event.__call(...)
-
+function Event:__call(...)
+    for _, handler in ipairs(self.handlers) do
+        handler(...)
+    end
 end

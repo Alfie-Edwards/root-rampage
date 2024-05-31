@@ -1,4 +1,4 @@
-require "ui.simple_element"
+require "ui.layout_element"
 
 Text = {
     text = nil,
@@ -9,14 +9,13 @@ Text = {
     wrap_width = nil,
     line_spacing = nil,
 }
-setup_class(Text, SimpleElement)
+setup_class(Text, LayoutElement)
 
-function Text.new()
-    local obj = magic_new()
+function Text:__init(text)
+    super().__init(self)
 
-    obj.line_drawables = {}
-
-    return obj
+    self.line_drawables = {}
+    self.text = text
 end
 
 function Text:set_text(value)
@@ -28,8 +27,12 @@ function Text:set_text(value)
     end
 end
 
+function Text:get_text()
+    return nil_coalesce(self:_get_property("text"), "")
+end
+
 function Text:set_text_align(value)
-    if not value_in(value, {"left", "center", "right", nil}) then
+    if value ~= nil and not value_in(value, {"left", "center", "right"}) then
         self:_value_error("Valid values are 'left', 'center', right', or nil.")
     end
     self:_set_property("text_align", value)
@@ -69,6 +72,10 @@ function Text:set_line_spacing(value)
     end
 end
 
+function Text:get_line_spacing()
+    return nil_coalesce(self:_get_property("line_spacing"), 0)
+end
+
 function Text:update_layout()
     local text_type = type_string(self.text)
     local width = 0
@@ -96,7 +103,7 @@ function Text:update_layout()
         else
             lines = {self.text}
         end
-        height = #lines * self.font:getHeight() + math.max(#lines - 1, 0) * (self.line_spacing or 0) - self.font:getLineHeight()
+        height = #lines * (self.font:getHeight() + self.font:getLineHeight()) + math.max(#lines - 1, 0) * self.line_spacing
         add_lines(lines)
 
     elseif (text_type == "table") then
@@ -114,7 +121,7 @@ function Text:update_layout()
             total_lines = total_lines + #lines
         end
 
-        height = total_lines * self.font:getHeight() + math.max(total_lines - 1, 0) * (self.line_spacing or 0) - self.font:getLineHeight()
+        height = total_lines * (self.font:getHeight() + self.font:getLineHeight()) + math.max(total_lines - 1, 0) * self.line_spacing
     end
 
     -- Calculate bounding box.
