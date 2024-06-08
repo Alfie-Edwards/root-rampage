@@ -136,9 +136,9 @@ function PLAYER.attack(state)
     player.time_of_prev_attack = state.t
 
     local atk_centre = PLAYER.attack_centre(player)
-    local nodes_to_cut = NODE.get_within_radius(state, atk_centre.x,
-                                                atk_centre.y,
-                                                PLAYER.attack_radius)
+    local nodes_to_cut = state.nodes:in_radius(atk_centre.x,
+                                               atk_centre.y,
+                                               PLAYER.attack_radius)
 
     if #nodes_to_cut > 0 then
         PLAYER.sounds.hit:play()
@@ -198,7 +198,7 @@ function PLAYER.get_movement(state)
     end
 
     most_recent.speed = PLAYER.max_speed
-    if #(NODE.get_within_radius(state, player.pos.x, player.pos.y, PLAYER.size / 2)) > 0 then
+    if state.nodes:any_in_radius(player.pos.x, player.pos.y, PLAYER.size / 2) then
         most_recent.speed = PLAYER.root_speed
     end
     most_recent.speed = most_recent.speed * (0.5 + 0.5 * math.min(1, (state.t - most_recent.when) / PLAYER.acceleration_time))

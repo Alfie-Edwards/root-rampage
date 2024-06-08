@@ -116,7 +116,7 @@ function RollbackEngine:_rollback_to_snapshot()
 end
 
 function RollbackEngine:_play_to_target()
-        -- Play until target tick.
+    -- Play until target tick.
     for t = (self.current_tick + 1), self.target_tick, 1 do
         assert(self.input_record[t] ~= nil)
         self.model:tick(self.prediction_record[t] or self.input_record[t])

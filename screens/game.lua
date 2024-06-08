@@ -78,17 +78,23 @@ end
 function Game:update(dt)
     super().update(self, dt)
 
+    n = 0
     self.tick_offset = self.tick_offset + dt
     while self.tick_offset / self.state.dt > 1 do
         self.tick_offset = self.tick_offset - self.state.dt
         self:tick()
+        n = n + 1
+        if n > 0 then
+            self.tick_offset = 0
+            break
+        end
     end
 end
 
 function Game:draw()
     super().draw(self)
 
-    local dt = love.timer.getTime() - self.t0 - self.state.t
+    local dt = 0
 
     GAME.draw(self.state, self:get_inputs(), dt)
 

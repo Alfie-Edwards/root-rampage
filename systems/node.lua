@@ -4,7 +4,8 @@ NODE = {}
 
 function NODE.add_node(x, y, parent, state, type)
     local node = NodeState(x, y, parent, type)
-    table.insert(state.nodes, node)
+    state.nodes:add(x, y, node)
+    state.newest_node = node
 
     if parent == nil then
         BRANCH.add_branch(state, node, 1)
@@ -20,35 +21,7 @@ function NODE.add_node(x, y, parent, state, type)
 end
 
 function NODE.remove_node(state, node)
-    remove_value(state.nodes, node)
-end
-
-function NODE.get_within_radius(state, x, y, radius)
-    local res = {}
-    for _, node in ipairs(state.nodes) do
-        if not node.is_dead then
-            local dist = sq_dist(x, y, node.x, node.y)
-            if dist < radius ^ 2 then
-                table.insert(res, node)
-            end
-        end
-    end
-    return res
-end
-
-function NODE.get_closest_node(state, x, y)
-    local closest = nil
-    local dist = nil
-    for _, node in ipairs(state.nodes) do
-        if not node.is_dead then
-            local new_dist = sq_dist(x, y, node.x, node.y)
-            if dist == nil or new_dist < dist then
-                closest = node
-                dist = new_dist
-            end
-        end
-    end
-    return closest
+    state.nodes:remove(node.x, node.y, node)
 end
 
 function NODE.add_child(parent, child)
@@ -79,7 +52,7 @@ function NODE.do_to_subtree(node, func)
     end
 end
 
-function NODE.kill_subtree_if_no_trees(node, t)
+function NODE.kill_subtree_if_no_trees(node, state)
     local function any_trees(node)
         if node.is_tree then
             return true
@@ -96,7 +69,7 @@ function NODE.kill_subtree_if_no_trees(node, t)
     if not any_trees(node) then
         NODE.do_to_subtree(node,
             function(node)
-                NODE.kill(node, t)
+                NODE.kill(node, state)
             end
         )
     end
@@ -132,25 +105,26 @@ function NODE.cut(state, node)
     -- Kill check on parent graph.
     if parent ~= nil then
         local parent_graph_root = NODE.find_root_node(parent)
-        NODE.kill_subtree_if_no_trees(parent_graph_root, state.t)
+        NODE.kill_subtree_if_no_trees(parent_graph_root, state)
     end
 
     -- Kill check on child graphs.
     for _, child in pairs(children) do
-        NODE.kill_subtree_if_no_trees(child, state.t)
+        NODE.kill_subtree_if_no_trees(child, state)
     end
 
-    NODE.kill(node, state.t)
+    NODE.kill(node, state)
 
     -- Create branch containing just this node.
     BRANCH.add_branch(state, node, 1)
 end
 
 function NODE.cull(state, node)
-    NODE.remove_node(state, node)
+    -- NODE.remove_node(state, node)
 end
 
-function NODE.kill(node, t)
+function NODE.kill(node, state)
+    NODE.remove_node(state, node)
     node.is_dead = true
-    node.t_dead = t
+    node.t_dead = state.t
 end

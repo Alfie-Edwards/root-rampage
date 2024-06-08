@@ -13,9 +13,9 @@ AttackState = {
 }
 
 ROOTS = {
-    SPEED = 2,
-    ATTACK_SPEED = 7,
-    ATTACK_WINDUP_SPEED = 0.5,
+    SPEED = 120,
+    ATTACK_SPEED = 420,
+    ATTACK_WINDUP_SPEED = 30,
     ATTACK_WINDUP_TIME = 0.3,
     ATTACK_TIME = 0.1,
     ATTACK_CD = 4,
@@ -37,6 +37,7 @@ function ROOTS.get_attack_state(roots, t)
 end
 
 function ROOTS.update(state, inputs)
+    local timer = Timer()
     local roots = state.roots
     local tooltip = state.tooltip
 
@@ -59,12 +60,14 @@ function ROOTS.update(state, inputs)
         roots.t_attack = state.t
         attack_state = ROOTS.get_attack_state(roots, state.t)
     end
+    -- timer:report_and_reset("1")
 
     if roots.selected ~= nil and tooltip.timer == nil then
         roots.grow_node = roots.selected
     else
-        roots.grow_node = NODE.get_closest_node(state, inputs.roots_pos_x, inputs.roots_pos_y)
+        roots.grow_node = state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y)
     end
+    -- timer:report_and_reset("2")
 
     if roots.grow_node == nil then
         roots.new_pos_x = nil
@@ -79,6 +82,7 @@ function ROOTS.update(state, inputs)
     else
         roots.speed = ROOTS.SPEED
     end
+    -- timer:report_and_reset("3")
 
     local v = Vector(roots.grow_node.x, roots.grow_node.y,
                          inputs.roots_pos_x, inputs.roots_pos_y)
@@ -88,19 +92,23 @@ function ROOTS.update(state, inputs)
         roots.new_pos_y = nil
         return
     end
+    -- timer:report_and_reset("4")
 
-    roots.new_pos_x = roots.grow_node.x + v:direction_x() * roots.speed
-    roots.new_pos_y = roots.grow_node.y + v:direction_y() * roots.speed
+    roots.new_pos_x = roots.grow_node.x + v:direction_x() * roots.speed * state.dt
+    roots.new_pos_y = roots.grow_node.y + v:direction_y() * roots.speed * state.dt
+    -- timer:report_and_reset("5")
 
-    if v:length() < roots.speed then
+    if v:sq_length() < (roots.speed * roots.speed * state.dt * state.dt) then
         roots.valid = false
-    elseif NODE.get_closest_node(state, roots.new_pos_x, roots.new_pos_y) ~= roots.grow_node then
+    elseif state.nodes:closest(roots.new_pos_x, roots.new_pos_y) ~= roots.grow_node then
         roots.valid = false
     elseif LEVEL.solid({x = roots.new_pos_x, y = roots.new_pos_y}) then
         roots.valid = false
     else
         roots.valid = true
     end
+
+    -- timer:report_and_reset("6")
 
     if tooltip.timer == nil and not inputs.roots_attack then
         roots.tree_spot = TREE_SPOT.find_tree_spot(state.tree_spots, roots.new_pos_x, roots.new_pos_y)
@@ -126,6 +134,8 @@ function ROOTS.update(state, inputs)
             tooltip.timer = nil
         end
     end
+
+    -- timer:report_and_reset("7")
 
     if roots.selected ~= nil then
         if roots.valid then
@@ -165,7 +175,7 @@ function ROOTS.draw(state, inputs, dt)
             roots.grow_node.y,
             v:direction_x(),
             v:direction_y(),
-            roots.speed, color)
+            roots.speed * state.dt, color)
     end
 
     if tooltip.timer ~= nil and roots.selected ~= nil then
@@ -181,7 +191,7 @@ function ROOTS.draw(state, inputs, dt)
                 roots.selected.y,
                 v:direction_x(),
                 v:direction_y(),
-                ROOTS.SPEED)
+                ROOTS.SPEED * state.dt)
         end
 
         if roots.terminal ~= nil then
@@ -196,7 +206,7 @@ function ROOTS.draw(state, inputs, dt)
                 roots.selected.y,
                 v:direction_x(),
                 v:direction_y(),
-                ROOTS.SPEED)
+                ROOTS.SPEED * state.dt)
         end
     end
 end

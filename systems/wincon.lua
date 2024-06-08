@@ -13,11 +13,11 @@ function WINCON.update(state, inputs)
 
     if state.door.is_open then
         local door_pos = DOOR.get_center(state.door)
-        local most_recent_node = state.nodes[#state.nodes]
+        local most_recent_node = state.newest_node
         if (door_pos.x - most_recent_node.x) ^ 2 + (door_pos.y - most_recent_node.y) ^ 2 < (1.5 * LEVEL.cell_size()) then
             WINCON.RootsWin(wincon)
         end
-    elseif #state.nodes == 0 then
+    elseif not state.nodes:any() then
         WINCON.AxeManWins(wincon)
     end
 end
