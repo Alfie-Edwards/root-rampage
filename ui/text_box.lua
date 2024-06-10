@@ -1,4 +1,5 @@
 require "ui.layout_element"
+require "ui.text"
 require "ui.containers.scroll_frame"
 
 TextBox = {

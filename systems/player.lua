@@ -144,8 +144,10 @@ function PLAYER.attack(state)
         PLAYER.sounds.hit:play()
     end
 
+    local timer = Timer()
     for _, node in ipairs(nodes_to_cut) do
         NODE.cut(state, node)
+        timer:report_and_reset("cut", 1)
     end
 end
 

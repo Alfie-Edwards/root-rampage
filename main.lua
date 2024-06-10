@@ -11,6 +11,7 @@ function love.load()
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
     font = assets:get_font("font")
+    ui_font = assets:get_font("font", "ttf", 18)
     love.graphics.setFont(font)
     love.graphics.setLineJoin("bevel")
     love.graphics.setLineStyle("rough")

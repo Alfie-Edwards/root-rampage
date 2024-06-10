@@ -11,15 +11,24 @@ require "systems.wincon"
 GAME = {}
 
 function GAME.update(state, inputs)
+    local timer = Timer()
     state.t = state.t + state.dt
     ROOTS.update(state, inputs)
+    timer:report_and_reset("ROOTS", 10)
     BRANCH.update(state, inputs)
+    timer:report_and_reset("BRANCH", 10)
     TREE_SPOT.update(state, inputs)
+    timer:report_and_reset("TREE_SPOT", 10)
     TERMINAL.update(state, inputs)
+    timer:report_and_reset("TERMINAL", 10)
     PLAYER.update(state, inputs)
+    timer:report_and_reset("PLAYER", 10)
     HACKING.update(state, inputs)
+    timer:report_and_reset("HACKING", 10)
     TOOLTIP.update(state, inputs)
+    timer:report_and_reset("TOOLTIP", 10)
     WINCON.update(state, inputs)
+    timer:report_and_reset("WINCON", 10)
 end
 
 function GAME.draw(state, inputs, dt)

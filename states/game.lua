@@ -31,7 +31,7 @@ function GameState:__init()
     super().__init(self, {
         newest_node = NONE,
         branches = {},
-        nodes = SpatialTable(0, 0, canvas:width(), canvas:height(), math.sqrt(math.min(canvas:width(), canvas:height()))),
+        nodes = SpatialTable(0, 0, canvas:width(), canvas:height(), math.sqrt(canvas:width() * canvas:height())),
         terminals = terminals,
         tree_spots = tree_spots,
 

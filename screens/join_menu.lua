@@ -1,7 +1,9 @@
 require "ui.image"
 require "ui.image_button"
+require "ui.text_box"
 require "ui.containers.grid_box"
 require "ui.containers.box"
+require "networking"
 
 JoinMenu = {}
 
@@ -9,6 +11,22 @@ setup_class(JoinMenu, Box)
 
 function JoinMenu:__init()
     super().__init(self)
+
+    self.client = Client()
+    self.client.connected:subscribe(
+        function(connection)
+            self.connection = connection
+            self.connection.connected:subscribe(function() print("Connected!") end)
+            self.connection.sent:subscribe(function(m) print("Sent: "..m) end)
+            self.connection.received:subscribe(function(m) print("Received: "..m) end)
+            self.connection.disconnected:subscribe(
+                function()
+                    print("Disconnected!")
+                    self.connection = nil
+                end
+            )
+        end
+    )
 
     local bg = Image()
     bg.image = assets:get_image("map3")
@@ -23,17 +41,58 @@ function JoinMenu:__init()
     grid.height = canvas:height()
     self:add(grid)
 
-    local button_join = ImageButton()
-    button_join.image = assets:get_image("ui/button-join")
-    button_join.image_data = assets:get_image_data("ui/button-join")
-    button_join.x_align = "center"
-    button_join.y_align = "center"
-    button_join.x = grid:cell(2, 3).bb:width() / 22
-    button_join.y = grid:cell(2, 3).bb:height() / 2
-    button_join.mousepressed = function()
-        view:set_content(Game(Game.MODE_ALL))
+    local message_box = TextBox()
+    message_box.x_align = "center"
+    message_box.y_align = "center"
+    message_box.x = grid:cell(2, 1).bb:width() / 2
+    message_box.y = grid:cell(2, 1).bb:height() / 2
+    message_box.width = grid:cell(2, 1).bb:width()
+    message_box.height = 32
+    message_box.background_color = {1, 1, 1, 1}
+    message_box.color = {0, 0, 0, 1}
+    message_box.font = ui_font
+    message_box.content_margin = 4
+    grid:cell(2, 1):add(message_box)
+
+    local button_send = ImageButton()
+    button_send.image = assets:get_image("ui/button-back")
+    button_send.image_data = assets:get_image_data("ui/button-back")
+    button_send.x_align = "center"
+    button_send.y_align = "center"
+    button_send.x = grid:cell(3, 1).bb:width() / 2
+    button_send.y = grid:cell(3, 1).bb:height() / 2
+    button_send.mousepressed = function()
+        if self.connection ~= nil then
+            self.connection:send(message_box.text)
+        end
     end
-    grid:cell(2, 3):add(button_join)
+    grid:cell(3, 1):add(button_send)
+
+    local address_box = TextBox()
+    address_box.x_align = "center"
+    address_box.y_align = "center"
+    address_box.x = grid:cell(2, 2).bb:width() / 2
+    address_box.y = grid:cell(2, 2).bb:height() / 2
+    address_box.width = grid:cell(2, 2).bb:width()
+    address_box.height = 32
+    address_box.background_color = {1, 1, 1, 1}
+    address_box.color = {0, 0, 0, 1}
+    address_box.font = ui_font
+    address_box.content_margin = 4
+    address_box.text = "localhost:6750"
+    grid:cell(2, 2):add(address_box)
+
+    local button_host = ImageButton()
+    button_host.image = assets:get_image("ui/button-join")
+    button_host.image_data = assets:get_image_data("ui/button-join")
+    button_host.x_align = "center"
+    button_host.y_align = "center"
+    button_host.x = grid:cell(2, 3).bb:width() / 2
+    button_host.y = grid:cell(2, 3).bb:height() / 2
+    button_host.mousepressed = function()
+        self.client:connect(address_box.text)
+    end
+    grid:cell(2, 3):add(button_host)
 
     local button_back = ImageButton()
     button_back.image = assets:get_image("ui/button-back")
@@ -46,4 +105,10 @@ function JoinMenu:__init()
         view:set_content(MainMenu())
     end
     grid:cell(1, 3):add(button_back)
+end
+
+function JoinMenu:update()
+    if self.connection ~= nil then
+        self.client:poll()
+    end
 end

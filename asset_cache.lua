@@ -35,11 +35,12 @@ end
 function AssetCache:get_font(name, extension, size)
     name = name.."."..(extension or "ttf")
     size = size or 8
-    if self.fonts[name] == nil then
-        self.fonts[name] = love.graphics.newFont("assets/"..name, size, "none")
-        self.fonts[name]:setFilter("nearest", "nearest", size)
+    key = name.."["..size.."]"
+    if self.fonts[key] == nil then
+        self.fonts[key] = love.graphics.newFont("assets/"..name, size, "none")
+        self.fonts[key]:setFilter("nearest", "nearest", size)
     end
-    return self.fonts[name]
+    return self.fonts[key]
 end
 
 function AssetCache:get_mp3(name, mode)

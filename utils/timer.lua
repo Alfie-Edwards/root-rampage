@@ -13,9 +13,12 @@ function Timer:reset()
     self.t0 = love.timer.getTime()
 end
 
-function Timer:report_and_reset(message)
+function Timer:report_and_reset(message, threshold)
     local t = love.timer.getTime()
-    print(""..math.floor((t - self.t0) * 1000).."ms", message)
+    local ms = math.floor((t - self.t0) * 1000)
+    if ms > nil_coalesce(threshold, -1) then
+        print(""..ms.."ms", message)
+    end
     self.t0 = t
 end
 

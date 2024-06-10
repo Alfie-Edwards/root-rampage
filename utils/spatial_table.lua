@@ -84,13 +84,24 @@ function SpatialTable:in_radius(x, y, r)
     local cx = math.floor((x - self.bb.x1) / self.cell_size)
     local cy = math.floor((y - self.bb.y1) / self.cell_size)
     local cr = math.ceil(r / self.cell_size)
-    for ci = cx - cr, cx + cr do
-        for cj = cy - cr, cy + cr do
+    local cw = math.ceil(self.bb:width() / self.cell_size)
+    local ch = math.ceil(self.bb:height() / self.cell_size)
+    for ci = math.ceil(cx - cr, 0), math.floor(cx + cr, cw) do
+        for cj = math.ceil(cy - cr, 0), math.floor(cy + cr, ch) do
             local region = self.regions[Cell(cx, cy)]
             if region ~= nil then
-                for _, item in ipairs(region) do
-                    if sq_dist(x, y, item.x, item.y) <= r_sq then
-                        table.insert(result, item.obj)
+                -- Culling outside of circle based on sq_dist.
+                if (sq_dist(
+                        x,
+                        y,
+                        (ci + 0.5) * self.cell_size + self.bb.x1,
+                        (cj + 0.5) * self.cell_size + self.bb.y1) - r_sq
+                ) <= (self.cell_size * self.cell_size) then
+                    -- Checking nodes in region.
+                    for _, item in ipairs(region) do
+                        if sq_dist(x, y, item.x, item.y) <= r_sq then
+                            table.insert(result, item.obj)
+                        end
                     end
                 end
             end
