@@ -9,18 +9,22 @@ SnapshotFactory.register("FixedPropertyTable", StateSnapshot)
 
 -- A snapshot class specialised for State objects.
 -- Avoid duplicating the whole state by only saving values which change.
-function StateSnapshot:__init(state)
-    super().__init(self)
+function StateSnapshot:__init(state, shared_children)
+    super().__init(self, shared_children)
 
     assert(state ~= nil)
     self.state = state
     self:subscribe()
+
+    for k, v in pairs(self.state) do
+        self:try_add_child_for(v)
+    end
 end
 
 function StateSnapshot:subscribe()
     self:unsubscribe()
     self.handler = function(state, name, old_value, new_value)
-        if self.saved_names_set[name] then
+        if self.saved_name_set[name] then
             -- Already saved an older value for this property.
             return
         end
@@ -38,7 +42,7 @@ function StateSnapshot:unsubscribe()
 end
 
 function StateSnapshot:restore_impl()
-    for name, _ in self.saved_name_set do
+    for name, _ in pairs(self.saved_name_set) do
         self.state:set(name, self.saved[name])
     end
 end

@@ -113,7 +113,8 @@ function PropertyTable:set(properties_or_name, value)
     -- or for setting multiple properties in a clear block.
     local properties = properties_or_name
     if type(properties_or_name) == "string" then
-        properties = { properties_or_name = value }
+        properties = { }
+        properties[properties_or_name] = value
     end
     for name, value in pairs(properties) do
         if not self:_is_property(name) then

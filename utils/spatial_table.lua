@@ -1,7 +1,10 @@
 SpatialTable = {
+    cell_size = nil,
     bb = nil,
     regions = nil,
     len = nil,
+    added = nil, -- added(x, y, obj)
+    removed = nil, -- removed(x, y, obj)
 }
 setup_class(SpatialTable)
 
@@ -11,6 +14,8 @@ function SpatialTable:__init(x1, y1, x2, y2, cell_size)
     self.bb = BoundingBox(x1, y1, x2, y2)
     self.regions = HashMap()
     self.len = 0
+    self.added = Event()
+    self.removed = Event()
 end
 
 function SpatialTable:add(x, y, obj)
@@ -23,6 +28,7 @@ function SpatialTable:add(x, y, obj)
     end
     table.insert(self.regions[Cell(cx, cy)], SpatialTableItem(x, y, obj))
     self.len = self.len + 1
+    self.added(x, y, obj)
 end
 
 function SpatialTable:remove(x, y, obj)
@@ -42,6 +48,7 @@ function SpatialTable:remove(x, y, obj)
             if #region == 0 then
                 self.regions[Cell(cx, cy)] = nil
             end
+            self.removed(x, y, obj)
             return
         end
     end
@@ -111,8 +118,6 @@ function SpatialTable:in_radius(x, y, r)
 end
 
 function SpatialTable:closest(x, y)
-    assert(self.bb:contains(x, y))
-
     local closest = nil
     local closest_dist = 1e99
 

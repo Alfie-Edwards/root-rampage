@@ -15,16 +15,7 @@ function JoinMenu:__init()
     self.client = Client()
     self.client.connected:subscribe(
         function(connection)
-            self.connection = connection
-            self.connection.connected:subscribe(function() print("Connected!") end)
-            self.connection.sent:subscribe(function(m) print("Sent: "..m) end)
-            self.connection.received:subscribe(function(m) print("Received: "..m) end)
-            self.connection.disconnected:subscribe(
-                function()
-                    print("Disconnected!")
-                    self.connection = nil
-                end
-            )
+            view:set_content(Game(Game.MODE_ROOTS, self.client, connection))
         end
     )
 

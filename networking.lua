@@ -1,4 +1,3 @@
-
 Host = {
     host = nil,
     connections = nil,
@@ -16,10 +15,11 @@ function Host:__init(host)
     self.disconnected = Event()
 end
 
-function Host:poll()
+function Host:poll(timeout_ms)
+    timeout_ms = nil_coalesce(timeout_ms, 100)
     local event = self.host:check_events()
     if event == nil then
-        event = self.host:service(100)
+        event = self.host:service(timeout_ms)
     end
     while event ~= nil do
         if event.type == "receive" then
@@ -46,7 +46,7 @@ function Host:poll()
         end
         event = self.host:check_events()
         if event == nil then
-            event = self.host:service(100)
+            event = self.host:service(timeout_ms)
         end
     end
     local dead = {}
@@ -64,6 +64,10 @@ function Host:poll()
     for _, id in ipairs(dead) do
         self.connections[id] = nil
     end
+end
+
+function Host:destroy()
+    self.host:destroy()
 end
 
 Server = {}

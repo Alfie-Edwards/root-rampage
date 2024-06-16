@@ -1,6 +1,9 @@
 require "inputs"
 require "rollback_model_interface"
 require "snapshot"
+require "state_snapshot"
+require "table_snapshot"
+require "spatial_table_snapshot"
 
 RollbackModel = {
     state = nil
@@ -51,6 +54,9 @@ function RollbackModel:predict_inputs(partial_inputs, prev_inputs)
 end
 
 function RollbackModel:are_inputs_complete(inputs)
+    if inputs == nil then
+        return false
+    end
     for k, _ in pairs(inputs) do
         if inputs[k] == INPUT_UNDEFINED then
             return false
