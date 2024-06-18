@@ -3,7 +3,7 @@ require "rollback_model_interface"
 require "snapshot"
 require "state_snapshot"
 require "table_snapshot"
-require "spatial_table_snapshot"
+require "rstar_snapshot"
 
 RollbackModel = {
     state = nil

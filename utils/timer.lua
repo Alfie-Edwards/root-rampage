@@ -1,27 +1,35 @@
 Timer = {
-    t0 = nil
+    scope = nil
 }
 setup_class(Timer)
 
 function Timer:__init()
     super().__init(self)
 
-    self:reset()
+    self.scope = Stack()
 end
 
 function Timer:reset()
-    self.t0 = love.timer.getTime()
 end
 
-function Timer:report_and_reset(message, threshold)
+function Timer:push(name)
+    self.scope:push({name, love.timer.getTime()})
+end
+
+function Timer:pop(print_threshold)
+    assert(self.scope.size)
+
     local t = love.timer.getTime()
-    local ms = math.floor((t - self.t0) * 1000)
-    if ms > nil_coalesce(threshold, -1) then
-        print(""..ms.."ms", message)
+    local name, t0 = unpack(self.scope:pop())
+    local ms = math.floor((t - t0) * 1000)
+    if ms >= nil_coalesce(print_threshold, 0) then
+        print(""..ms.."ms", name)
     end
-    self.t0 = t
 end
 
-function Timer:elapsed()
-    return love.timer.getTime() - self.t0
+function Timer:poppush(print_threshold, name)
+    self:pop(print_threshold)
+    self:push(name)
 end
+
+timer = Timer()

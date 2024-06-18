@@ -373,6 +373,7 @@ function RStar:__init(settings)
 end
 
 function RStar:add(item, x, y)
+    timer:push("RStar:add")
     self.id_counter = self.id_counter + 1
     local new_entry = {id = self.id_counter, box = RStarBox(x, y, 0, 0), item=item }
 
@@ -389,9 +390,11 @@ function RStar:add(item, x, y)
     self.item_map[item] = id_counter
     self.len = self.len + 1
     self.added(item, x, y)
+    timer:pop(10)
 end
 
 function RStar:remove(item)
+    timer:push("RStar:remove")
     local id = self.item_map[item]
     if id == nil or self.entries[id] == nil then return end
 
@@ -442,6 +445,7 @@ function RStar:remove(item)
     self.item_map[item] = nil
     self.len = self.len - 1
     self.removed(item, n.box.x, n.box.y)
+    timer:pop(10)
 end
 
 function RStar:any()
@@ -449,11 +453,13 @@ function RStar:any()
 end
 
 function RStar:in_bounds(x1, y1, x2, y2)
+    timer:push("RStar:in_bounds")
     local result = {}
     local result_nodes = self:_in_bounds(x1, y1, x2, y2)
     for i, v in ipairs(result_nodes) do
         result[i] = v.item
     end
+    timer:pop(10)
     return result
 end
 
@@ -477,11 +483,13 @@ function RStar:_in_bounds(x1, y1, x2, y2)
 end
 
 function RStar:in_radius(x, y, r)
+    timer:push("RStar:in_radius")
     local result_nodes = self:_in_radius(x, y, r)
     local result = {}
     for i, v in ipairs(result_nodes) do
         result[i] = v.item
     end
+    timer:pop(10)
     return result
 end
 
@@ -509,6 +517,7 @@ function RStar:_in_radius(x, y, r)
 end
 
 function RStar:any_in_radius(x, y, r)
+    timer:push("RStar:any_in_radius")
     if self.root then
         local traverse = { self.root }
 
@@ -518,6 +527,7 @@ function RStar:any_in_radius(x, y, r)
             for i = 1, #first.children do
                 if first.children[i].box:inrange(x, y, r) then
                     if first.is_leaf then
+                        timer:pop(10)
                         return true
                     end
                     table.insert(traverse, first.children[i])
@@ -525,10 +535,12 @@ function RStar:any_in_radius(x, y, r)
             end
         end
     end
+    timer:pop(10)
     return false
 end
 
 function RStar:closest(x, y)
+    timer:push("RStar:closest")
     local queue = PriorityQueue.new()
     local enqueue = function(node)
         queue:enqueue(node, node.box:sq_dist(x, y))
@@ -538,14 +550,15 @@ function RStar:closest(x, y)
     while queue:len() do
         local current, _ = queue:dequeue()
         if current.item ~= nil then
+            timer:pop(10)
             return current.item
         end
         for _, child in ipairs(current.children) do
             enqueue(child)
         end
     end
+    timer:pop(10)
     return nil
-
 end
 
 RStar._distanceSort = {

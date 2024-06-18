@@ -55,17 +55,13 @@ PLAYER = {
 }
 
 function PLAYER.update(state, inputs)
-    local timer = Timer()
     local player = state.player
 
     if player.time_of_death == NEVER then
         PLAYER.input(state, inputs)
-        timer:report_and_reset("PLAYER_INPUT", 10)
         PLAYER.move(state)
-        timer:report_and_reset("PLAYER_MOVE", 10)
     elseif (state.t - player.time_of_death) >= PLAYER.respawn_time then
         PLAYER.spawn(player)
-        timer:report_and_reset("PLAYER_SPAWN", 10)
     end
 end
 
@@ -148,14 +144,13 @@ function PLAYER.attack(state)
         PLAYER.sounds.hit:play()
     end
 
-    local timer = Timer()
     for _, node in ipairs(nodes_to_cut) do
         NODE.cut(state, node)
-        timer:report_and_reset("cut", 2)
     end
 end
 
 function PLAYER.input(state, inputs)
+    timer:push("PLAYER.input")
     local player = state.player
 
     if inputs.player_up then
@@ -190,6 +185,7 @@ function PLAYER.input(state, inputs)
     if inputs.player_chop then
         PLAYER.attack(state)
     end
+    timer:pop(10)
 end
 
 function PLAYER.get_movement(state)
@@ -321,11 +317,13 @@ function PLAYER.collision_y(player)
 end
 
 function PLAYER.move(state)
+    timer:push("PLAYER.move")
     local player = state.player
 
     local movement = PLAYER.get_movement(state)
     if movement.when == NEVER or PLAYER.is_swinging(player, state.t) then
         player.speed = 0
+        timer:pop(10)
         return
     end
 
@@ -340,6 +338,7 @@ function PLAYER.move(state)
         vel.y = vel.y + PLAYER.collision_y(player)
     end
     player.pos = moved(player.pos, {x = vel.x, y = vel.y})
+    timer:pop(10)
 end
 
 function PLAYER.kill(player, t)

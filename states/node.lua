@@ -16,7 +16,7 @@ function NodeState:__init(x, y, parent, type)
     super().__init(self, {
         x = x,
         y = y,
-        children = {},
+        children = PropertyTable(),
         is_tree = (type == NODE_TYPE.TREE),
         is_terminal = (type == NODE_TYPE.TERMINAL),
         t_dead = NEVER,

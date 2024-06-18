@@ -115,6 +115,7 @@ function Game:get_inputs()
 end
 
 function Game:tick()
+    timer:push("Game:tick")
     self.current_tick = self.current_tick + 1
     local input_tick = self.current_tick + self.input_delay
     local inputs = self:get_inputs()
@@ -139,6 +140,7 @@ function Game:tick()
         self.rollback_engine:add_inputs(inputs, input_tick)
     end
     self.rollback_engine:tick()
+    timer:pop(self.state.dt * 1000)
 end
 
 function Game:quit()

@@ -9,6 +9,7 @@ SnapshotFactory.register("table", TableSnapshot)
 -- A snapshot class for any table.
 -- Generic but copies the whole state.
 function TableSnapshot:__init(t, shared_children)
+    timer:push("TableSnapshot:__init")
     super().__init(self, shared_children)
 
     assert(t ~= nil)
@@ -16,6 +17,7 @@ function TableSnapshot:__init(t, shared_children)
     for name, value in pairs(t) do
         self:save(name, value)
     end
+    timer:pop(10)
 end
 
 function TableSnapshot:restore_impl()
@@ -29,6 +31,12 @@ function TableSnapshot:restore_impl()
         if self.saved_name_set[name] ~= true then
             self.t[name] = nil
         end
+    end
+end
+
+function TableSnapshot:reinit_impl()
+    for name, value in pairs(self.t) do
+        self:save(name, value)
     end
 end
 

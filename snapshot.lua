@@ -7,6 +7,7 @@ SnapshotFactory = {
     end,
 
     build = function(x, shared_children)
+        timer:push("SnapshotFactory:build("..type_string(x)..")")
         local x_class = class(x)
         local get_snapshot_class = function(c)
             if c == nil then
@@ -23,9 +24,12 @@ SnapshotFactory = {
             snapshot_class = SnapshotFactory.registered[type(x)]
         end
         if snapshot_class == nil then
+            timer:pop(10)
             return nil
         end
-        return snapshot_class(x, shared_children)
+        local snapshot = snapshot_class(x, shared_children)
+        timer:pop(10)
+        return snapshot
     end,
 }
 
@@ -72,25 +76,66 @@ function Snapshot:try_add_child_for(value)
 end
 
 function Snapshot:restore()
+    timer:push(self:type()..":restore()")
     self:restore_impl()
     if not self.deferred_children then
         for _, child in pairs(self.children) do
             child:restore()
         end
     end
+    timer:pop(10)
+end
+
+function Snapshot:clear_saved()
+    timer:push(self:type()..":clear_saved()")
+    self.saved = {}
+    self.saved_name_set = {}
+    if not self.deferred_children then
+        for _, child in pairs(self.children) do
+            child:clear_saved()
+        end
+    end
+    timer:pop(10)
+end
+
+function Snapshot:reinit()
+    timer:push(self:type()..":reinit()")
+    self:clear_saved()
+    if not self.deferred_children then
+
+         -- Clean up any children who's saved values are no longer referenced.
+        local weak_children = weak_table('k')
+        timer:push(self:type()..":reinit()::shallow_copy")
+        shallow_copy(self.children, weak_children)
+        timer:poppush(10, self:type()..":reinit()::collectgarbage")
+        self.children = nil
+        collectgarbage()
+        self.children = shallow_copy(weak_children)
+
+        timer:poppush(10, self:type()..":reinit()::reinit_impl")
+        for _, child in pairs(shallow_copy(self.children)) do
+            child:reinit_impl()
+        end
+        timer:pop(10)
+    end
+    self:reinit_impl()
+    timer:pop(10)
 end
 
 function Snapshot:cleanup()
     -- Allow the object to be garbage collected.
+    timer:push(self:type()..":cleanup()")
+    self:clear_saved()
     self:cleanup_impl()
     self.saved = nil
     self.saved_name_set = nil
 
     if not self.deferred_children then
-        for _, child in ipairs(self.children) do
+        for _, child in pairs(self.children) do
             child:cleanup()
         end
     end
+    timer:pop(10)
 end
 
 function Snapshot:restore_impl()
@@ -99,4 +144,8 @@ end
 
 function Snapshot:cleanup_impl()
     error("Snapshot classes must implement the `cleanup_impl` method.")
+end
+
+function Snapshot:reinit_impl()
+    error("Snapshot classes must implement the `reinit_impl` method.")
 end

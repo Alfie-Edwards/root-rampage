@@ -37,24 +37,24 @@ function lists_equal(l1, l2)
     return true
 end
 
-function shallow_copy(x)
+function shallow_copy(x, result)
     if type(x) ~= "table" then
         return x
     end
 
-    local result = {}
+    result = nil_coalesce(result, {})
     for k, v in pairs(x) do
         result[k] = v
     end
     return result
 end
 
-function deep_copy(x)
+function deep_copy(x, result)
     if type(x) ~= "table" then
         return x
     end
 
-    local result = {}
+    result = nil_coalesce(result, {})
     for k, v in pairs(x) do
         result[deep_copy(k)] = deep_copy(v)
     end
@@ -362,6 +362,24 @@ function hsva(h, s, v, a)
         return {v, z, v - x * y, a}
     end
     error("Invalid hue ("..(h * 60)..").")
+end
+
+function weak_table(mode)
+    local t = {}
+    setmetatable(t, {__mode = nil_coalesce(mode, 'kv')})
+    return t
+end
+
+function delete_unreferenced_keys(t)
+     -- Clean up any children who's saved values are no longer referenced.
+    local weak_children = weak_table('k')
+    shallow_copy(self.children, weak_children)
+    self.children = nil
+    collectgarbage()
+    self.children = shallow_copy(weak_children)
+    for _, child in pairs(weak_children) do
+        child:reinit_impl()
+    end
 end
 
 -- Import other utils files.
