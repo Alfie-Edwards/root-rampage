@@ -8,6 +8,8 @@ Game = {
     MODE_PLAYER = {},
     MODE_ROOTS = {},
     MODE_ALL = {},
+    INPUT_DELAY_S = 0,
+    LATENCY_WAIT_THRESHOLD_S = 1,
 
     t0 = nil,
     state = nil,
@@ -16,7 +18,8 @@ Game = {
     rollback_controller = nil,
     current_tick = nil,
     tick_offset = nil,
-    input_delay_t = nil,
+    input_delay = nil,
+    max_latency = nil,
 }
 setup_class(Game, LayoutElement)
 
@@ -26,17 +29,18 @@ function Game:__init(mode, host, connection)
     self.width = canvas:width()
     self.height = canvas:height()
 
-    self.tick_offset = 2
+    self.tick_offset = 10
     self.mode = mode
     self.state = GameState()
     self.rollback_model = RollbackModel(self.state)
     self.rollback_engine = RollbackEngine(self.rollback_model)
     self.current_tick = -1
     self.t0 = love.timer.getTime()
-    self.input_delay_t = 0
+    self.input_delay = math.floor(Game.INPUT_DELAY_S / self.state.dt)
+    self.latency_wait_threshold = math.floor(Game.LATENCY_WAIT_THRESHOLD_S / self.state.dt)
 
-    if self.input_delay_t > 0 then
-        for t=0,self.input_delay_t-1,1 do
+    if self.input_delay > 0 then
+        for t=0,self.input_delay-1,1 do
             self.rollback_engine:add_inputs(self.rollback_model:predict_inputs(), t)
         end
     end
@@ -112,7 +116,7 @@ end
 
 function Game:tick()
     self.current_tick = self.current_tick + 1
-    local input_tick = self.current_tick + self.input_delay_t
+    local input_tick = self.current_tick + self.input_delay
     local inputs = self:get_inputs()
 
     if self.connection ~= nil then
@@ -153,15 +157,12 @@ function Game:update(dt)
         return
     end
 
-    n = 0
-    self.tick_offset = self.tick_offset + dt
-    while self.tick_offset / self.state.dt > 1 do
-        self.tick_offset = self.tick_offset - self.state.dt
-        self:tick()
-        n = n + 1
-        if n > 0 then
-            self.tick_offset = 0
-            break
+    if self.rollback_engine:delta() <= self.latency_wait_threshold then
+        self.tick_offset = math.min(self.tick_offset + dt, Game.LATENCY_WAIT_THRESHOLD_S)
+        while self.tick_offset / self.state.dt > 1 do
+            self.tick_offset = self.tick_offset - self.state.dt
+            self:tick()
+            self.tick_offset = 0 -- debug disable catchup
         end
     end
 end

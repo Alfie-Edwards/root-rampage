@@ -4,7 +4,7 @@ NODE = {}
 
 function NODE.add_node(x, y, parent, state, type)
     local node = NodeState(x, y, parent, type)
-    state.nodes:add(x, y, node)
+    state.nodes:add(node, x, y)
     state.newest_node = node
 
     if parent == nil then
@@ -21,7 +21,7 @@ function NODE.add_node(x, y, parent, state, type)
 end
 
 function NODE.remove_node(state, node)
-    state.nodes:remove(node.x, node.y, node)
+    state.nodes:remove(node)
 end
 
 function NODE.add_child(parent, child)

@@ -33,3 +33,7 @@ end
 function BoundingBox:center_y()
     return (self.y2 + self.y1) / 2
 end
+
+function BoundingBox:__tostring()
+    return "{"..self.x1..", "..self.y1..", "..self.x2..", "..self.y2.."}"
+end

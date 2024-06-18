@@ -23,11 +23,15 @@ function RollbackEngine:__init(model)
     self.model = model
 end
 
+function RollbackEngine:delta()
+    return self.target_tick - self.snapshot_tick
+end
+
 function RollbackEngine:tick()
     self.target_tick = self.target_tick + 1
     self:_update_snapshot()
     self:_play_to_target()
-    print(self.target_tick, self.current_tick, self.snapshot_tick)
+    -- print(self.target_tick, self.current_tick, self.snapshot_tick)
 end
 
 function RollbackEngine:add_inputs(inputs, tick)
@@ -60,7 +64,6 @@ function RollbackEngine:add_inputs(inputs, tick)
     while self.prediction_record[t + 1] ~= nil do
         self.prediction_record[t + 1] = self.model:predict_inputs(self.input_record[t + 1], self.prediction_record[t] or self.input_record[t])
         t = t + 1
-        print(t, self.prediction_record[t].roots_pos_x)
     end
 
     -- Replay unless inputs are in the future.
@@ -124,7 +127,6 @@ function RollbackEngine:_play_to_target()
         if self.prediction_record[next_tick] == nil and not self.model:are_inputs_complete(self.input_record[next_tick]) then
             self.prediction_record[next_tick] = self.model:predict_inputs(self.input_record[next_tick], self.prediction_record[self.current_tick] or self.input_record[self.current_tick])
 
-        print(next_tick, self.prediction_record[next_tick].roots_pos_x)
         end
         self.model:tick(self.prediction_record[next_tick] or self.input_record[next_tick])
         self.current_tick = next_tick

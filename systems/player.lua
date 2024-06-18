@@ -55,13 +55,17 @@ PLAYER = {
 }
 
 function PLAYER.update(state, inputs)
+    local timer = Timer()
     local player = state.player
 
     if player.time_of_death == NEVER then
         PLAYER.input(state, inputs)
+        timer:report_and_reset("PLAYER_INPUT", 10)
         PLAYER.move(state)
+        timer:report_and_reset("PLAYER_MOVE", 10)
     elseif (state.t - player.time_of_death) >= PLAYER.respawn_time then
         PLAYER.spawn(player)
+        timer:report_and_reset("PLAYER_SPAWN", 10)
     end
 end
 
@@ -147,7 +151,7 @@ function PLAYER.attack(state)
     local timer = Timer()
     for _, node in ipairs(nodes_to_cut) do
         NODE.cut(state, node)
-        timer:report_and_reset("cut", 1)
+        timer:report_and_reset("cut", 2)
     end
 end
 

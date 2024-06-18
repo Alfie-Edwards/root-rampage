@@ -1,8 +1,6 @@
 SpatialTable = {
-    cell_size = nil,
-    bb = nil,
-    regions = nil,
     len = nil,
+    root = nil,
     added = nil, -- added(x, y, obj)
     removed = nil, -- removed(x, y, obj)
 }
@@ -10,9 +8,7 @@ setup_class(SpatialTable)
 
 function SpatialTable:__init(x1, y1, x2, y2, cell_size)
     super().__init(self)
-    self.cell_size = cell_size
-    self.bb = BoundingBox(x1, y1, x2, y2)
-    self.regions = HashMap()
+    self.root = {}
     self.len = 0
     self.added = Event()
     self.removed = Event()
@@ -59,19 +55,21 @@ function SpatialTable:any()
 end
 
 function SpatialTable:any_in_radius(x, y, r)
+    local timer = Timer()
     assert(self.bb:contains(x, y))
 
     local r_sq = r * r
     local result = {}
 
-    local cx = (math.floor(x - self.bb.x1) / self.cell_size)
+    local cx = math.floor((x - self.bb.x1) / self.cell_size)
     local cy = math.floor((y - self.bb.y1) / self.cell_size)
     local cr = math.ceil(r / self.cell_size)
     for ci = cx - cr, cx + cr do
         for cj = cy - cr, cy + cr do
-            local region = self.regions[Cell(cx, cy)]
+            local region = self.regions[Cell(ci, cj)]
             if region ~= nil then
                 for _, item in ipairs(region) do
+                    print(#region)
                     if sq_dist(x, y, item.x, item.y) <= r_sq then
                         return true
                     end
@@ -95,7 +93,7 @@ function SpatialTable:in_radius(x, y, r)
     local ch = math.ceil(self.bb:height() / self.cell_size)
     for ci = math.ceil(cx - cr, 0), math.floor(cx + cr, cw) do
         for cj = math.ceil(cy - cr, 0), math.floor(cy + cr, ch) do
-            local region = self.regions[Cell(cx, cy)]
+            local region = self.regions[Cell(ci, cj)]
             if region ~= nil then
                 -- Culling outside of circle based on sq_dist.
                 if (sq_dist(
@@ -118,6 +116,7 @@ function SpatialTable:in_radius(x, y, r)
 end
 
 function SpatialTable:closest(x, y)
+    local timer = Timer()
     local closest = nil
     local closest_dist = 1e99
 
@@ -167,20 +166,7 @@ function SpatialTable:closest(x, y)
 
         check(cell)
     end
+    timer:report_and_reset("total")
 
     return closest
-end
-
-SpatialTableItem = {
-    obj = nil,
-    x = nil,
-    y = nil,
-}
-setup_class(SpatialTableItem)
-
-function SpatialTableItem:__init(x, y, obj)
-    super().__init(self)
-    self.x = x
-    self.y = y
-    self.obj = obj
 end

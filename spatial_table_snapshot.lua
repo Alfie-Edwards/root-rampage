@@ -22,11 +22,11 @@ end
 
 function SpatialTableSnapshot:subscribe()
     self:unsubscribe()
-    self.add_handler = function(x, y, obj)
-        table.insert(self.events, {"add", x, y, obj})
+    self.add_handler = function(item, x, y)
+        table.insert(self.events, {"add", item, x, y})
     end
-    self.remove_handler = function(x, y, obj)
-        table.insert(self.events, {"remove", x, y, obj})
+    self.remove_handler = function(item, x, y)
+        table.insert(self.events, {"remove", item, x, y})
     end
     self.points.added:subscribe(self.add_handler)
     self.points.removed:subscribe(self.remove_handler)
@@ -47,7 +47,7 @@ function SpatialTableSnapshot:restore_impl()
     for i=#self.events, 1, -1 do
         local event = self.events[i]
         if event[1] == "add" then
-            self.points:remove(event[2], event[3], event[4])
+            self.points:remove(event[2])
         elseif event[1] == "remove" then
             self.points:add(event[2], event[3], event[4])
         else

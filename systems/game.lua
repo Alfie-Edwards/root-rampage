@@ -42,4 +42,5 @@ function GAME.draw(state, inputs, dt)
     HACKING.draw(state, inputs, dt)
     TOOLTIP.draw(state, inputs, dt)
     WINCON.draw(state, inputs, dt)
+    state.nodes:draw(true, true, inputs.roots_pos_x, inputs.roots_pos_y)
 end

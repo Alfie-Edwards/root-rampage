@@ -25,6 +25,9 @@ function FixedPropertyTable:__set_property(name, value, properties_closure)
     -- Override __get_property error on unknowns.
 
     if not self:_get_property_names()[name] then
+        for k, v in pairs(self:_get_property_names()) do
+            print(k, v)
+        end
         error("\""..name.."\" is not a property of "..type_string(self)..".")
     end
     return PropertyTable.__set_property(self, name, value, properties_closure)

@@ -31,7 +31,7 @@ function GameState:__init()
     super().__init(self, {
         newest_node = NONE,
         branches = {},
-        nodes = SpatialTable(0, 0, canvas:width(), canvas:height(), math.sqrt(canvas:width() * canvas:height())),
+        nodes = RStar({M = 8, m=4, reinsert_p=4, reinsert_method='weighted'}),
         terminals = terminals,
         tree_spots = tree_spots,
 
@@ -42,7 +42,7 @@ function GameState:__init()
         tooltip = TooltipState(),
         wincon = WinconState(),
         t = 0,
-        dt = 1/10,
+        dt = 1/20,
     })
 
     TREE_SPOT.create_node(tree_spots[1], nil, self)
