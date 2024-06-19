@@ -370,16 +370,14 @@ function weak_table(mode)
     return t
 end
 
-function delete_unreferenced_keys(t)
-     -- Clean up any children who's saved values are no longer referenced.
-    local weak_children = weak_table('k')
-    shallow_copy(self.children, weak_children)
-    self.children = nil
-    collectgarbage()
-    self.children = shallow_copy(weak_children)
-    for _, child in pairs(weak_children) do
-        child:reinit_impl()
-    end
+function weak_ref(x)
+    local t = {}
+    local mt = weak_table()
+    mt.__mode = 'v'
+    mt.__index = x
+    mt.__newindex = x
+    setmetatable(t, mt)
+    return t
 end
 
 -- Import other utils files.

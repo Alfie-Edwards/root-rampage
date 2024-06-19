@@ -16,7 +16,6 @@ function NODE.add_node(x, y, parent, state, type)
         end
     end
 
-
     return node
 end
 

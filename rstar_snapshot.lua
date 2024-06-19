@@ -5,6 +5,7 @@ RStarSnapshot = {
     events = nil,
     add_handler = nil,
     remove_handler = nil,
+    new = nil,
 }
 setup_class(RStarSnapshot, Snapshot)
 SnapshotFactory.register("RStar", RStarSnapshot)
@@ -15,15 +16,20 @@ function RStarSnapshot:__init(rstar, shared_children)
     super().__init(self, shared_children)
 
     assert(rstar ~= nil)
-    self.rstar = rstar
+    self.rstar = weak_ref(rstar)
     self.events = {}
+    self.new = {}
     self:subscribe()
+    for item, _ in pairs(rstar.item_map) do
+        self:try_add_child_for(item)
+    end
 end
 
 function RStarSnapshot:subscribe()
     self:unsubscribe()
     self.add_handler = function(item, x, y)
         table.insert(self.events, {"add", item, x, y})
+        self.new[item] = true
     end
     self.remove_handler = function(item, x, y)
         table.insert(self.events, {"remove", item, x, y})
@@ -63,7 +69,10 @@ function RStarSnapshot:restore_impl()
 end
 
 function RStarSnapshot:reinit_impl()
-    -- Do nothing.
+    for item, _ in pairs(self.new) do
+        self:try_add_child_for(item)
+    end
+    self.new = {}
 end
 
 function RStarSnapshot:cleanup_impl()

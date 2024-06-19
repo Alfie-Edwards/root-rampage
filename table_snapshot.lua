@@ -13,7 +13,7 @@ function TableSnapshot:__init(t, shared_children)
     super().__init(self, shared_children)
 
     assert(t ~= nil)
-    self.t = t
+    self.t = weak_ref(t)
     for name, value in pairs(t) do
         self:save(name, value)
     end

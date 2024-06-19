@@ -109,9 +109,6 @@ function RollbackEngine:_update_snapshot()
 
     timer:push("RollbackEngine:take_snapshot")
     -- Create the new snapshot.
-    if self.snapshot ~= nil then
-        self.snapshot:cleanup()
-    end
     if self.snapshot == nil then
         self.snapshot = self.model:take_snapshot()
     else

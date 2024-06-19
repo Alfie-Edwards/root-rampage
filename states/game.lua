@@ -42,7 +42,7 @@ function GameState:__init()
         tooltip = TooltipState(),
         wincon = WinconState(),
         t = 0,
-        dt = 1/20,
+        dt = 1/30,
     })
 
     TREE_SPOT.create_node(tree_spots[1], nil, self)

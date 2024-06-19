@@ -47,7 +47,7 @@ function Snapshot:__init(shared_children)
 
     self.saved = {}
     self.saved_name_set = {}
-    self.children = nil_coalesce(shared_children, {})
+    self.children = nil_coalesce(shared_children, weak_table('k'))
     self.deferred_children = (shared_children ~= nil)
 end
 
@@ -102,21 +102,9 @@ function Snapshot:reinit()
     timer:push(self:type()..":reinit()")
     self:clear_saved()
     if not self.deferred_children then
-
-         -- Clean up any children who's saved values are no longer referenced.
-        local weak_children = weak_table('k')
-        timer:push(self:type()..":reinit()::shallow_copy")
-        shallow_copy(self.children, weak_children)
-        timer:poppush(10, self:type()..":reinit()::collectgarbage")
-        self.children = nil
-        collectgarbage()
-        self.children = shallow_copy(weak_children)
-
-        timer:poppush(10, self:type()..":reinit()::reinit_impl")
         for _, child in pairs(shallow_copy(self.children)) do
             child:reinit_impl()
         end
-        timer:pop(10)
     end
     self:reinit_impl()
     timer:pop(10)

@@ -15,7 +15,7 @@ function StateSnapshot:__init(state, shared_children)
     super().__init(self, shared_children)
 
     assert(state ~= nil)
-    self.state = state
+    self.state = weak_ref(state)
     self.changed = {}
     self:subscribe()
 
