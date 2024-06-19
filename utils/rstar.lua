@@ -387,7 +387,7 @@ function RStar:add(item, x, y)
         end
     end
 
-    self.item_map[item] = id_counter
+    self.item_map[item] = self.id_counter
     self.len = self.len + 1
     self.added(item, x, y)
     timer:pop(10)
@@ -399,6 +399,7 @@ function RStar:remove(item)
     if id == nil or self.entries[id] == nil then return end
 
     local n = self.entries[id]
+    local x, y = n.box.x, n.box.y
     local removed = n.box
     self.entries[id]:remove(self, id)
     local q = {}
@@ -411,7 +412,7 @@ function RStar:remove(item)
             local nr = p:removeNode(n.id)
             table.insert(q, {lc, nr})
         else
-            p.box:set(RStarBox:union_many(p.children))
+            p.box:set(RStarBox.union_many(p.children))
         end
 
         lc = lc + 1
@@ -444,7 +445,7 @@ function RStar:remove(item)
 
     self.item_map[item] = nil
     self.len = self.len - 1
-    self.removed(item, n.box.x, n.box.y)
+    self.removed(item, x, y)
     timer:pop(10)
 end
 

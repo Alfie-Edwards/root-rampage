@@ -380,6 +380,14 @@ function weak_ref(x)
     return t
 end
 
+function print_table(t)
+    print("{")
+    for k, v in pairs(t) do
+        print("   "..tostring(k)..": "..tostring(v))
+    end
+    print("}")
+end
+
 -- Import other utils files.
 require "utils.classes"
 require "utils.stack"

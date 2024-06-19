@@ -248,3 +248,19 @@ function PropertyTable:__tostring()
     result = result.."}"
     return result
 end
+
+function PropertyTable.insert(t, x)
+    local i = 1
+    while t[i] ~= nil do
+        i = i + 1
+    end
+    t[i] = x
+end
+
+function PropertyTable.len(t)
+    local i = 0
+    while t[i + 1] ~= nil do
+        i = i + 1
+    end
+    return i
+end

@@ -11,8 +11,9 @@ function NODE.add_node(x, y, parent, state, type)
         BRANCH.add_branch(state, node, 1)
     else
         NODE.add_child(parent, node)
-        if #parent.children > 1 then
-            BRANCH.add_branch(state, parent, #parent.children)
+        local n = PropertyTable.len(parent.children)
+        if n > 1 then
+            BRANCH.add_branch(state, parent, n)
         end
     end
 
@@ -24,7 +25,7 @@ function NODE.remove_node(state, node)
 end
 
 function NODE.add_child(parent, child)
-    table.insert(parent.children, child)
+    PropertyTable.insert(parent.children, child)
     child.parent = parent
 end
 
@@ -47,7 +48,9 @@ end
 function NODE.do_to_subtree(node, func)
     func(node)
     for _, child in pairs(node.children) do
-        NODE.do_to_subtree(child, func)
+        if child ~= nil then
+            NODE.do_to_subtree(child, func)
+        end
     end
 end
 
@@ -57,7 +60,7 @@ function NODE.kill_subtree_if_no_trees(node, state)
             return true
         else
             for _,child in pairs(node.children) do
-                if any_trees(child) then
+                if child ~= nil and any_trees(child) then
                     return true
                 end
             end
@@ -88,7 +91,7 @@ function NODE.cut(state, node)
     if parent ~= nil then
         local branch = BRANCH.get_main_branch(state, node)
         BRANCH.trim_end_to(branch, parent)
-        if #node.children > 0 then
+        if PropertyTable.len(node.children) > 0 then
             BRANCH.add_branch(state, node.children[1], 1)
         end
     end
@@ -119,7 +122,7 @@ function NODE.cut(state, node)
 end
 
 function NODE.cull(state, node)
-    -- NODE.remove_node(state, node)
+    NODE.remove_node(state, node)
 end
 
 function NODE.kill(node, state)
