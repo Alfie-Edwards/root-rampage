@@ -1,5 +1,7 @@
 
 INPUT_UNDEFINED = {}
+function INPUT_UNDEFINED.type() return "undefined" end
+setmetatable(INPUT_UNDEFINED, {__tostring=INPUT_UNDEFINED.type})
 
 Inputs = {
     ALL_UNDEFINED = {

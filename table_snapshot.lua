@@ -23,19 +23,19 @@ end
 function TableSnapshot:restore_impl()
     for name, _ in pairs(self.saved_name_set) do
         local value = self.saved[name]
-        if self.t[name] ~= value then
-            self.t[name] = value
+        if self.t.value[name] ~= value then
+            self.t.value[name] = value
         end
     end
-    for name, _ in pairs(self.t) do
+    for name, _ in pairs(self.t.value) do
         if self.saved_name_set[name] ~= true then
-            self.t[name] = nil
+            self.t.value[name] = nil
         end
     end
 end
 
 function TableSnapshot:reinit_impl()
-    for name, value in pairs(self.t) do
+    for name, value in pairs(self.t.value) do
         self:save(name, value)
     end
 end

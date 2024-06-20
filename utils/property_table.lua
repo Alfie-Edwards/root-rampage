@@ -1,6 +1,8 @@
 NONE = {
     -- Set a property to this and the value will still be nil but it will show up during iteration.
 }
+function NONE.type() return "nil" end
+setmetatable(NONE, {__tostring=NONE.type})
 
 PropertyTable = {
     -- It can be interacted with like any normal table.
@@ -107,15 +109,10 @@ function PropertyTable:_get_setter(name)
     return nil
 end
 
-function PropertyTable:set(properties_or_name, value)
+function PropertyTable:set(properties, value)
     -- Helper for setting properties.
     -- Useful for checking that what you are setting is a valid property,
     -- or for setting multiple properties in a clear block.
-    local properties = properties_or_name
-    if type(properties_or_name) == "string" then
-        properties = { }
-        properties[properties_or_name] = value
-    end
     for name, value in pairs(properties) do
         if not self:_is_property(name) then
             error("\""..name.."\" is not a property of "..type_string(self)..".")

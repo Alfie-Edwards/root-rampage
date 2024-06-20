@@ -41,11 +41,9 @@ end
 
 function TOOLTIP.draw(state, inputs, dt)
     local tooltip = state.tooltip
-    -- print(inputs)
-    -- print(inputs.roots_pos_x, inputs.roots_pos_y)
 
     if tooltip.message ~= nil then
-        draw_centred_text(tooltip.message, inputs.roots_pos_x, inputs.roots_pos_y - 10, {1, 1, 1, 1}, {0, 0, 0, 0.4})
+        draw_centred_text(tooltip.message, inputs.roots_pos_x, inputs.roots_pos_y - 10, {1, 1, 1, 1}, {0, 0, 0, 0.4}, font)
     end
 
     if tooltip.timer ~= nil then

@@ -66,6 +66,5 @@ function RollbackModel:are_inputs_complete(inputs)
 end
 
 function RollbackModel:rollback(snapshot)
-    assert(snapshot.state == self.state)
     snapshot:restore()
 end

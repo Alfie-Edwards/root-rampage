@@ -70,7 +70,7 @@ function wrap_text(text, font, width)
     return result
 end
 
-function draw_centred_text(text, x, y, color, bg_color)
+function draw_centred_text(text, x, y, color, bg_color, font)
     local width = font:getWidth(text)
     local height = font:getHeight()
     x = x - font:getWidth(text) / 2
@@ -79,6 +79,7 @@ function draw_centred_text(text, x, y, color, bg_color)
         love.graphics.rectangle("fill", x-2, y-1, width+4, height+4)
     end
     love.graphics.setColor(color or {1, 1, 1})
+    love.graphics.setFont(font)
     love.graphics.print(text, x, y)
 end
 

@@ -8,8 +8,8 @@ Game = {
     MODE_PLAYER = {},
     MODE_ROOTS = {},
     MODE_ALL = {},
-    INPUT_DELAY_S = 0,
-    LATENCY_WAIT_THRESHOLD_S = 1,
+    INPUT_DELAY_S = 0.1,
+    LATENCY_WAIT_THRESHOLD_S = 0.1,
 
     t0 = nil,
     state = nil,
@@ -29,7 +29,7 @@ function Game:__init(mode, host, connection)
     self.width = canvas:width()
     self.height = canvas:height()
 
-    self.tick_offset = 10
+    self.tick_offset = 0
     self.mode = mode
     self.state = GameState()
     self.rollback_model = RollbackModel(self.state)
@@ -132,7 +132,9 @@ function Game:tick()
         end
 
         if self.host ~= nil then
-            self.host:poll(1)
+            timer:push("flush")
+            self.host:flush()
+            timer:pop(5)
         end
     end
 
@@ -159,13 +161,20 @@ function Game:update(dt)
         return
     end
 
+    if self.host ~= nil then
+        timer:push("poll")
+        self.host:poll()
+        timer:pop(5)
+    end
+
     if self.rollback_engine:delta() <= self.latency_wait_threshold then
-        self.tick_offset = math.min(self.tick_offset + dt, Game.LATENCY_WAIT_THRESHOLD_S)
-        while self.tick_offset / self.state.dt > 1 do
+        self.tick_offset = self.tick_offset + dt
+        while (self.tick_offset / self.state.dt) > 1 do
             self.tick_offset = self.tick_offset - self.state.dt
             self:tick()
-            self.tick_offset = 0 -- debug disable catchup
         end
+    else
+        self.rollback_engine:refresh()
     end
 end
 
@@ -174,7 +183,7 @@ function Game:draw()
 
     local dt = 0
 
-    GAME.draw(self.state, self:get_inputs(), dt)
+    GAME.draw(self.state, self.rollback_engine:get_resolved_inputs(self.current_tick), dt)
 
     love.graphics.setColor({1, 1, 1, 0.05})
     love.graphics.setBlendMode("add")

@@ -19,7 +19,7 @@ function StateSnapshot:__init(state, shared_children)
     self.changed = {}
     self:subscribe()
 
-    for _, v in pairs(self.state) do
+    for _, v in pairs(state) do
         self:try_add_child_for(v)
     end
     timer:pop(10)
@@ -32,30 +32,30 @@ function StateSnapshot:subscribe()
             -- Already saved an older value for this property.
             return
         end
-        self:save(name, old_value)
+        self:save(name, nil_coalesce(old_value, NONE))
         self.changed[name] = true
     end
-    self.state.property_changed:subscribe(self.handler)
+    self.state.value.property_changed:subscribe(self.handler)
 end
 
 function StateSnapshot:unsubscribe()
     if self.handler == nil then
         return
     end
-    self.state.property_changed:unsubscribe(self.handler)
+    self.state.value.property_changed:unsubscribe(self.handler)
     self.handler = nil
 end
 
 function StateSnapshot:reinit_impl()
     for name, _ in pairs(self.changed) do
-        self:try_add_child_for(self.state[name])
+        self:try_add_child_for(self.state.value[name])
     end
     self.changed = {}
 end
 
 function StateSnapshot:restore_impl()
     for name, _ in pairs(self.saved_name_set) do
-        self.state:set(name, self.saved[name])
+        self.state.value:set(self.saved)
     end
 end
 

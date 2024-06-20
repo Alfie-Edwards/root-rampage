@@ -15,12 +15,13 @@ function Host:__init(host)
     self.disconnected = Event()
 end
 
+function Host:flush()
+    self.host:flush()
+end
+
 function Host:poll(timeout_ms)
-    timeout_ms = nil_coalesce(timeout_ms, 100)
-    local event = self.host:check_events()
-    if event == nil then
-        event = self.host:service(timeout_ms)
-    end
+    local timeout_ms = nil_coalesce(timeout_ms, 0)
+    local event = self.host:service(timeout_ms)
     while event ~= nil do
         if event.type == "receive" then
             local connection = self.connections[event.peer:connect_id()]
@@ -44,10 +45,7 @@ function Host:poll(timeout_ms)
             self.connected(self.connections[id])
             self.connections[id].connected()
         end
-        event = self.host:check_events()
-        if event == nil then
-            event = self.host:service(timeout_ms)
-        end
+       event = self.host:service(timeout_ms)
     end
     local dead = {}
     for id, connection in pairs(self.connections) do

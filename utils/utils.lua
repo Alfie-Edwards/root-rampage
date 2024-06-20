@@ -371,12 +371,8 @@ function weak_table(mode)
 end
 
 function weak_ref(x)
-    local t = {}
-    local mt = weak_table()
-    mt.__mode = 'v'
-    mt.__index = x
-    mt.__newindex = x
-    setmetatable(t, mt)
+    local t = weak_table('v')
+    t.value = x
     return t
 end
 
