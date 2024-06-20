@@ -3,6 +3,7 @@ require "ui.image_button"
 require "ui.text_box"
 require "ui.containers.grid_box"
 require "ui.containers.box"
+require "screens.lobby_menu"
 require "networking"
 
 HostMenu = {}
@@ -74,12 +75,7 @@ function HostMenu:__init()
     button_host.x = grid:cell(2, 3).bb:width() / 2
     button_host.y = grid:cell(2, 3).bb:height() / 2
     button_host.mousepressed = function()
-        self.server = Server(address_box.text)
-        self.server.connected:subscribe(
-            function(connection)
-                view:set_content(Game(Game.MODE_PLAYER, self.server, connection))
-            end
-        )
+        view:set_content(LobbyMenu(Server(address_box.text)))
     end
     grid:cell(2, 3):add(button_host)
 
@@ -94,10 +90,4 @@ function HostMenu:__init()
         view:set_content(MainMenu())
     end
     grid:cell(1, 3):add(button_back)
-end
-
-function HostMenu:update()
-    if self.server ~= nil then
-        self.server:poll()
-    end
 end
