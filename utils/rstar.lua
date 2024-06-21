@@ -541,6 +541,9 @@ function RStar:any_in_radius(x, y, r)
 end
 
 function RStar:closest(x, y)
+    if self.root == nil then
+        return
+    end
     timer:push("RStar:closest")
     local queue = PriorityQueue.new()
     local enqueue = function(node)
