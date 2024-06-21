@@ -15,9 +15,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          path: root-rampage
 
       - name: Download assets
-        run: cd root-rampage && gdown --folder "1JssgVA4UbAUl7g3SLxaTNbpIBH0zegPj"
+        run: cd $GITHUB_WORKSPACE/root-rampage && gdown --folder "1JssgVA4UbAUl7g3SLxaTNbpIBH0zegPj"
 
       - name: Create packages
         uses: nhartland/love-build@master
