@@ -31,6 +31,26 @@ function LobbyMenu:__init(server)
     grid.height = canvas:height()
     self:add(grid)
 
+    local title = Text("Hosting on "..server:get_address())
+    title.x_align = "center"
+    title.y_align = "center"
+    title.x = grid:cell(2, 1).bb:width() / 2
+    title.y = grid:cell(2, 1).bb:height() / 2
+    title.height = 32
+    title.color = {1, 1, 1, 1}
+    title.font = ui_font
+    grid:cell(2, 1):add(title)
+
+    local wait_text = Text("waiting for connections...")
+    wait_text.x_align = "center"
+    wait_text.y_align = "center"
+    wait_text.x = grid:cell(2, 2).bb:width() / 2
+    wait_text.y = grid:cell(2, 2).bb:height() / 2
+    wait_text.height = 32
+    wait_text.color = {1, 1, 1, 1}
+    wait_text.font = ui_font
+    grid:cell(2, 2):add(wait_text)
+
     local button_back = ImageButton()
     button_back.image = assets:get_image("ui/button-back")
     button_back.image_data = assets:get_image_data("ui/button-back")

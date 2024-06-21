@@ -75,6 +75,10 @@ function Server:__init(address)
     super().__init(self, self.enet.host_create(address))
 end
 
+function Server:get_address()
+    return self.host:get_socket_address()
+end
+
 
 Client = {}
 setup_class(Client, Host)

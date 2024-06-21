@@ -32,32 +32,15 @@ function JoinMenu:__init()
     grid.height = canvas:height()
     self:add(grid)
 
-    local message_box = TextBox()
-    message_box.x_align = "center"
-    message_box.y_align = "center"
-    message_box.x = grid:cell(2, 1).bb:width() / 2
-    message_box.y = grid:cell(2, 1).bb:height() / 2
-    message_box.width = grid:cell(2, 1).bb:width()
-    message_box.height = 32
-    message_box.background_color = {1, 1, 1, 1}
-    message_box.color = {0, 0, 0, 1}
-    message_box.font = ui_font
-    message_box.content_margin = 4
-    grid:cell(2, 1):add(message_box)
-
-    local button_send = ImageButton()
-    button_send.image = assets:get_image("ui/button-back")
-    button_send.image_data = assets:get_image_data("ui/button-back")
-    button_send.x_align = "center"
-    button_send.y_align = "center"
-    button_send.x = grid:cell(3, 1).bb:width() / 2
-    button_send.y = grid:cell(3, 1).bb:height() / 2
-    button_send.mousepressed = function()
-        if self.connection ~= nil then
-            self.connection:send(message_box.text)
-        end
-    end
-    grid:cell(3, 1):add(button_send)
+    local title = Text("Enter server address:")
+    title.x_align = "center"
+    title.y_align = "center"
+    title.x = grid:cell(2, 1).bb:width() / 2
+    title.y = grid:cell(2, 1).bb:height() / 2
+    title.height = 32
+    title.color = {1, 1, 1, 1}
+    title.font = ui_font
+    grid:cell(2, 1):add(title)
 
     local address_box = TextBox()
     address_box.x_align = "center"
