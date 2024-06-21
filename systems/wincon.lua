@@ -29,7 +29,7 @@ function WINCON.draw(state, inputs, dt)
         return
     end
     love.graphics.clear({0, 0, 0, 1})
-    draw_centred_text(wincon.end_screen, canvas:width() / 2, canvas:height() / 2, {1, 1, 1, 1}, font)
+    draw_centred_text(wincon.end_screen, canvas:width() / 2, canvas:height() / 2, font, {1, 1, 1, 1})
 end
 
 function WINCON.RootsWin(wincon)

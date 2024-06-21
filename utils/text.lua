@@ -70,7 +70,7 @@ function wrap_text(text, font, width)
     return result
 end
 
-function draw_centred_text(text, x, y, color, bg_color, font)
+function draw_centred_text(text, x, y, font, color, bg_color)
     local width = font:getWidth(text)
     local height = font:getHeight()
     x = x - font:getWidth(text) / 2
@@ -83,7 +83,7 @@ function draw_centred_text(text, x, y, color, bg_color, font)
     love.graphics.print(text, x, y)
 end
 
-function draw_text(text, x, y, color, font)
+function draw_text(text, x, y, font, color, bg_color)
     local width = font:getWidth(text)
     local height = font:getHeight()
     if bg_color ~= nil then

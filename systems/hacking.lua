@@ -27,7 +27,7 @@ function HACKING.draw(state, inputs, dt)
     end
 
     if #hacked_terminals > 0 then
-        draw_text("Hacking door...", state.door.x, state.door.y - 48, {1, 1, 1, 1}, {0, 0, 0, 0.4}, font)
+        draw_text("Hacking door...", state.door.x, state.door.y - 48, font, {1, 1, 1, 1}, {0, 0, 0, 0.4})
         love.graphics.setColor({0, 0, 0, 0.4})
         love.graphics.rectangle("fill", state.door.x, state.door.y - 38, 90, 10)
         love.graphics.setColor({1, 1, 1, 1})
