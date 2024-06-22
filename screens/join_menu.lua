@@ -39,7 +39,7 @@ function JoinMenu:__init()
     title.y = grid:cell(2, 1).bb:height() / 2
     title.height = 32
     title.color = {1, 1, 1, 1}
-    title.font = ui_font
+    title.font = font24
     grid:cell(2, 1):add(title)
 
     local address_box = TextBox()
@@ -48,11 +48,11 @@ function JoinMenu:__init()
     address_box.x = grid:cell(2, 2).bb:width() / 2
     address_box.y = grid:cell(2, 2).bb:height() / 2
     address_box.width = grid:cell(2, 2).bb:width()
-    address_box.height = 32
+    address_box.height = 30
     address_box.background_color = {1, 1, 1, 1}
     address_box.color = {0, 0, 0, 1}
-    address_box.font = ui_font
-    address_box.content_margin = 4
+    address_box.font = font16
+    address_box.content_margin = 6
     address_box.text = "localhost:6750"
     grid:cell(2, 2):add(address_box)
 

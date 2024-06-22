@@ -38,7 +38,7 @@ function LobbyMenu:__init(server)
     title.y = grid:cell(2, 1).bb:height() / 2
     title.height = 32
     title.color = {1, 1, 1, 1}
-    title.font = ui_font
+    title.font = font24
     grid:cell(2, 1):add(title)
 
     local wait_text = Text("waiting for connections...")
@@ -48,7 +48,7 @@ function LobbyMenu:__init(server)
     wait_text.y = grid:cell(2, 2).bb:height() / 2
     wait_text.height = 32
     wait_text.color = {1, 1, 1, 1}
-    wait_text.font = ui_font
+    wait_text.font = font16
     grid:cell(2, 2):add(wait_text)
 
     local button_back = ImageButton()

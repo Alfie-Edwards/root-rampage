@@ -29,7 +29,8 @@ function WINCON.draw(state, inputs, dt)
         return
     end
     love.graphics.clear({0, 0, 0, 1})
-    draw_centred_text(wincon.end_screen, canvas:width() / 2, canvas:height() / 2, font, {1, 1, 1, 1})
+    draw_centred_text(wincon.end_screen, canvas:width() / 2, canvas:height() / 2 - 16, font32, {1, 1, 1, 1})
+    draw_centred_text("ESC to continue...", canvas:width() / 2, canvas:height() - 48, font16, {1, 1, 1, 0.5})
 end
 
 function WINCON.RootsWin(wincon)
