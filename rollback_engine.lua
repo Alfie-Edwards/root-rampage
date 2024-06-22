@@ -7,7 +7,7 @@ RollbackEngine = {
     prediction_record = nil,
     snapshot = nil,
     model = nil,
-    dirty_state = nil,
+    dirty = nil,
 }
 setup_class(RollbackEngine)
 
@@ -17,27 +17,24 @@ function RollbackEngine:__init(model)
     self.target_tick = -1
     self.current_tick = -1
     self.snapshot_tick = -1
+    self.frontier_tick = -1
     self.input_record = {}
     self.prediction_record = {}
     self.snapshot = model:take_snapshot()
-    self.dirty_state = false
-    self.dirty_snapshot = false
+    self.dirty = false
 
     self.model = model
 end
 
 function RollbackEngine:delta()
-    return self.target_tick - self.snapshot_tick
+    return self.target_tick - self.frontier_tick
 end
 
 function RollbackEngine:tick()
     timer:push("RollbackEngine:tick")
     self.target_tick = self.target_tick + 1
     if self.input_record[self.target_tick] ~= nil then
-        self.dirty_state = true
-        if self.model:are_inputs_complete(self.input_record[self.target_tick]) then
-            self.dirty_snapshot = true
-        end
+        self.dirty = true
     end
     self:refresh()
     timer:pop(self.model.state.dt * 1000)
@@ -45,9 +42,9 @@ end
 
 function RollbackEngine:refresh()
     -- Update snapshot/state based on any new inputs.
-    if self.dirty_snapshot then
+    if (self.target_tick > self.snapshot_tick) and (self.frontier_tick > self.snapshot_tick) then
         self:_update_snapshot()
-    elseif self.dirty_state then
+    elseif self.dirty then
         self:_rollback_to_snapshot()
     end
     if self.current_tick ~= self.target_tick then
@@ -69,8 +66,8 @@ function RollbackEngine:add_inputs(inputs, tick)
     -- Record the inputs.
     if self.model:are_inputs_complete(inputs) then
         self.prediction_record[tick]  = nil
-        if tick == (self.snapshot_tick + 1) then
-            self.dirty_snapshot = true
+        if tick == (self.frontier_tick + 1) then
+            self.frontier_tick = tick
         end
     else
         local prev_inputs = self:get_resolved_inputs(tick - 1)
@@ -79,7 +76,7 @@ function RollbackEngine:add_inputs(inputs, tick)
     end
 
     if tick <= self.target_tick then
-        self.dirty_state = true
+        self.dirty = true
     end
 
     -- Recalculate dependent predictions.
@@ -104,7 +101,6 @@ function RollbackEngine:_update_snapshot()
             self.prediction_record[new_snapshot_tick + 1] == nil do
         new_snapshot_tick = new_snapshot_tick + 1
     end
-    self.dirty_snapshot = false
 
     if new_snapshot_tick == self.snapshot_tick then
         timer:pop(self.model.state.dt * 1000)
@@ -143,7 +139,7 @@ function RollbackEngine:_rollback_to_snapshot()
         self.model:rollback(self.snapshot)
         self.current_tick = self.snapshot_tick
     end
-    self.dirty_state = false
+    self.dirty = false
     timer:pop(self.model.state.dt * 1000)
 end
 

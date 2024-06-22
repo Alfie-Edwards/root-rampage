@@ -9,7 +9,7 @@ Game = {
     MODE_ROOTS = {},
     MODE_ALL = {},
     INPUT_DELAY_S = 0.1,
-    LATENCY_WAIT_THRESHOLD_S = 0.1,
+    LATENCY_SYNC_THRESHOLD_S = 0.3,
 
     t0 = nil,
     state = nil,
@@ -17,7 +17,7 @@ Game = {
     rollback_model = nil,
     rollback_controller = nil,
     current_tick = nil,
-    tick_offset = nil,
+    tick_offset_s = nil,
     input_delay = nil,
     max_latency = nil,
 }
@@ -29,7 +29,7 @@ function Game:__init(mode, host, connection)
     self.width = canvas:width()
     self.height = canvas:height()
 
-    self.tick_offset = 0
+    self.tick_offset_s = 0
     self.mode = mode
     self.state = GameState()
     self.rollback_model = RollbackModel(self.state)
@@ -37,7 +37,6 @@ function Game:__init(mode, host, connection)
     self.current_tick = -1
     self.t0 = love.timer.getTime()
     self.input_delay = math.floor(Game.INPUT_DELAY_S / self.state.dt)
-    self.latency_wait_threshold = math.floor(Game.LATENCY_WAIT_THRESHOLD_S / self.state.dt)
 
     if self.input_delay > 0 then
         for t=0,self.input_delay-1,1 do
@@ -167,13 +166,21 @@ function Game:update(dt)
         timer:pop(5)
     end
 
-    if self.rollback_engine:delta() <= self.latency_wait_threshold then
-        self.tick_offset = self.tick_offset + dt
-        while (self.tick_offset / self.state.dt) > 1 do
-            self.tick_offset = self.tick_offset - self.state.dt
+    -- How much more we'd need to be ahead to incur a sync.
+
+    local max_latency_lead_s = math.max(self.LATENCY_SYNC_THRESHOLD_S, (self.state.dt - self.INPUT_DELAY_S))
+    local latency_sync_delta_s = max_latency_lead_s - (self.rollback_engine:delta() * self.state.dt)
+
+    -- Limit ticks so we're at most self.LATENCY_SYNC_THRESHOLD_S ahead.
+    self.tick_offset_s = math.min(self.tick_offset_s + dt, latency_sync_delta_s)
+
+    if self.tick_offset_s >= self.state.dt then
+        while self.tick_offset_s >= self.state.dt do
+            self.tick_offset_s = self.tick_offset_s - self.state.dt
             self:tick()
         end
     else
+        -- Just update rollback engine with the new inputs if we didn't tick at all.
         self.rollback_engine:refresh()
     end
 end
