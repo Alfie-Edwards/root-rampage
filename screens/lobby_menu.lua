@@ -13,7 +13,7 @@ function LobbyMenu:__init(host, connection)
     super().__init(self)
     self.host = host
     self.connection = connection
-    self.is_remote = (connection ~= nil)
+    self.is_remote = is_type(host, Client)
     self.you_ready = false
     self.opponent_ready = false
     self.swapped = false
@@ -173,7 +173,7 @@ function LobbyMenu:__init(host, connection)
     self.button_opponent_ready.x = self.grid:cell(3, 5).bb:width() / 2
     self.button_opponent_ready.y = self.grid:cell(3, 5).bb:height() / 2
 
-    if self.is_remote then
+    if self.connection ~= nil then
         self.grid:cell(2, 3):add(self.you_text)
         self.grid:cell(2, 4):add(self.you_role_text)
         self.grid:cell(2, 5):add(self.button_you_ready)

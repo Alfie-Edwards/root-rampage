@@ -7,6 +7,10 @@ WINCON = {}
 function WINCON.update(state, inputs)
     local wincon = state.wincon
 
+    if not state.nodes:any() then
+        WINCON.AxeManWins(wincon)
+    end
+
     if state.hacking.progress >= HACKING.MAX and not state.door.is_open then
         DOOR.open(state.door, state.t)
     end
@@ -17,8 +21,6 @@ function WINCON.update(state, inputs)
         if (door_pos.x - most_recent_node.x) ^ 2 + (door_pos.y - most_recent_node.y) ^ 2 < (1.5 * LEVEL.cell_size()) then
             WINCON.RootsWin(wincon)
         end
-    elseif not state.nodes:any() then
-        WINCON.AxeManWins(wincon)
     end
 end
 

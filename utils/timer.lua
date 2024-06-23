@@ -13,13 +13,13 @@ function Timer:reset()
 end
 
 function Timer:push(name)
-    self.scope:push({name, love.timer.getTime()})
+    self.scope:push({name, t_now()})
 end
 
 function Timer:pop(print_threshold)
     assert(self.scope.size)
 
-    local t = love.timer.getTime()
+    local t = t_now()
     local name, t0 = unpack(self.scope:pop())
     local ms = math.floor((t - t0) * 1000)
     if ms >= nil_coalesce(print_threshold, 0) then

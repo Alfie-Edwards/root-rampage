@@ -82,11 +82,10 @@ Server = {}
 setup_class(Server, Host)
 
 function Server:__init(address)
-    super().__init(self, self.enet.host_create(address))
-end
-
-function Server:is_valid()
-    return self.host ~= nil
+    local host, success
+    success, self.error = pcall(function() host = self.enet.host_create(address) end)
+    self.errored = not success
+    super().__init(self, host)
 end
 
 function Server:get_address()

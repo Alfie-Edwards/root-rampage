@@ -10,16 +10,6 @@ Game = {
     MODE_ALL = {},
     INPUT_DELAY_S = 0.1,
     LATENCY_SYNC_THRESHOLD_S = 0.3,
-
-    t0 = nil,
-    state = nil,
-    mode = nil,
-    rollback_model = nil,
-    rollback_controller = nil,
-    current_tick = nil,
-    tick_offset_s = nil,
-    input_delay = nil,
-    max_latency = nil,
 }
 setup_class(Game, LayoutElement)
 
@@ -35,8 +25,9 @@ function Game:__init(mode, host, connection)
     self.rollback_model = RollbackModel(self.state)
     self.rollback_engine = RollbackEngine(self.rollback_model)
     self.current_tick = -1
-    self.t0 = love.timer.getTime()
+    self.t0 = t_now()
     self.input_delay = math.floor(Game.INPUT_DELAY_S / self.state.dt)
+    self.t_last_tick = t_now()
 
     if self.input_delay > 0 then
         for t=0,self.input_delay-1,1 do
@@ -52,32 +43,39 @@ function Game:__init(mode, host, connection)
         assert(connection ~= nil)
         self.host = host
         self.connection = connection
-        connection.disconnected:subscribe(
-            function()
-                self:quit()
-            end
-        )
+
+        self.on_disconnected = function()
+            self:unsubscribe()
+            self.connection = nil
+            self:quit(true)
+        end
         if mode == Game.MODE_PLAYER then
-            connection.received:subscribe(
-                function(msg)
-                    local sep = msg:find("|")
-                    local tick = tonumber(msg:sub(1, sep-1))
-                    local inputs = Inputs.deserialize_roots(msg:sub(sep+1, -1))
-                    self.rollback_engine:add_inputs(inputs, tick)
+            self.on_received = function(msg)
+                if msg == "quit" then
+                    self:quit(true)
+                    return
                 end
-            )
+                local sep = msg:find("|")
+                local tick = tonumber(msg:sub(1, sep-1))
+                local inputs = Inputs.deserialize_roots(msg:sub(sep+1, -1))
+                self.rollback_engine:add_inputs(inputs, tick)
+            end
         elseif mode == Game.MODE_ROOTS then
-            connection.received:subscribe(
-                function(msg)
-                    local sep = msg:find("|")
-                    local tick = tonumber(msg:sub(1, sep-1))
-                    local inputs = Inputs.deserialize_player(msg:sub(sep+1, -1))
-                    self.rollback_engine:add_inputs(inputs, tick)
+            self.on_received = function(msg)
+                if msg == "quit" then
+                    self:quit(true)
+                    return
                 end
-            )
+                local sep = msg:find("|")
+                local tick = tonumber(msg:sub(1, sep-1))
+                local inputs = Inputs.deserialize_player(msg:sub(sep+1, -1))
+                self.rollback_engine:add_inputs(inputs, tick)
+            end
         else
             error("unreachable")
         end
+        connection.disconnected:subscribe(self.on_disconnected)
+        connection.received:subscribe(self.on_received)
     end
 
 end
@@ -141,13 +139,30 @@ function Game:tick()
         self.rollback_engine:add_inputs(inputs, input_tick)
     end
     self.rollback_engine:tick()
+    self.t_last_tick = t_now()
     timer:pop(self.state.dt * 1000)
 end
 
-function Game:quit()
+function Game:unsubscribe()
+    self.connection.disconnected:unsubscribe(self.on_disconnected)
+    self.connection.received:unsubscribe(self.on_received)
+end
+
+function Game:quit(requested_by_peer)
     if self.host ~= nil then
-        self.connection:request_disconnect()
-        self.host:destroy()
+        if self.connection ~= nil then
+            self:unsubscribe()
+            if not requested_by_peer then
+                self.connection:send("quit")
+            end
+            view:set_content(LobbyMenu(self.host, self.connection))
+            return
+        elseif is_type(self.host, Server) then
+            view:set_content(LobbyMenu(self.host))
+            return
+        else
+            self.host:destroy()
+        end
     end
     view:set_content(MainMenu())
 end
@@ -156,7 +171,7 @@ function Game:update(dt)
     super().update(self, dt)
 
     if love.keyboard.isDown("escape") then
-        self:quit()
+            self:quit(false)
         return
     end
 
@@ -188,7 +203,7 @@ end
 function Game:draw()
     super().draw(self)
 
-    local dt = 0
+    local dt = t_now() - self.t_last_tick
 
     GAME.draw(self.state, self.rollback_engine:get_resolved_inputs(self.current_tick), dt)
 

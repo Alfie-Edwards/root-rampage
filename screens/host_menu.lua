@@ -50,6 +50,17 @@ function HostMenu:__init(address)
     address_box.text = nil_coalesce(address, "localhost:6750")
     grid:cell(2, 2):add(address_box)
 
+    self.error = Text()
+    self.error.x_align = "center"
+    self.error.y_align = "bottom"
+    self.error.text_align = "center"
+    self.error.x = grid:cell(2, 2).bb:width() / 2
+    self.error.y = grid:cell(2, 2).bb:height()
+    self.error.height = 48
+    self.error.color = {1, 0.3, 0.3, 1}
+    self.error.font = font16
+    grid:cell(2, 2):add(self.error)
+
     local button_host = ImageButton()
     button_host.image = assets:get_image("ui/button-host")
     button_host.image_data = assets:get_image_data("ui/button-host")
@@ -59,7 +70,10 @@ function HostMenu:__init(address)
     button_host.y = grid:cell(2, 3).bb:height() / 2
     button_host.mousepressed = function()
         local server = Server(address_box.text)
-        if server:is_valid() then
+        if server.errored then
+            self.error.text = server.error
+        else
+            self.error.text = nil
             view:set_content(LobbyMenu(server))
         end
     end
