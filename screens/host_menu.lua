@@ -58,7 +58,10 @@ function HostMenu:__init(address)
     button_host.x = grid:cell(2, 3).bb:width() / 2
     button_host.y = grid:cell(2, 3).bb:height() / 2
     button_host.mousepressed = function()
-        view:set_content(LobbyMenu(Server(address_box.text)))
+        local server = Server(address_box.text)
+        if server:is_valid() then
+            view:set_content(LobbyMenu(server))
+        end
     end
     grid:cell(2, 3):add(button_host)
 

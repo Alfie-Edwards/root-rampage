@@ -29,13 +29,12 @@ function LobbyMenu:__init(host, connection)
             self.connection = nil
             self:set_you_unready()
             self:set_opponent_unready()
-            self.grid:cell(2, 3):remove(self.you_text)
-            self.grid:cell(2, 4):remove(self.you_role_text)
-            self.grid:cell(2, 5):remove(self.button_you_ready)
-            self.grid:cell(3, 3):remove(self.opponent_text)
-            self.grid:cell(3, 4):remove(self.opponent_role_text)
-            self.grid:cell(3, 5):remove(self.button_opponent_ready)
-            self.grid:cell(2, 4):remove(self.button_swap)
+            self.grid:cell(2, 3):clear()
+            self.grid:cell(2, 4):clear()
+            self.grid:cell(2, 5):clear()
+            self.grid:cell(3, 3):clear()
+            self.grid:cell(3, 4):clear()
+            self.grid:cell(3, 5):clear()
         end
     end
     self.on_received = function(message)
@@ -193,12 +192,12 @@ function LobbyMenu:__init(host, connection)
     button_back.y = self.grid:cell(1, 3).bb:height() / 2
     button_back.mousepressed = function()
         self:unsubscribe()
-        self.host:destroy()
         if self.is_remote then
             view:set_content(JoinMenu())
         else
             view:set_content(HostMenu(self.host:get_address()))
         end
+        self.host:destroy()
     end
     self.grid:cell(1, 5):add(button_back)
 end

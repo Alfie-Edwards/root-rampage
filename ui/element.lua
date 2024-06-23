@@ -259,7 +259,6 @@ end
 
 function Element:_clear_visual_children()
     for _, child in ipairs(self._visual_children) do
-        assert(child._visual_parent == self)
         child._visual_parent = nil
     end
     self._visual_children = {}

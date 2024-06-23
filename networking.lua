@@ -68,6 +68,7 @@ function Host:destroy()
     for _, connection in pairs(self.connections) do
         connection:request_disconnect()
     end
+    self.host:flush()
     self.host:destroy()
 end
 
@@ -76,6 +77,10 @@ setup_class(Server, Host)
 
 function Server:__init(address)
     super().__init(self, self.enet.host_create(address))
+end
+
+function Server:is_valid()
+    return self.host ~= nil
 end
 
 function Server:get_address()
