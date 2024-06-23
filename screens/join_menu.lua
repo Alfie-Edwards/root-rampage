@@ -9,13 +9,13 @@ JoinMenu = {}
 
 setup_class(JoinMenu, Box)
 
-function JoinMenu:__init()
+function JoinMenu:__init(address)
     super().__init(self)
 
     self.client = Client()
     self.client.connected:subscribe(
         function(connection)
-            view:set_content(Game(Game.MODE_ROOTS, self.client, connection))
+            view:set_content(LobbyMenu(self.client, connection))
         end
     )
 
@@ -53,7 +53,7 @@ function JoinMenu:__init()
     address_box.color = {0, 0, 0, 1}
     address_box.font = font16
     address_box.content_margin = 6
-    address_box.text = "localhost:6750"
+    address_box.text = nil_coalesce(address, "localhost:6750")
     grid:cell(2, 2):add(address_box)
 
     local button_host = ImageButton()

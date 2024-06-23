@@ -65,6 +65,9 @@ function Host:poll(timeout_ms)
 end
 
 function Host:destroy()
+    for _, connection in pairs(self.connections) do
+        connection:request_disconnect()
+    end
     self.host:destroy()
 end
 
@@ -104,6 +107,7 @@ setup_class(Connection)
 
 function Connection:__init(peer)
     super().__init(self)
+    peer:last_round_trip_time(30) -- Initial guess.
     self.peer = peer
     self.received = Event()
     self.sent = Event()
@@ -120,6 +124,14 @@ function Connection:get_latency_ms()
     return self.peer:round_trip_time()
 end
 
+function Connection:get_latency_s()
+    return self:get_latency_ms() / 1000
+end
+
 function Connection:request_disconnect()
     self.peer:disconnect()
+end
+
+function Connection:get_state()
+    return self.peer:state()
 end

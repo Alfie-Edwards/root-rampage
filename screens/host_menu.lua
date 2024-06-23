@@ -10,7 +10,7 @@ HostMenu = {}
 
 setup_class(HostMenu, Box)
 
-function HostMenu:__init()
+function HostMenu:__init(address)
     super().__init(self)
 
     local bg = Image()
@@ -47,7 +47,7 @@ function HostMenu:__init()
     address_box.color = {0, 0, 0, 1}
     address_box.font = font16
     address_box.content_margin = 6
-    address_box.text = "localhost:6750"
+    address_box.text = nil_coalesce(address, "localhost:6750")
     grid:cell(2, 2):add(address_box)
 
     local button_host = ImageButton()
