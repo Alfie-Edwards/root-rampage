@@ -187,7 +187,7 @@ function Game:update(dt)
     local latency_sync_delta_s = max_latency_lead_s - (self.rollback_engine:delta() * self.state.dt)
 
     -- Limit ticks so we're at most self.LATENCY_SYNC_THRESHOLD_S ahead.
-    self.tick_offset_s = math.min(self.tick_offset_s + dt, latency_sync_delta_s)
+    self.tick_offset_s = math.min(self.tick_offset_s + math.min(self.state.dt, dt), latency_sync_delta_s)
 
     if self.tick_offset_s >= self.state.dt then
         while self.tick_offset_s >= self.state.dt do

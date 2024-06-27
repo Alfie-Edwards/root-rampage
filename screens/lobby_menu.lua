@@ -233,7 +233,6 @@ end
 function LobbyMenu:send_start()
     self.connection:send("start")
     self.host:flush()
-    love.timer.sleep(self.connection:get_latency_s() / 2) -- Try to start at the same time.
     self:start()
 end
 
