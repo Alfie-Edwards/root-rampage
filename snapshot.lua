@@ -55,6 +55,8 @@ function Snapshot:save(name, value)
         error("A value ("..tostring(value)..") has already been saved under the name \""..name.."\"")
     end
     self.saved_name_set[name] = true
+    self:try_add_child_for(name)
+
     if value ~= nil then
         self.saved[name] = value
         self:try_add_child_for(value)

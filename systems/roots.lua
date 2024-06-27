@@ -63,8 +63,10 @@ function ROOTS.update(state, inputs)
     if roots.selected ~= nil and tooltip.timer == nil then
         roots.grow_node = roots.selected
     else
-        roots.grow_node = nil_coalesce(state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y), NONE)
-        roots.grow_branch = NONE
+        if not (inputs.roots_attack and not inputs.roots_grow and attack_state ~= AttackState.ATTACKING) then
+            roots.grow_node = nil_coalesce(state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y), NONE)
+            roots.grow_branch = NONE
+        end
     end
 
     if roots.grow_node == nil then
@@ -151,7 +153,7 @@ function ROOTS.update(state, inputs)
                 if connected then
                     threshold = threshold * 0.2
                 end
-                if closest ~= nil and closest ~= roots.grow_node and sq_dist(closest.x, closest.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
+                if attack_state ~= AttackState.ATTACKING and closest ~= nil and closest ~= roots.grow_node and sq_dist(closest.x, closest.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
                     if connected then
                         roots.grow_branch = NONE
                     else
