@@ -9,11 +9,13 @@ BRANCH = {
 
 function BRANCH.update(state, inputs)
     for _, branch in pairs(state.branches) do
-        local base = BRANCH.base(branch)
-        if base == nil or (branch.t_dead == NEVER and NODE.is_dead(state, base)) then
-            branch.t_dead = state.t
-        elseif branch.t_dead ~= NEVER and (state.t - branch.t_dead) >= BRANCH.WITHER_TIME then
-            BRANCH.remove(state, branch)
+        if branch ~= nil then
+            local base = BRANCH.base(branch)
+            if base == nil or (branch.t_dead == NEVER and NODE.is_dead(state, base)) then
+                branch.t_dead = state.t
+            elseif branch.t_dead ~= NEVER and (state.t - branch.t_dead) >= BRANCH.WITHER_TIME then
+                BRANCH.remove(state, branch)
+            end
         end
     end
 end
