@@ -9,18 +9,16 @@ NODE_TYPE = {
 
 setup_class(NodeState, FixedPropertyTable)
 
-function NodeState:__init(x, y, parent, type)
+function NodeState:__init(x, y, type)
     assert(x ~= nil)
     assert(y ~= nil)
 
     super().__init(self, {
         x = x,
         y = y,
-        children = PropertyTable(),
+        neighbors = PropertyTable(),
         is_tree = (type == NODE_TYPE.TREE),
         is_terminal = (type == NODE_TYPE.TERMINAL),
-        t_dead = NEVER,
-        is_dead = false,
-        parent = nil_coalesce(parent, NONE),
+        branch_map = PropertyTable(),
     })
 end

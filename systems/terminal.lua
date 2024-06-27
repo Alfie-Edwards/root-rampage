@@ -30,8 +30,8 @@ TERMINAL = {
 
 function TERMINAL.update(state, inputs)
     for _, terminal in ipairs(state.terminals) do
-        if terminal.node ~= nil and terminal.node.is_dead then
-            terminal.node = nil
+        if terminal.node ~= nil and NODE.is_dead(state, terminal.node) then
+            terminal.node = NONE
             terminal.t_hacked = NEVER
             terminal.t_cut = state.t
         end

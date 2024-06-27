@@ -40,19 +40,19 @@ function ROOTS.update(state, inputs)
     local roots = state.roots
     local tooltip = state.tooltip
 
-    if roots.selected ~= nil and roots.selected.is_dead then
-        
-        roots.selected = nil
+    if roots.selected ~= nil and NODE.is_dead(state, roots.selected) then
+        roots.selected = NONE
     end
 
     local attack_state = ROOTS.get_attack_state(roots, state.t)
 
     if inputs.roots_grow or (inputs.roots_attack and attack_state == AttackState.ATTACKING) then
-        if roots.selected == nil and roots.grow_node ~= nil and not roots.grow_node.is_dead then
+        if roots.selected == nil and roots.grow_node ~= nil and not NODE.is_dead(state, roots.grow_node) then
             roots.selected = roots.grow_node
         end
     else
-        roots.selected = nil
+        roots.selected = NONE
+        roots.grow_branch = NONE
     end
 
     if inputs.roots_attack and attack_state == AttackState.READY and tooltip.timer == nil then
@@ -63,12 +63,13 @@ function ROOTS.update(state, inputs)
     if roots.selected ~= nil and tooltip.timer == nil then
         roots.grow_node = roots.selected
     else
-        roots.grow_node = state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y)
+        roots.grow_node = nil_coalesce(state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y), NONE)
+        roots.grow_branch = NONE
     end
 
     if roots.grow_node == nil then
-        roots.new_pos_x = nil
-        roots.new_pos_y = nil
+        roots.new_pos_x = NONE
+        roots.new_pos_y = NONE
         return
     end
 
@@ -84,16 +85,15 @@ function ROOTS.update(state, inputs)
                          inputs.roots_pos_x, inputs.roots_pos_y)
 
     if v:length() == 0 then
-        roots.new_pos_x = nil
-        roots.new_pos_y = nil
+        roots.new_pos_x = NONE
+        roots.new_pos_y = NONE
         return
     end
 
     roots.new_pos_x = roots.grow_node.x + v:direction_x() * roots.speed * state.dt
     roots.new_pos_y = roots.grow_node.y + v:direction_y() * roots.speed * state.dt
-    if v:sq_length() < (roots.speed * roots.speed * state.dt * state.dt) then
-        roots.valid = false
-    elseif state.nodes:closest(roots.new_pos_x, roots.new_pos_y) ~= roots.grow_node then
+    local tick_distance = (roots.speed * roots.speed * state.dt * state.dt)
+    if v:sq_length() < tick_distance then
         roots.valid = false
     elseif LEVEL.solid({x = roots.new_pos_x, y = roots.new_pos_y}) then
         roots.valid = false
@@ -102,14 +102,14 @@ function ROOTS.update(state, inputs)
     end
 
     if tooltip.timer == nil and not inputs.roots_attack then
-        roots.tree_spot = TREE_SPOT.find_tree_spot(state.tree_spots, roots.new_pos_x, roots.new_pos_y)
+        roots.tree_spot = nil_coalesce(TREE_SPOT.find_tree_spot(state.tree_spots, roots.new_pos_x, roots.new_pos_y), NONE)
         if roots.tree_spot ~= nil then
             if roots.selected ~= nil then
                 tooltip.timer = state.t
                 tooltip.duration = TREE_SPOT.TIME
             end
         else
-            roots.terminal = TERMINAL.find_terminal(state.terminals, roots.new_pos_x, roots.new_pos_y)
+            roots.terminal = nil_coalesce(TERMINAL.find_terminal(state.terminals, roots.new_pos_x, roots.new_pos_y), NONE)
             if roots.terminal ~= nil and roots.selected ~= nil then
                 tooltip.timer = state.t
                 tooltip.duration = TERMINAL.TIME
@@ -117,12 +117,16 @@ function ROOTS.update(state, inputs)
         end
     else
         if roots.tree_spot ~= nil and (roots.tree_spot.node ~= nil or roots.selected == nil or inputs.roots_attack) then
-            roots.tree_spot = nil
-            tooltip.timer = nil
+            roots.tree_spot = NONE
+            tooltip.timer = NONE
+            roots.selected = NONE
+            roots.grow_branch = NONE
         end
         if roots.terminal ~= nil and (roots.terminal.node ~= nil or roots.selected == nil or inputs.roots_attack) then
-            roots.terminal = nil
-            tooltip.timer = nil
+            roots.terminal = NONE
+            tooltip.timer = NONE
+            roots.selected = NONE
+            roots.grow_branch = NONE
         end
     end
 
@@ -131,13 +135,43 @@ function ROOTS.update(state, inputs)
             if roots.tree_spot ~= nil and roots.tree_spot.node == nil then
                 if (state.t - tooltip.timer) > TREE_SPOT.TIME then
                     TREE_SPOT.create_node(roots.tree_spot, roots.selected, state)
+                    roots.selected = NONE
+                    roots.grow_branch = NONE
                 end
             elseif roots.terminal ~= nil and roots.terminal.node == nil then
                 if (state.t - tooltip.timer) > TERMINAL.TIME then
                     TERMINAL.create_node(roots.terminal, roots.selected, state)
+                    roots.selected = NONE
+                    roots.grow_branch = NONE
                 end
             else
-                roots.selected = NODE.add_node(roots.new_pos_x, roots.new_pos_y, roots.grow_node, state, NODE_TYPE.NORMAL)
+                local closest = state.nodes:closest(roots.new_pos_x, roots.new_pos_y)
+                local threshold = 0.5 * tick_distance
+                local connected = NODE.are_connected(roots.selected, closest)
+                if connected then
+                    threshold = threshold * 0.2
+                end
+                if closest ~= roots.grow_node and sq_dist(closest.x, closest.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
+                    if connected then
+                        roots.grow_branch = NONE
+                    else
+                        if roots.grow_branch == nil then
+                            roots.grow_branch = BRANCH.add_branch(state, roots.selected, closest)
+                        else
+                            BRANCH.extend(roots.grow_branch, closest)
+                        end
+                        NODE.connect(roots.selected, closest)
+                    end
+                    roots.selected = closest
+                else
+                    if roots.grow_branch == nil then
+                        roots.grow_branch = nil_coalesce(BRANCH.get_if_tip(state, roots.selected), NONE)
+                    end
+                    roots.selected, branch = NODE.add_node(roots.new_pos_x, roots.new_pos_y, roots.grow_node, state, NODE_TYPE.NORMAL, roots.grow_branch)
+                    if roots.grow_branch == nil then
+                        roots.grow_branch = branch
+                    end
+                end
             end
         end
         if attack_state == AttackState.ATTACKING and

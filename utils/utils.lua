@@ -100,8 +100,8 @@ function index_of(list, value)
     return nil
 end
 
-function value_in(value, list)
-    for _, item in ipairs(list) do
+function value_in(value, list, pairs_fn)
+    for _, item in nil_coalesce(pairs_fn, ipairs)(list) do
         if value == item then
             return true
         end
@@ -260,6 +260,13 @@ function iter_size(x)
     return n
 end
 
+function any(x)
+    for _, _ in pairs(x) do
+        return true
+    end
+    return false
+end
+
 function normalize_angle(a)
     a = a + (2 * math.pi)
     a = a % (2 * math.pi)
@@ -317,6 +324,18 @@ function bool(x)
         return true
     end
     return false
+end
+
+function first_key(x)
+    for k, _ in pairs(x) do
+        return k
+    end
+end
+
+function first_value(x)
+    for _, v in pairs(x) do
+        return v
+    end
 end
 
 function first_pair(x)
@@ -382,6 +401,27 @@ function print_table(t)
         print("   "..tostring(k)..": "..tostring(v))
     end
     print("}")
+end
+
+function shiftr(t, n)
+    local cpy = shallow_copy(t)
+    for i = 1, n do
+        t[i] = nil
+    end
+
+    local i = n + 1
+    while n > 0 do
+        if cpy[i - n] == nil then
+            n = n - 1
+        else
+            t[i] = cpy[i - n]
+            i = i + 1
+        end
+    end
+end
+
+function get_id(x)
+  return string.format("%p", x)
 end
 
 -- Import other utils files.

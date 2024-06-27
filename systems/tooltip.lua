@@ -8,7 +8,7 @@ function TOOLTIP.update(state, inputs)
     local tooltip = state.tooltip
     local roots = state.roots
 
-    tooltip.message = nil
+    tooltip.message = NONE
     if roots.tree_spot ~= nil and roots.tree_spot.node == nil then
         if tooltip.timer == nil then
             tooltip.message = TREE_SPOT.TOOLTIP

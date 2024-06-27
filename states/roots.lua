@@ -7,6 +7,7 @@ function RootsState:__init()
         t_attack = NEVER,
         selected = NONE,
         grow_node = NONE,
+        grow_branch = NONE,
         new_pos_x = NONE,
         new_pos_y = NONE,
         valid = false,

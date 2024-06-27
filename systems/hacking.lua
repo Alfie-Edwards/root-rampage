@@ -44,7 +44,7 @@ end
 function HACKING.get_hacked_terminals(state)
     local hacked = {}
     for _, terminal in ipairs(state.terminals) do
-        if terminal.node ~= nil and not terminal.node.is_dead then
+        if terminal.node ~= nil and not NODE.is_dead(state, terminal.node) then
             table.insert(hacked, terminal)
         end
     end

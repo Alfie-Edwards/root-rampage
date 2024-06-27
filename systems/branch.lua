@@ -8,21 +8,25 @@ BRANCH = {
 }
 
 function BRANCH.update(state, inputs)
-    for _, branch in ipairs(state.branches) do
-        BRANCH.update_tip(branch)
-        if branch.base.is_dead and (state.t - branch.base.t_dead) > BRANCH.WITHER_TIME then
-            BRANCH.cull(state, branch)
+    for _, branch in pairs(state.branches) do
+        local base = BRANCH.base(branch)
+        if base == nil or (branch.t_dead == NEVER and NODE.is_dead(state, base)) then
+            branch.t_dead = state.t
+        elseif branch.t_dead ~= NEVER and (state.t - branch.t_dead) >= BRANCH.WITHER_TIME then
+            BRANCH.remove(state, branch)
         end
     end
 end
 
 function BRANCH.draw(state, inputs, dt)
-    for _, branch in ipairs(state.branches) do
+    for _, branch in pairs(state.branches) do
         if branch.length > 1 then
+            local base = BRANCH.base(branch)
+            local tip = BRANCH.tip(branch)
             local color = BRANCH.COLOR
             local line_width = BRANCH.LINE_WIDTH
-            if branch.base.is_dead then
-                local multiplier = 1 - math.max(0, (state.t + dt - branch.base.t_dead) / BRANCH.WITHER_TIME)
+            if branch.t_dead ~= NEVER then
+                local multiplier = 1 - math.max(0, (state.t + dt - branch.t_dead) / BRANCH.WITHER_TIME)
                 line_width = BRANCH.LINE_WIDTH * multiplier
                 color = {
                     BRANCH.DEAD_COLOR[1] + (BRANCH.COLOR[1] - BRANCH.DEAD_COLOR[1]) * multiplier,
@@ -35,25 +39,26 @@ function BRANCH.draw(state, inputs, dt)
             love.graphics.setLineWidth(line_width)
             love.graphics.line(branch.points)
 
-            if state.roots.selected ~= branch.tip then
-                local v = Vector(branch.tip.parent.x, branch.tip.parent.y,
-                                     branch.tip.x, branch.tip.y)
+            if state.roots.selected ~= tip then
+                local neighbor = first_value(tip.neighbors)
+                local v = Vector(neighbor.x, neighbor.y,
+                                 tip.x, tip.y)
                 BRANCH.draw_spike(
-                    branch.tip.x,
-                    branch.tip.y,
+                    tip.x,
+                    tip.y,
                     v:direction_x(),
                     v:direction_y(),
                     -line_width * 1.2, color,
                     line_width)
             end
 
-            if branch.base.parent == nil then
-                local v = Vector(branch.base.children[branch.child_index].x,
-                                     branch.base.children[branch.child_index].y,
-                                     branch.base.x, branch.base.y)
+            if iter_size(base.neighbors) == 1 then
+                local neighbor = first_value(base.neighbors)
+                local v = Vector(neighbor.x, neighbor.y,
+                                 base.x, base.y)
                 BRANCH.draw_spike(
-                    branch.base.x,
-                    branch.base.y,
+                    base.x,
+                    base.y,
                     v:direction_x(),
                     v:direction_y(),
                     -line_width * 0.2, color,
@@ -81,108 +86,80 @@ function BRANCH.draw_spike(x, y, dir_x, dir_y, extension, color, line_width)
     )
 end
 
-function BRANCH.trim_start(state, branch)
-    if branch.base.children[branch.child_index] == nil then
-        BRANCH.cull(state, branch)
-    else
-        branch.base = branch.base.children[branch.child_index]
-        branch.child_index = 1
-    end
-    table.remove(branch.points, 1)
-    table.remove(branch.points, 1)
-    branch.length = branch.length - 1
-end
-
-function BRANCH.trim_end(branch)
-    assert(branch.tip.parent ~= nil)
-    branch.tip = branch.tip.parent
-    table.remove(branch.points, #branch.points)
-    table.remove(branch.points, #branch.points)
-    branch.length = branch.length - 1
-end
-
-function BRANCH.trim_end_to(branch, node)
-    while branch.tip ~= node do
-        BRANCH.trim_end(branch)
-    end
-end
-
-function BRANCH.cull(state, branch)
-    remove_value(state.branches, branch)
-    NODE.cull(state, branch.base)
-    local next = branch.base.children[branch.child_index]
-    while next ~= nil do
-        NODE.cull(state, next)
-        next = next.children[1]
-    end
-end
-
-function BRANCH.add_branch(state, base, child_index)
-    local branch = BranchState(base, child_index)
-    BRANCH.update_tip(branch)
-    table.insert(state.branches, branch)
-    return branch
-end
-
-function BRANCH.get_branches(state, base)
-    local branches = {}
-    for _, branch in ipairs(state.branches) do
-        if branch.base == base then
-            table.insert(branches, branch)
-        end
-    end
-    return branches
-end
-
-function BRANCH.get_branch(state, base, child_index)
-    for _, branch in ipairs(state.branches) do
-        if branch.base == base and branch.child_index == child_index then
+function BRANCH.get_if_tip(state, node)
+    for branch, indices in pairs(node.branch_map) do
+        if indices[#indices] == branch.length then
             return branch
         end
     end
     return nil
 end
 
-function BRANCH.get_main_branch(state, node)
-    -- Get the branch this node was originally created on.
-    local base
-    local child_index
+function BRANCH.remove(state, branch)
+    PropertyTable.remove_value(state.branches, branch)
+end
 
-    if node.parent == nil then
-        base = node
-        child_index = 1
-    else
-        local prev = node
-        base = node.parent
-        while base.children[1] == prev and base.parent ~= nil do
-            prev = base
-            base = base.parent
-        end
+function BRANCH.kill(state, branch)
+    branch.t_dead = state.t
+end
 
-        child_index = get_key(base.children, prev)
+function BRANCH.tip(branch)
+    if branch.length < 1 then
+        return nil
     end
+    return branch.node_list[branch.length]
+end
 
-    local branch = BRANCH.get_branch(state, base, child_index)
-    assert(branch ~= nil)
+function BRANCH.base(branch)
+    if branch.length < 1 then
+        return nil
+    end
+    return branch.node_list[1]
+end
+
+function BRANCH.add_branch(state, base, tip)
+    assert(base == nil or base ~= tip)
+    local branch = BranchState()
+    PropertyTable.append(state.branches, branch)
+    if base ~= nil then
+        BRANCH.extend(branch, base)
+    end
+    if tip ~= nil then
+        BRANCH.extend(branch, tip)
+    end
     return branch
 end
 
-function BRANCH.update_tip(branch)
-    if branch.length == 1 then
-        if branch.tip.children[branch.child_index] then
-            branch.tip = branch.tip.children[branch.child_index]
-            table.insert(branch.points, branch.tip.x)
-            table.insert(branch.points, branch.tip.y)
-            branch.length = branch.length + 1
-        else
-            return
-        end
-    end
+function BRANCH.extend(branch, node)
+    table.insert(branch.points, node.x)
+    table.insert(branch.points, node.y)
+    branch.length = branch.length + 1
 
-    while branch.tip.children[1] ~= nil do
-        branch.tip = branch.tip.children[1]
-        table.insert(branch.points, branch.tip.x)
-        table.insert(branch.points, branch.tip.y)
-        branch.length = branch.length + 1
+    if node.branch_map[branch] == nil then
+        node.branch_map[branch] = {}
+    end
+    table.insert(node.branch_map[branch], branch.length)
+    branch.node_list[branch.length] = node
+end
+
+function BRANCH.cut(state, branch, i)
+    local n = branch.length
+    branch.length = i - 1
+    local new_branch = BRANCH.add_branch(state)
+    for j = i, n do
+        local node = branch.node_list[j]
+        branch.points[(2 * j - 1)] = nil
+        branch.points[(2 * j)] = nil
+        branch.node_list[j] = nil
+
+        local m = #node.branch_map[branch]
+        for k = 1, m do
+            if node.branch_map[branch][k] >= i then
+                node.branch_map[branch][k] = nil
+            end
+        end
+        if j > i then
+            BRANCH.extend(new_branch, node)
+        end
     end
 end

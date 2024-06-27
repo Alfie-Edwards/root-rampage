@@ -27,8 +27,8 @@ TREE_SPOT = {
 
 function TREE_SPOT.update(state, inputs)
     for _, tree_spot in ipairs(state.tree_spots) do
-        if tree_spot.node ~= nil and tree_spot.node.is_dead then
-            tree_spot.node = nil
+        if tree_spot.node ~= nil and NODE.is_dead(state, tree_spot.node) then
+            tree_spot.node = NONE
             tree_spot.t_grown = NEVER
             tree_spot.t_cut = state.t
         end

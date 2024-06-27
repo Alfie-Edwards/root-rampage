@@ -372,6 +372,10 @@ function RStar:__init(settings)
     end
 end
 
+function RStar:contains(item)
+    return self.item_map[item] ~= nil
+end
+
 function RStar:add(item, x, y)
     timer:push("RStar:add")
     self.id_counter = self.id_counter + 1

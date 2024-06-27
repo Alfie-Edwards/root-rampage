@@ -2,65 +2,76 @@ require "states.node"
 
 NODE = {}
 
-function NODE.add_node(x, y, parent, state, type)
-    local node = NodeState(x, y, parent, type)
+function NODE.add_node(x, y, parent, state, type, branch)
+    local node = NodeState(x, y, type)
+    if parent ~= nil then
+        NODE.connect(node, parent)
+    end
     state.nodes:add(node, x, y)
     state.newest_node = node
 
     if parent == nil then
-        BRANCH.add_branch(state, node, 1)
+        branch = BRANCH.add_branch(state, node)
+    elseif branch == nil then
+        branch = BRANCH.add_branch(state, parent, node)
     else
-        NODE.add_child(parent, node)
-        local n = PropertyTable.len(parent.children)
-        if n > 1 then
-            BRANCH.add_branch(state, parent, n)
-        end
+        BRANCH.extend(branch, node)
     end
 
-    return node
+    return node, branch
+end
+
+function NODE.connect(a, b)
+    PropertyTable.append(a.neighbors, b)
+    PropertyTable.append(b.neighbors, a)
+end
+
+function NODE.disconnect(a, b)
+    PropertyTable.remove_value(a.neighbors, b)
+    PropertyTable.remove_value(b.neighbors, a)
+end
+
+function NODE.are_connected(a, b)
+    return value_in(a, b.neighbors, pairs)
 end
 
 function NODE.remove_node(state, node)
     state.nodes:remove(node)
 end
 
-function NODE.add_child(parent, child)
-    PropertyTable.insert(parent.children, child)
-    child.parent = parent
+function NODE.is_dead(state, node)
+    return not state.nodes:contains(node)
 end
 
-function NODE.remove_child(parent, child)
-    assert(child.parent == parent)
-
-    local key = get_key(parent.children, child)
-    parent.children[key] = nil
-    child.parent = nil
-end
-
-function NODE.find_root_node(node)
-    local root = node
-    while root.parent ~= nil do
-        root = root.parent
+function NODE.do_to_subtree(node, func, seen)
+    seen = nil_coalesce(seen, {})
+    if seen[node] then
+        return
     end
-    return root
-end
-
-function NODE.do_to_subtree(node, func)
     func(node)
-    for _, child in pairs(node.children) do
-        if child ~= nil then
-            NODE.do_to_subtree(child, func)
+    seen[node] = true
+    for _, neighbor in pairs(node.neighbors) do
+        if not seen[neighbor] then
+            NODE.do_to_subtree(neighbor, func, seen)
         end
     end
 end
 
-function NODE.kill_subtree_if_no_trees(node, state)
+function NODE.kill_subtree_if_no_trees(state, node, cache)
+    cache = nil_coalesce(cache, {})
+
     local function any_trees(node)
+        if cache[node] ~= nil then
+            return cache[node]
+        else
+            cache[node] = false
+        end
         if node.is_tree then
             return true
         else
-            for _,child in pairs(node.children) do
-                if child ~= nil and any_trees(child) then
+            for _, neighbor in pairs(node.neighbors) do
+                if any_trees(neighbor) then
+                    cache[node] = true
                     return true
                 end
             end
@@ -71,62 +82,40 @@ function NODE.kill_subtree_if_no_trees(node, state)
     if not any_trees(node) then
         NODE.do_to_subtree(node,
             function(node)
-                NODE.kill(node, state)
+                NODE.remove_node(state, node)
             end
         )
     end
 end
 
 function NODE.cut(state, node)
-    -- Cache children and parent.
-    local children = shallow_copy(node.children)
-    local parent = node.parent
-
-    -- Update all branches starting at this node.
-    for _, branch in ipairs(BRANCH.get_branches(state, node)) do
-        BRANCH.trim_start(state, branch)
+    if NODE.is_dead(state, node) then
+        return
     end
 
-    -- Start a new branch after this node.
-    if parent ~= nil then
-        local branch = BRANCH.get_main_branch(state, node)
-        BRANCH.trim_end_to(branch, parent)
-        if PropertyTable.len(node.children) > 0 then
-            BRANCH.add_branch(state, node.children[1], 1)
+    -- Cache neighbors.
+    local neighbors = shallow_copy(node.neighbors)
+    for _, neighbor in pairs(neighbors) do
+        NODE.disconnect(node, neighbor)
+    end
+
+    local branch_map = shallow_copy(node.branch_map)
+    for branch, indices in pairs(branch_map) do
+        table.sort(indices)
+        for i = #indices, 1, -1 do
+            BRANCH.cut(state, branch, indices[i])
         end
     end
 
-    -- Disconnect node.
-    for _, child in pairs(children) do
-        NODE.remove_child(node, child)
-    end
-    if parent ~= nil then
-        NODE.remove_child(parent, node)
-    end
-
-    -- Kill check on parent graph.
-    if parent ~= nil then
-        local parent_graph_root = NODE.find_root_node(parent)
-        NODE.kill_subtree_if_no_trees(parent_graph_root, state)
+    local cache = {}
+    for _, neighbor in pairs(neighbors) do
+        if cache[neighbor] == nil then
+            NODE.kill_subtree_if_no_trees(state, neighbor, cache)
+        end
     end
 
-    -- Kill check on child graphs.
-    for _, child in pairs(children) do
-        NODE.kill_subtree_if_no_trees(child, state)
-    end
-
-    NODE.kill(node, state)
+    NODE.remove_node(state, node)
 
     -- Create branch containing just this node.
-    BRANCH.add_branch(state, node, 1)
-end
-
-function NODE.cull(state, node)
-    NODE.remove_node(state, node)
-end
-
-function NODE.kill(node, state)
-    NODE.remove_node(state, node)
-    node.is_dead = true
-    node.t_dead = state.t
+    BRANCH.add_branch(state, node)
 end

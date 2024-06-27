@@ -2,15 +2,12 @@
 BranchState = {}
 setup_class(BranchState, FixedPropertyTable)
 
-function BranchState:__init(base, child_index)
-    assert(base ~= nil)
-    assert(child_index ~= nil)
-
+function BranchState:__init()
     super().__init(self, {
-        base = base,
-        child_index = child_index,
-        tip = base,
-        length = 1,
-        points = {base.x, base.y},
+        length = 0,
+        points = {},
+        node_list = PropertyTable(),
+        t_dead = NEVER,
+        -- color = hsva(love.math.random(), 1, 1, 1),
     })
 end

@@ -164,7 +164,7 @@ function PropertyTable:__set_property(name, value, properties_closure)
         return false
     end
 
-    properties_closure[name] = nil_coalesce(value, NONE)
+    properties_closure[name] = value
     self:property_changed(name, old_value, value)
     return true
 end
@@ -219,13 +219,28 @@ end
 -- Iterate over properties.
 function PropertyTable:__pairs()
     local i, property_name
+    local function name_lt(a, b)
+        if type(a) == "string" then
+            if type(b) == "string" then
+                return a < b
+            else
+                return true
+            end
+        else
+            if type(b) == "string" then
+                return false
+            else
+                return get_id(a) < get_id(b)
+            end
+        end
+    end
     return function(t, k)
         i, property_name = next(t, i)
         if property_name == nil then
             return nil, nil
         end
         return property_name, self[property_name]
-    end, set_to_sorted_list(self:_get_property_names()), nil
+    end, set_to_sorted_list(self:_get_property_names(), name_lt), nil
 end
 
 function PropertyTable:__tostring()
@@ -237,6 +252,9 @@ function PropertyTable:__tostring()
     local result = type_string(self).." {"
     for name, value in pairs(self) do
         value = string.gsub(details_string(value), "\n", "\n    ")
+        if type(name) ~= "string" then
+            name = details_string(name)
+        end
         result = result.."\n    "..name..": "..value
     end
     if iter_size(self) > 0 then
@@ -246,7 +264,7 @@ function PropertyTable:__tostring()
     return result
 end
 
-function PropertyTable.insert(t, x)
+function PropertyTable.append(t, x)
     local i = 1
     while t[i] ~= nil do
         i = i + 1
@@ -260,4 +278,34 @@ function PropertyTable.len(t)
         i = i + 1
     end
     return i
+end
+
+function PropertyTable.remove_value(t, x)
+    local keys = {}
+    for k, v in pairs(t) do
+        if v == x then
+            table.insert(keys, k)
+        end
+    end
+    for _, k in ipairs(keys) do
+        t[k] = nil
+    end
+end
+
+function PropertyTable.first(t)
+    local i = 1
+    while t[i] == nil do
+        i = i + 1
+    end
+    return i
+end
+
+function PropertyTable.last(t)
+    local max = nil
+    for k, _ in pairs(t:_get_property_names()) do
+        if type(k) == "number" and (max == nil or k > max) then
+            max = k
+        end
+    end
+    return max
 end
