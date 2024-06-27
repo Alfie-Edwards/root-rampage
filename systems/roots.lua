@@ -70,6 +70,8 @@ function ROOTS.update(state, inputs)
     end
 
     if roots.grow_node == nil then
+        roots.selected = NONE
+        roots.grow_branch = NONE
         roots.new_pos_x = NONE
         roots.new_pos_y = NONE
         return
