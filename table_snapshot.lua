@@ -1,4 +1,5 @@
 require "snapshot"
+SAVED_NIL = {}
 
 TableSnapshot = {
     t = nil,

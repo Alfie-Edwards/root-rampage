@@ -151,7 +151,7 @@ function ROOTS.update(state, inputs)
                 if connected then
                     threshold = threshold * 0.2
                 end
-                if closest ~= roots.grow_node and sq_dist(closest.x, closest.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
+                if closest ~= nil and closest ~= roots.grow_node and sq_dist(closest.x, closest.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
                     if connected then
                         roots.grow_branch = NONE
                     else

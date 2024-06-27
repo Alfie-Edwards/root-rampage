@@ -32,7 +32,7 @@ function StateSnapshot:subscribe()
             -- Already saved an older value for this property.
             return
         end
-        self:save(name, nil_coalesce(old_value, NONE))
+        self:save(name, old_value)
         self.changed[name] = true
     end
     self.state.value.property_changed:subscribe(self.handler)
@@ -55,7 +55,7 @@ end
 
 function StateSnapshot:restore_impl()
     for name, _ in pairs(self.saved_name_set) do
-        self.state.value:set(self.saved)
+        self.state.value[name] = self.saved[name]
     end
 end
 

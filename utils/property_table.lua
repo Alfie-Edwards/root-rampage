@@ -109,7 +109,7 @@ function PropertyTable:_get_setter(name)
     return nil
 end
 
-function PropertyTable:set(properties, value)
+function PropertyTable:set(properties)
     -- Helper for setting properties.
     -- Useful for checking that what you are setting is a valid property,
     -- or for setting multiple properties in a clear block.
