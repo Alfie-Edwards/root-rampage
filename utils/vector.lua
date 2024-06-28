@@ -61,3 +61,7 @@ function Vector:scale_to_length(length)
     self.y1 = self.y1 * scale
     self.y2 = self.y2 * scale
 end
+
+function Vector:dot(other)
+    return self:dx() * other:dx() + self:dy() * other:dy()
+end

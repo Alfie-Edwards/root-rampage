@@ -16,16 +16,17 @@ ROOTS = {
     SPEED = 120,
     ATTACK_SPEED = 420,
     ATTACK_WINDUP_SPEED = 30,
-    ATTACK_WINDUP_TIME = 0.3,
-    ATTACK_TIME = 0.1,
+    ATTACK_WINDUP_TIME = 0.2,
+    ATTACK_TIME = 0.13,
     ATTACK_CD = 4,
     KILL_RADIUS = 12,
+    ATTACK_COLOR = {0.4, 0.08, 0.02, 1},
+    CD_FLASH_COLOR = {1, 1, 1, 1},
+    CD_FLASH_TIME = 0.2,
 }
 
 function ROOTS.get_attack_state(roots, t)
-    if roots.t_attack == nil then
-        return AttackState.READY
-    elseif (t - roots.t_attack) < ROOTS.ATTACK_WINDUP_TIME then
+    if (t - roots.t_attack) < ROOTS.ATTACK_WINDUP_TIME then
         return AttackState.WINDUP
     elseif (t - roots.t_attack) < (ROOTS.ATTACK_WINDUP_TIME + ROOTS.ATTACK_TIME) then
         return AttackState.ATTACKING
@@ -40,13 +41,17 @@ function ROOTS.update(state, inputs)
     local roots = state.roots
     local tooltip = state.tooltip
 
+    if roots.t_attack == NEVER then
+        roots.t_attack = -(ROOTS.ATTACK_WINDUP_TIME + ROOTS.ATTACK_TIME + ROOTS.ATTACK_CD)
+    end
+
     if roots.selected ~= nil and NODE.is_dead(state, roots.selected) then
         roots.selected = NONE
     end
 
     local attack_state = ROOTS.get_attack_state(roots, state.t)
 
-    if inputs.roots_grow or (inputs.roots_attack and attack_state == AttackState.ATTACKING) then
+    if inputs.roots_grow or attack_state == AttackState.ATTACKING or attack_state == AttackState.WINDUP then
         if roots.selected == nil and roots.grow_node ~= nil and not NODE.is_dead(state, roots.grow_node) then
             roots.selected = roots.grow_node
         end
@@ -86,18 +91,40 @@ function ROOTS.update(state, inputs)
     end
 
     local v = Vector(roots.grow_node.x, roots.grow_node.y,
-                         inputs.roots_pos_x, inputs.roots_pos_y)
+                     inputs.roots_pos_x, inputs.roots_pos_y)
+    local sqln = v:sq_length()
+    local tick_distance = roots.speed * state.dt
+    local tick_distance_sq = tick_distance * tick_distance
 
-    if v:length() == 0 then
+    if attack_state == AttackState.ATTACKING then
+        local grow_v = nil
+        if iter_size(roots.grow_node.neighbors) == 1 then
+            local neighbor = first_value(roots.grow_node.neighbors)
+            grow_v = Vector(roots.grow_node.x, roots.grow_node.y,
+                            (2 * roots.grow_node.x - neighbor.x),
+                            (2 * roots.grow_node.y - neighbor.y))
+            grow_v:scale_to_length(tick_distance)
+        end
+
+        if grow_v ~= nil and (v:dot(grow_v) < 0 or sqln < tick_distance_sq) then
+            v = grow_v
+            sqln = tick_distance_sq
+        elseif sqln < tick_distance_sq and sqln > 0 then
+            v:scale_to_length(tick_distance)
+            sqln = tick_distance_sq
+        end
+    end
+
+    if sqln == 0 then
         roots.new_pos_x = NONE
         roots.new_pos_y = NONE
         return
     end
 
+
     roots.new_pos_x = roots.grow_node.x + v:direction_x() * roots.speed * state.dt
     roots.new_pos_y = roots.grow_node.y + v:direction_y() * roots.speed * state.dt
-    local tick_distance = (roots.speed * roots.speed * state.dt * state.dt)
-    if v:sq_length() < tick_distance then
+    if sqln < tick_distance_sq then
         roots.valid = false
     elseif LEVEL.solid({x = roots.new_pos_x, y = roots.new_pos_y}) then
         roots.valid = false
@@ -150,7 +177,7 @@ function ROOTS.update(state, inputs)
                 end
             else
                 local closest = state.nodes:closest(roots.new_pos_x, roots.new_pos_y)
-                local threshold = 0.5 * tick_distance
+                local threshold = 0.5 * tick_distance_sq
                 local connected = NODE.are_connected(roots.selected, closest)
                 if connected then
                     threshold = threshold * 0.2
@@ -176,6 +203,9 @@ function ROOTS.update(state, inputs)
                         roots.grow_branch = branch
                     end
                 end
+                if attack_state == AttackState.ATTACKING then
+                    roots.grow_node = roots.selected
+                end
             end
         end
         if attack_state == AttackState.ATTACKING and
@@ -193,7 +223,15 @@ function ROOTS.draw(state, inputs, dt)
         local attack_state = ROOTS.get_attack_state(roots, state.t + dt)
         local color = nil
         if attack_state == AttackState.ATTACKING then
-            color = {0.4, 0.08, 0.02, 1}
+            color = ROOTS.ATTACK_COLOR
+        elseif attack_state == AttackState.READY then
+            local multiplier = math.min((state.t + dt - roots.t_attack - ROOTS.ATTACK_WINDUP_TIME - ROOTS.ATTACK_TIME - ROOTS.ATTACK_CD) / ROOTS.CD_FLASH_TIME, 1)
+            color = {
+                ROOTS.CD_FLASH_COLOR[1] + (BRANCH.COLOR[1] - ROOTS.CD_FLASH_COLOR[1]) * multiplier,
+                ROOTS.CD_FLASH_COLOR[2] + (BRANCH.COLOR[2] - ROOTS.CD_FLASH_COLOR[2]) * multiplier,
+                ROOTS.CD_FLASH_COLOR[3] + (BRANCH.COLOR[3] - ROOTS.CD_FLASH_COLOR[3]) * multiplier,
+                ROOTS.CD_FLASH_COLOR[4] + (BRANCH.COLOR[4] - ROOTS.CD_FLASH_COLOR[4]) * multiplier,
+            }
         end
         local v = Vector(roots.grow_node.x, roots.grow_node.y,
                              roots.new_pos_x, roots.new_pos_y)
