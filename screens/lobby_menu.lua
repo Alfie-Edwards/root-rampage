@@ -195,7 +195,7 @@ function LobbyMenu:__init(host, connection)
         if self.is_remote then
             view:set_content(JoinMenu())
         else
-            view:set_content(HostMenu(self.host:get_address()))
+            view:set_content(HostMenu())
         end
         self.host:destroy()
     end

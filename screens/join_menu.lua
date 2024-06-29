@@ -5,11 +5,13 @@ require "ui.containers.grid_box"
 require "ui.containers.box"
 require "networking"
 
-JoinMenu = {}
+JoinMenu = {
+    ADDRESS = "localhost:25565"
+}
 
 setup_class(JoinMenu, Box)
 
-function JoinMenu:__init(address)
+function JoinMenu:__init()
     super().__init(self)
 
     self.client = Client()
@@ -53,7 +55,7 @@ function JoinMenu:__init(address)
     address_box.color = {0, 0, 0, 1}
     address_box.font = font16
     address_box.content_margin = 6
-    address_box.text = nil_coalesce(address, "localhost:6750")
+    address_box.text = JoinMenu.ADDRESS
     grid:cell(2, 2):add(address_box)
 
     local button_host = ImageButton()
@@ -64,6 +66,7 @@ function JoinMenu:__init(address)
     button_host.x = grid:cell(2, 3).bb:width() / 2
     button_host.y = grid:cell(2, 3).bb:height() / 2
     button_host.mousepressed = function()
+        JoinMenu.ADDRESS = address_box.text
         self.client:connect(address_box.text)
     end
     grid:cell(2, 3):add(button_host)
@@ -76,6 +79,7 @@ function JoinMenu:__init(address)
     button_back.x = grid:cell(1, 3).bb:width() / 2
     button_back.y = grid:cell(1, 3).bb:height() / 2
     button_back.mousepressed = function()
+        JoinMenu.ADDRESS = address_box.text
         view:set_content(MainMenu())
     end
     grid:cell(1, 3):add(button_back)

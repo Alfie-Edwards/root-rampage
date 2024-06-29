@@ -6,11 +6,13 @@ require "ui.containers.box"
 require "screens.lobby_menu"
 require "networking"
 
-HostMenu = {}
+HostMenu = {
+    PORT = "25565"
+}
 
 setup_class(HostMenu, Box)
 
-function HostMenu:__init(address)
+function HostMenu:__init()
     super().__init(self)
 
     local bg = Image()
@@ -26,7 +28,7 @@ function HostMenu:__init(address)
     grid.height = canvas:height()
     self:add(grid)
 
-    local title = Text("Enter address:")
+    local title = Text("Enter port:")
     title.x_align = "center"
     title.y_align = "center"
     title.x = grid:cell(2, 1).bb:width() / 2
@@ -36,19 +38,20 @@ function HostMenu:__init(address)
     title.font = font24
     grid:cell(2, 1):add(title)
 
-    local address_box = TextBox()
-    address_box.x_align = "center"
-    address_box.y_align = "center"
-    address_box.x = grid:cell(2, 2).bb:width() / 2
-    address_box.y = grid:cell(2, 2).bb:height() / 2
-    address_box.width = grid:cell(2, 2).bb:width()
-    address_box.height = 30
-    address_box.background_color = {1, 1, 1, 1}
-    address_box.color = {0, 0, 0, 1}
-    address_box.font = font16
-    address_box.content_margin = 6
-    address_box.text = nil_coalesce(address, "localhost:6750")
-    grid:cell(2, 2):add(address_box)
+    local port_box = TextBox()
+    port_box.x_align = "center"
+    port_box.y_align = "center"
+    port_box.x = grid:cell(2, 2).bb:width() / 2
+    port_box.y = grid:cell(2, 2).bb:height() / 2
+    port_box.width = grid:cell(2, 2).bb:width() / 2.5
+    port_box.height = 30
+    port_box.text_align = "center"
+    port_box.background_color = {1, 1, 1, 1}
+    port_box.color = {0, 0, 0, 1}
+    port_box.font = font16
+    port_box.content_margin = 6
+    port_box.text = HostMenu.PORT
+    grid:cell(2, 2):add(port_box)
 
     self.error = Text()
     self.error.x_align = "center"
@@ -69,11 +72,12 @@ function HostMenu:__init(address)
     button_host.x = grid:cell(2, 3).bb:width() / 2
     button_host.y = grid:cell(2, 3).bb:height() / 2
     button_host.mousepressed = function()
-        local server = Server(address_box.text)
+        local server = Server("0.0.0.0:"..port_box.text)
         if server.errored then
             self.error.text = server.error
         else
             self.error.text = nil
+            HostMenu.PORT = port_box.text
             view:set_content(LobbyMenu(server))
         end
     end
@@ -87,6 +91,7 @@ function HostMenu:__init(address)
     button_back.x = grid:cell(1, 3).bb:width() / 2
     button_back.y = grid:cell(1, 3).bb:height() / 2
     button_back.mousepressed = function()
+        HostMenu.PORT = port_box.text
         view:set_content(MainMenu())
     end
     grid:cell(1, 3):add(button_back)
