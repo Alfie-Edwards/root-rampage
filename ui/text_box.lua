@@ -4,13 +4,6 @@ require "ui.containers.scroll_frame"
 
 TextBox = {
     CARET_PERIOD = 1,
-
-    _selecting = nil,
-    scroll_frame = nil,
-    text_element = nil,
-
-    select_pos = nil,
-    caret_pos = nil,
 }
 setup_class(TextBox, LayoutElement)
 
@@ -18,6 +11,7 @@ function TextBox:__init(text)
     super().__init(self)
 
     self._selecting = false
+    self._blink_offset = 0
 
     self.text_element = Text(text)
 
@@ -141,7 +135,7 @@ function TextBox:get_allow_newlines()
     return nil_coalesce(self:_get_property("allow_newlines"), false)
 end
 
-function TextBox:character_pos(character_index)
+function TextBox:character_pos(character_index, absolute)
     if self.font == nil then
         return {0, 0}
     end
@@ -150,6 +144,10 @@ function TextBox:character_pos(character_index)
 
     local x = self.font:getWidth(string.sub(self.text, 1, char - 1)) + 1
     local y = (line - 1) * (self.font:getHeight() + self.line_spacing + self.font:getLineHeight()) + 1 - self.font:getLineHeight()
+    if not absolute then
+        x = x - self.h_scroll
+        y = y - self.v_scroll
+    end
     return {x + self.content_margin, y + self.content_margin}
 end
 
@@ -186,6 +184,40 @@ function TextBox:jump_to_end()
     self.caret_index = #self.text + 1
 end
 
+function TextBox:jump_to_line_start()
+    while self.caret_index > 1 and not self.text:sub(self.caret_index - 1, self.caret_index - 1):match("\n") do
+        self.caret_index = self.caret_index - 1
+    end
+end
+
+function TextBox:jump_to_line_end()
+    while self.caret_index <= #self.text and not self.text:sub(self.caret_index, self.caret_index):match("\n") do
+        self.caret_index = self.caret_index + 1
+    end
+end
+
+function TextBox:jump_to_prev_word_boundary()
+    if self.caret_index < 3 then
+        self.caret_index = 1
+        return
+    end
+    self.caret_index = self.caret_index - 1
+    while self.caret_index > 1 and self.text:sub(self.caret_index - 1, self.caret_index - 1):match("[%w_]") do
+        self.caret_index = self.caret_index - 1
+    end
+end
+
+function TextBox:jump_to_next_word_boundary()
+    if self.caret_index >= #self.text then
+        self.caret_index = (#self.text + 1)
+        return
+    end
+    self.caret_index = self.caret_index + 1
+    while self.caret_index <= #self.text and self.text:sub(self.caret_index, self.caret_index):match("[%w_]") do
+        self.caret_index = self.caret_index + 1
+    end
+end
+
 function TextBox:move_caret(direction)
     if direction == Direction.RIGHT then
         self.caret_index = math.min(#self.text + 1, self.caret_index + 1)
@@ -220,8 +252,8 @@ function TextBox:character_index(x, y)
         return 1
     end
 
-    x = x - self.content_margin 
-    y = y - self.content_margin 
+    x = x - self.content_margin + self.h_scroll
+    y = y - self.content_margin + self.v_scroll
 
     local lines = split_lines(self.text)
     local line = math.floor((y - 1) / (self.font:getHeight() + self.line_spacing + self.font:getLineHeight())) + 1
@@ -271,10 +303,9 @@ function TextBox:textinput(t)
         end
         if #t > 0 then
             self:delete_selection()
-            self:clear_selection()
 
             self.text = string.sub(self.text, 1, self.caret_index - 1)..t..string.sub(self.text, self.caret_index, -1)
-            self.caret_index = self.caret_index + 1
+            self.caret_index = self.caret_index + #t
         end
         return true
     end
@@ -290,6 +321,7 @@ function TextBox:keypressed(key)
     end
 
     if self.focussed then
+        self._blink_offset = t_now() -- Keep caret visible when it moves around.
         if key == "a" then
             if love.keyboard.isDown(unpack(ctrl)) then
                 self:select_all()
@@ -301,8 +333,19 @@ function TextBox:keypressed(key)
             if self:has_selection() then
                 self:delete_selection()
             elseif self.caret_index > 1 then
-                self.text = string.sub(self.text, 1, self.caret_index - 2)..string.sub(self.text, self.caret_index, -1)
-                self.caret_index = self:_get_property("caret_index") - 1
+                if love.keyboard.isDown(unpack(ctrl)) then
+                    if self.caret_index < 2 then
+                        self.caret_index = 0
+                        self.text = ""
+                    else
+                        local prev_index = self.caret_index
+                        self:jump_to_prev_word_boundary()
+                        self.text = self.text:sub(1, self.caret_index - 1)..self.text:sub(prev_index, -1)
+                    end
+                else
+                    self.text = self.text:sub(1, self.caret_index - 2)..self.text:sub(self.caret_index, -1)
+                    self.caret_index = self:_get_property("caret_index") - 1
+                end
             end
             return true
         elseif key == "right" then
@@ -310,7 +353,7 @@ function TextBox:keypressed(key)
                 self.select_index = self.caret_index
             end
             if love.keyboard.isDown(unpack(ctrl)) then
-                self:jump_to_end()
+                self:jump_to_next_word_boundary()
             else
                 if love.keyboard.isDown(unpack(shift)) or self.select_index == nil then
                     self:move_caret(Direction.RIGHT)
@@ -326,7 +369,7 @@ function TextBox:keypressed(key)
                 self.select_index = self.caret_index
             end
             if love.keyboard.isDown(unpack(ctrl)) then
-                self:jump_to_start()
+                self:jump_to_prev_word_boundary()
             else
                 if love.keyboard.isDown(unpack(shift)) or self.select_index == nil then
                     self:move_caret(Direction.LEFT)
@@ -336,6 +379,43 @@ function TextBox:keypressed(key)
             end
             if not love.keyboard.isDown(unpack(shift)) then
                 self.select_index = nil
+            end
+        elseif key == "home" then
+            if love.keyboard.isDown(unpack(shift)) and self.select_index == nil then
+                self.select_index = self.caret_index
+            end
+            if love.keyboard.isDown(unpack(ctrl)) then
+                self:jump_to_start()
+            else
+                self:jump_to_line_start()
+            end
+            if not love.keyboard.isDown(unpack(shift)) then
+                self.select_index = nil
+            end
+        elseif key == "end" then
+            if love.keyboard.isDown(unpack(shift)) and self.select_index == nil then
+                self.select_index = self.caret_index
+            end
+            if love.keyboard.isDown(unpack(ctrl)) then
+                self:jump_to_end()
+            else
+                self:jump_to_line_end()
+            end
+            if not love.keyboard.isDown(unpack(shift)) then
+                self.select_index = nil
+            end
+        elseif key == "c" then
+            if love.keyboard.isDown(unpack(ctrl)) and self:has_selection() then
+                love.system.setClipboardText(
+                    self.text:sub(
+                        math.min(self.caret_index, self.select_index),
+                        math.max(self.caret_index, self.select_index)
+                    )
+                )
+            end
+        elseif key == "v" then
+            if love.keyboard.isDown(unpack(ctrl)) then
+                self:textinput(love.system.getClipboardText())
             end
         end
     end
@@ -355,7 +435,7 @@ function TextBox:mousepressed(x, y, button)
 end
 
 function TextBox:update(dt)
-    if love.mouse.isDown(1) and not self:contains(unpack(self.mouse_pos)) then
+    if love.mouse.isDown(1) and not self._selecting and not self:contains(unpack(self.mouse_pos)) then
         self.focussed = false
     end
 
@@ -374,10 +454,17 @@ function TextBox:update(dt)
         end
     end
 
-
-    local caret_pos = self:character_pos(self.caret_index)
-    self.h_scroll = clamp(self.h_scroll, caret_pos[1] - self.scroll_frame.bb:width(), caret_pos[1])  
-    self.v_scroll = clamp(self.v_scroll, caret_pos[2] - self.scroll_frame.bb:height(), caret_pos[2])
+    local caret_pos = self:character_pos(self.caret_index, true)
+    self.h_scroll = clamp(
+        self.h_scroll,
+        caret_pos[1] - self.scroll_frame.bb:width() + self.content_margin,
+        caret_pos[1] - self.content_margin
+    )  
+    self.v_scroll = clamp(
+        self.v_scroll,
+        caret_pos[2] - self.scroll_frame.bb:height() + self.content_margin,
+        caret_pos[2] - self.content_margin
+    )
 end
 
 function TextBox:draw()
@@ -386,17 +473,17 @@ function TextBox:draw()
         return
     end
     if self.focussed then
-        local caret_pos = self:character_pos(self.caret_index)
+        local caret_pos = self:character_pos(self.caret_index, false)
 
         if self.select_index ~= nil and self.select_index ~= self.caret_index then
-            local select_pos = self:character_pos(self.select_index)
+            local select_pos = self:character_pos(self.select_index, false)
             local x1, y1, x2, y2 = select_pos[1], select_pos[2], caret_pos[1], caret_pos[2]
 
             love.graphics.setColor(self.select_color)
             love.graphics.rectangle("fill", x1, y1, x2 - x1, y2 - y1 + self.font:getHeight() + self.font:getLineHeight())
         end
 
-        if (t_now() % (2 * TextBox.CARET_PERIOD) < TextBox.CARET_PERIOD) then
+        if ((t_now() - self._blink_offset) % (2 * TextBox.CARET_PERIOD) < TextBox.CARET_PERIOD) then
             love.graphics.setColor(self.caret_color)
             love.graphics.line(caret_pos[1], caret_pos[2], caret_pos[1], caret_pos[2] + self.font:getHeight() + self.font:getLineHeight())
         end

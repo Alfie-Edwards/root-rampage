@@ -19,6 +19,8 @@ function love.load()
     love.graphics.setLineStyle("rough")
     canvas = PixelCanvas({ 768, 432 })
 
+    love.keyboard.setKeyRepeat(true)
+
     view = View()
     view:set_content(MainMenu())
 end
