@@ -1,5 +1,5 @@
 require "ui.image"
-require "ui.image_button"
+require "ui.containers.effect_frame"
 require "ui.text_box"
 require "ui.containers.grid_box"
 require "ui.containers.box"
@@ -32,13 +32,13 @@ function LobbyMenu:__init(host, connection)
             self.grid:cell(2, 3):clear()
             self.grid:cell(2, 4):clear()
             self.grid:cell(2, 5):clear()
-            self.grid:cell(3, 3):clear()
             self.grid:cell(3, 4):clear()
-            self.grid:cell(3, 5):clear()
+            self.grid:cell(4, 3):clear()
+            self.grid:cell(4, 4):clear()
+            self.grid:cell(4, 5):clear()
         end
     end
     self.on_received = function(message)
-        print(message)
         if message == "start" then
             self:start()
         elseif message == "ready" then
@@ -63,26 +63,27 @@ function LobbyMenu:__init(host, connection)
         self.grid:cell(2, 3):add(self.you_text)
         self.grid:cell(2, 4):add(self.you_role_text)
         self.grid:cell(2, 5):add(self.button_you_ready)
-        self.grid:cell(3, 3):add(self.opponent_text)
-        self.grid:cell(3, 4):add(self.opponent_role_text)
-        self.grid:cell(3, 5):add(self.button_opponent_ready)
-        self.grid:cell(2, 4):add(self.button_swap)
+        self.grid:cell(3, 4):add(self.button_swap)
+        self.grid:cell(4, 3):add(self.opponent_text)
+        self.grid:cell(4, 4):add(self.opponent_role_text)
+        self.grid:cell(4, 5):add(self.button_opponent_ready)
     end
 
     self:subscribe()
 
-    local bg = Image()
-    bg.image = assets:get_image("map3")
+    local bg = Image(assets:get_image_data("map3"))
     bg.width = canvas:width()
     bg.height = canvas:height()
     self:add(bg)
 
     self.grid = GridBox()
-    self.grid.cols = 3
+    self.grid.cols = 5
     self.grid.rows = 5
     self.grid.width = canvas:width()
     self.grid.height = canvas:height()
     self:add(self.grid)
+    self.grid.col_widths = {3, 2, 1, 2, 1}
+    self.grid.row_heights = {19, 19, 19, 19, 20}
 
     local title = Text()
     if self.is_remote then
@@ -92,7 +93,7 @@ function LobbyMenu:__init(host, connection)
     end
     title.x_align = "center"
     title.y_align = "center"
-    title.x = self.grid:cell(2, 1).bb:width() / 2
+    title.x = self.grid:cell(2, 1).bb:width() * 0.75
     title.y = self.grid:cell(2, 1).bb:height() / 2
     title.height = 32
     title.color = {1, 1, 1, 1}
@@ -102,8 +103,8 @@ function LobbyMenu:__init(host, connection)
     self.status = Text()
     self.status.x_align = "center"
     self.status.y_align = "center"
+    self.status.x = self.grid:cell(2, 2).bb:width() * 0.75
     self.status.text_align = "center"
-    self.status.x = self.grid:cell(2, 2).bb:width() / 2
     self.status.height = 48
     self.status.color = {1, 1, 1, 1}
     self.status.font = font16
@@ -122,17 +123,28 @@ function LobbyMenu:__init(host, connection)
     self.opponent_text.x_align = "center"
     self.opponent_text.y_align = "center"
     self.opponent_text.text_align = "center"
-    self.opponent_text.x = self.grid:cell(3, 3).bb:width() / 2
+    self.opponent_text.x = self.grid:cell(4, 3).bb:width() / 2
     self.opponent_text.height = 48
     self.opponent_text.color = {1, 1, 1, 1}
     self.opponent_text.font = font24
 
-    self.button_swap = ImageButton()
-    self.button_swap.image = assets:get_image("ui/button-swap")
-    self.button_swap.image_data = assets:get_image_data("ui/button-swap")
-    self.button_swap.x_align = "right"
+    self.button_swap = EffectFrame(
+        NinePatch(
+            assets:get_image_data("ui/button.9"),
+            Text("SWAP", font16, rgba(82, 65, 51))
+        )
+    )
+    self.button_swap.content.width = 108
+    self.button_swap.content.height = 64
+    self.button_swap.width = self.button_swap.content.width
+    self.button_swap.height = self.button_swap.content.height
+    self.button_swap.content.content.x = self.button_swap.content.frame.bb:width() / 2
+    self.button_swap.content.content.y = self.button_swap.content.frame.bb:height() / 2
+    self.button_swap.content.content.x_align = "center"
+    self.button_swap.content.content.y_align = "center"
+    self.button_swap.x_align = "center"
     self.button_swap.y_align = "center"
-    self.button_swap.x = self.grid:cell(1, 4).bb:width() + 22
+    self.button_swap.x = self.grid:cell(3, 4).bb:width() / 2
     self.button_swap.y = -16
     self.button_swap.mousepressed = function() self:swap(false) end
 
@@ -149,47 +161,77 @@ function LobbyMenu:__init(host, connection)
     self.opponent_role_text.x_align = "center"
     self.opponent_role_text.y_align = "center"
     self.opponent_role_text.text_align = "center"
-    self.opponent_role_text.x = self.grid:cell(3, 4).bb:width() / 2
+    self.opponent_role_text.x = self.grid:cell(4, 4).bb:width() / 2
     self.opponent_role_text.height = 48
     self.opponent_role_text.color = {1, 1, 1, 1}
     self.opponent_role_text.font = font16
 
     self:update_role_text()
 
-    self.button_you_ready = ImageButton()
-    self.button_you_ready.image = assets:get_image("ui/button-not-ready")
-    self.button_you_ready.image_data = assets:get_image_data("ui/button-not-ready")
+    self.button_you_ready = EffectFrame(
+        NinePatch(
+            assets:get_image_data("ui/button_red.9"),
+            Text("NOT READY", font16, rgba(82, 65, 51))
+        )
+    )
+    self.button_you_ready.content.width = 180
+    self.button_you_ready.content.height = 85
+    self.button_you_ready.width = self.button_you_ready.content.width
+    self.button_you_ready.height = self.button_you_ready.content.height
+    self.button_you_ready.content.content.x = self.button_you_ready.content.frame.bb:width() / 2
+    self.button_you_ready.content.content.y = self.button_you_ready.content.frame.bb:height() / 2
+    self.button_you_ready.content.content.x_align = "center"
+    self.button_you_ready.content.content.y_align = "center"
     self.button_you_ready.x_align = "center"
     self.button_you_ready.y_align = "center"
     self.button_you_ready.x = self.grid:cell(2, 5).bb:width() / 2
-    self.button_you_ready.y = self.grid:cell(2, 5).bb:height() / 2
     self.button_you_ready.mousepressed = function() self:toggle_ready() end
 
-    self.button_opponent_ready = ImageButton()
-    self.button_opponent_ready.image = assets:get_image("ui/button-not-ready")
-    self.button_opponent_ready.image_data = assets:get_image_data("ui/button-not-ready")
+    self.button_opponent_ready = EffectFrame(
+        NinePatch(
+            assets:get_image_data("ui/button_red.9"),
+            Text("NOT READY", font16, rgba(82, 65, 51))
+        )
+    )
+    self.button_opponent_ready.content.width = 180
+    self.button_opponent_ready.content.height = 85
+    self.button_opponent_ready.width = self.button_opponent_ready.content.width
+    self.button_opponent_ready.height = self.button_opponent_ready.content.height
+    self.button_opponent_ready.content.content.x = self.button_opponent_ready.content.frame.bb:width() / 2
+    self.button_opponent_ready.content.content.y = self.button_opponent_ready.content.frame.bb:height() / 2
+    self.button_opponent_ready.content.content.x_align = "center"
+    self.button_opponent_ready.content.content.y_align = "center"
     self.button_opponent_ready.x_align = "center"
     self.button_opponent_ready.y_align = "center"
-    self.button_opponent_ready.x = self.grid:cell(3, 5).bb:width() / 2
-    self.button_opponent_ready.y = self.grid:cell(3, 5).bb:height() / 2
+    self.button_opponent_ready.x = self.grid:cell(4, 5).bb:width() / 2
 
     if self.connection ~= nil then
         self.grid:cell(2, 3):add(self.you_text)
         self.grid:cell(2, 4):add(self.you_role_text)
         self.grid:cell(2, 5):add(self.button_you_ready)
-        self.grid:cell(3, 3):add(self.opponent_text)
-        self.grid:cell(3, 4):add(self.opponent_role_text)
-        self.grid:cell(3, 5):add(self.button_opponent_ready)
-        self.grid:cell(2, 4):add(self.button_swap)
+        self.grid:cell(3, 4):add(self.button_swap)
+        self.grid:cell(4, 3):add(self.opponent_text)
+        self.grid:cell(4, 4):add(self.opponent_role_text)
+        self.grid:cell(4, 5):add(self.button_opponent_ready)
     end
 
-    local button_back = ImageButton()
-    button_back.image = assets:get_image("ui/button-back")
-    button_back.image_data = assets:get_image_data("ui/button-back")
+    local button_back = EffectFrame(
+        NinePatch(
+            assets:get_image_data("ui/button.9"),
+            Text("BACK", font16, rgba(82, 65, 51))
+        )
+    )
+    button_back.content.width = 108
+    button_back.content.height = 64
+    button_back.width = button_back.content.width
+    button_back.height = button_back.content.height
+    button_back.content.content.x = button_back.content.frame.bb:width() / 2
+    button_back.content.content.y = button_back.content.frame.bb:height() / 2
+    button_back.content.content.x_align = "center"
+    button_back.content.content.y_align = "center"
     button_back.x_align = "center"
     button_back.y_align = "center"
-    button_back.x = self.grid:cell(1, 3).bb:width() / 2
-    button_back.y = self.grid:cell(1, 3).bb:height() / 2
+    button_back.x = self.grid:cell(1, 5).bb:width() / 2
     button_back.mousepressed = function()
         self:unsubscribe()
         if self.is_remote then
@@ -238,7 +280,8 @@ end
 
 function LobbyMenu:set_you_ready()
     self.you_ready = true
-    self.button_you_ready.image = assets:get_image("ui/button-ready")
+    self.button_you_ready.content.image = assets:get_image_data("ui/button_green.9")
+    self.button_you_ready.content.content.text = "READY"
     if self.connection ~= nil then
         self.connection:send("ready")
         self.host:poll()
@@ -250,7 +293,8 @@ end
 
 function LobbyMenu:set_you_unready()
     self.you_ready = false
-    self.button_you_ready.image = assets:get_image("ui/button-not-ready")
+    self.button_you_ready.content.image = assets:get_image_data("ui/button_red.9")
+    self.button_you_ready.content.content.text = "NOT READY"
     if self.connection ~= nil then
         self.connection:send("unready")
     end
@@ -258,12 +302,14 @@ end
 
 function LobbyMenu:set_opponent_ready()
     self.opponent_ready = true
-    self.button_opponent_ready.image = assets:get_image("ui/button-ready")
+    self.button_opponent_ready.content.image = assets:get_image_data("ui/button_green.9")
+    self.button_opponent_ready.content.content.text = "READY"
 end
 
 function LobbyMenu:set_opponent_unready()
     self.opponent_ready = false
-    self.button_opponent_ready.image = assets:get_image("ui/button-not-ready")
+    self.button_opponent_ready.content.image = assets:get_image_data("ui/button_red.9")
+    self.button_opponent_ready.content.content.text = "NOT READY"
 end
 
 function LobbyMenu:toggle_ready()

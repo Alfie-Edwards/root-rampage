@@ -225,6 +225,10 @@ function get_local(name, default, stack_level)
     end
 end
 
+function rgba(r, g, b, a)
+    return {r / 255, g / 255, b / 255, nil_coalesce(a, 255) / 255}
+end
+
 function hex2rgb(hex)
     hex = hex:gsub("#","")
     return {tonumber("0x"..hex:sub(1,2)),

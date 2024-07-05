@@ -11,11 +11,13 @@ Text = {
 }
 setup_class(Text, LayoutElement)
 
-function Text:__init(text)
+function Text:__init(text, font, color)
     super().__init(self)
 
     self.line_drawables = {}
     self.text = text
+    self.font = font
+    self.color = color
 end
 
 function Text:set_text(value)
@@ -103,7 +105,8 @@ function Text:update_layout()
         else
             lines = {self.text}
         end
-        height = #lines * (self.font:getHeight() + self.font:getLineHeight()) + math.max(#lines - 1, 0) * self.line_spacing
+        local total_lines = math.max(1, #lines)
+        height = total_lines * (self.font:getHeight() + self.font:getLineHeight()) + (total_lines - 1) * self.line_spacing + self.font:getDescent()
         add_lines(lines)
 
     elseif (text_type == "table") then
@@ -120,8 +123,11 @@ function Text:update_layout()
             add_lines(lines)
             total_lines = total_lines + #lines
         end
+        if total_lines == 0 then
+            total_lines = 1
+        end
 
-        height = total_lines * (self.font:getHeight() + self.font:getLineHeight()) + math.max(total_lines - 1, 0) * self.line_spacing
+        height = total_lines * (self.font:getHeight() + self.font:getLineHeight()) + (total_lines - 1) * self.line_spacing + self.font:getDescent()
     end
 
     -- Calculate bounding box.

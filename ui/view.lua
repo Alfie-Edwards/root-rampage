@@ -286,6 +286,7 @@ end
 function View:draw()
     -- Draw elements in tree.
     local scissor_stack = Stack()
+    local effect_stack = Stack()
 
     local function draw(element)
         if element.clip then
@@ -308,10 +309,23 @@ function View:draw()
             love.graphics.applyTransform(element.transform)
         end
 
-        element:draw()
+        local effect = element.effect
+        if effect ~= nil then
+            effect_stack:push(effect)
+        end
+
+        if effect_stack.size > 0 then
+            effect_stack:head()(element)
+        else
+            element:draw()
+        end
 
         for _,child in ipairs(element._visual_children) do
             draw(child)
+        end
+
+        if effect ~= nil then
+            effect_stack:pop()
         end
 
         scissor_stack:pop()

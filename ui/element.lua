@@ -141,6 +141,13 @@ function Element:set_border_thickness(value)
     self:_set_property("border_thickness", value)
 end
 
+function Element:set_effect(value)
+    if not is_type(value, "function", "nil") then
+        self:_value_error("Value must be a function with the signature (element) => nil, or nil.")
+    end
+    self:_set_property("effect", value)
+end
+
 function Element:has_binding(property_name)
     if not self:_is_property(property_name) then
         error("\""..property_name.."\" is not a property of "..type_string(self)..".")

@@ -1,15 +1,7 @@
 require "ui.layout_element"
 require "ui.containers.grid_cell"
 
-GridBox = {
-    cols = nil,
-    rows = nil,
-    cells = nil,
-    cell_margin = nil,
-    outer_margin = nil,
-    column_widths = nil,
-    row_heights = nil,
-}
+GridBox = {}
 setup_class(GridBox, LayoutElement)
 
 function GridBox:__init()
@@ -57,7 +49,7 @@ function GridBox:cell(col, row)
     return cell
 end
 
-function GridBox:set_column_widths(value)
+function GridBox:set_col_widths(value)
     if not is_type(value, "table", "nil") then
         self:_value_error("Value must be a table of {positive integer -> number}, or nil.")
     end
@@ -115,16 +107,16 @@ function GridBox:set_outer_margin(value)
     end
 end
 
-function GridBox:get_column_width(col)
+function GridBox:get_col_width(col)
     assert(is_positive_integer(col))
 
-    if self.column_widths == nil then
+    if self.col_widths == nil then
         return 1
     end
-    if self.column_widths[col] == nil then
+    if self.col_widths[col] == nil then
         return 1
     end
-    return self.column_widths[col]
+    return self.col_widths[col]
 end
 
 function GridBox:get_row_height(row)
@@ -150,7 +142,7 @@ function GridBox:update_layout()
     local total_col_width = 0
     local total_row_height = 0
     for col=1, self.cols do
-        total_col_width = total_col_width + self:get_column_width(col)
+        total_col_width = total_col_width + self:get_col_width(col)
     end
     for row=1, self.rows do
         total_row_height = total_row_height + self:get_row_height(row)
@@ -169,7 +161,7 @@ function GridBox:update_layout()
 
         local x = 0
         for col=1, self.cols do
-            local width = width_minus_margins * (self:get_column_width(col) / total_col_width)
+            local width = width_minus_margins * (self:get_col_width(col) / total_col_width)
 
             local cell = self:cell(col, row)
             cell.bb = BoundingBox(x, y, x + width, y + height)

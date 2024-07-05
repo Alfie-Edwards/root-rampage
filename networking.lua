@@ -83,14 +83,19 @@ setup_class(Server, Host)
 
 function Server:__init(address)
     local host, success
-    success, self.error = pcall(function() host = self.enet.host_create(address) end)
+    success, self.error = pcall(function() host = self.enet.host_create(address, 1) end)
     self.errored = not success
+    if success and host == nil then
+        self.errored = true
+        self.error = "host_create returned nil"
+    end
     super().__init(self, host)
 end
 
 function Server:get_address()
-    local result
-    pcall(function() result = self.host:get_socket_address() end)
+    local result, success
+    success, self.error = pcall(function() result = self.host:get_socket_address() end)
+    self.errored = not success
     return result
 end
 

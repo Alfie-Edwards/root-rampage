@@ -1,5 +1,5 @@
 require "ui.image"
-require "ui.image_button"
+require "ui.containers.effect_frame"
 require "ui.text_box"
 require "ui.containers.grid_box"
 require "ui.containers.box"
@@ -21,8 +21,7 @@ function JoinMenu:__init()
         end
     )
 
-    local bg = Image()
-    bg.image = assets:get_image("map3")
+    local bg = Image(assets:get_image_data("map3"))
     bg.width = canvas:width()
     bg.height = canvas:height()
     self:add(bg)
@@ -32,6 +31,7 @@ function JoinMenu:__init()
     grid.rows = 3
     grid.width = canvas:width()
     grid.height = canvas:height()
+    grid.row_heights = {2.5, 1, 2.5}
     self:add(grid)
 
     local title = Text("Enter server address:")
@@ -50,7 +50,7 @@ function JoinMenu:__init()
     address_box.x = grid:cell(2, 2).bb:width() / 2
     address_box.y = grid:cell(2, 2).bb:height() / 2
     address_box.width = grid:cell(2, 2).bb:width()
-    address_box.height = 30
+    address_box.height = 28
     address_box.background_color = {1, 1, 1, 1}
     address_box.color = {0, 0, 0, 1}
     address_box.font = font16
@@ -58,22 +58,44 @@ function JoinMenu:__init()
     address_box.text = JoinMenu.ADDRESS
     grid:cell(2, 2):add(address_box)
 
-    local button_host = ImageButton()
-    button_host.image = assets:get_image("ui/button-join")
-    button_host.image_data = assets:get_image_data("ui/button-join")
-    button_host.x_align = "center"
-    button_host.y_align = "center"
-    button_host.x = grid:cell(2, 3).bb:width() / 2
-    button_host.y = grid:cell(2, 3).bb:height() / 2
-    button_host.mousepressed = function()
+    local button_join = EffectFrame(
+        NinePatch(
+            assets:get_image_data("ui/button.9"),
+            Text("JOIN", font32, rgba(82, 65, 51))
+        )
+    )
+    button_join.content.width = 268
+    button_join.content.height = 95
+    button_join.width = button_join.content.width
+    button_join.height = button_join.content.height
+    button_join.content.content.x = button_join.content.frame.bb:width() / 2
+    button_join.content.content.y = button_join.content.frame.bb:height() / 2
+    button_join.content.content.x_align = "center"
+    button_join.content.content.y_align = "center"
+    button_join.x_align = "center"
+    button_join.y_align = "center"
+    button_join.x = grid:cell(2, 3).bb:width() / 2
+    button_join.y = grid:cell(2, 3).bb:height() / 2
+    button_join.mousepressed = function()
         JoinMenu.ADDRESS = address_box.text
         self.client:connect(address_box.text)
     end
-    grid:cell(2, 3):add(button_host)
+    grid:cell(2, 3):add(button_join)
 
-    local button_back = ImageButton()
-    button_back.image = assets:get_image("ui/button-back")
-    button_back.image_data = assets:get_image_data("ui/button-back")
+    local button_back = EffectFrame(
+        NinePatch(
+            assets:get_image_data("ui/button.9"),
+            Text("BACK", font16, rgba(82, 65, 51))
+        )
+    )
+    button_back.content.width = 108
+    button_back.content.height = 64
+    button_back.width = button_back.content.width
+    button_back.height = button_back.content.height
+    button_back.content.content.x = button_back.content.frame.bb:width() / 2
+    button_back.content.content.y = button_back.content.frame.bb:height() / 2
+    button_back.content.content.x_align = "center"
+    button_back.content.content.y_align = "center"
     button_back.x_align = "center"
     button_back.y_align = "center"
     button_back.x = grid:cell(1, 3).bb:width() / 2

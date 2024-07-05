@@ -1,6 +1,6 @@
 require "ui.element"
 require "ui.image"
-require "ui.image_button"
+require "ui.containers.effect_frame"
 
 Hacking = {
     MAX_POINTS = 3,
@@ -38,7 +38,7 @@ function Hacking:__init(state)
             local button_positions = self:door_button_positions(door)
 
             -- 'close' icon
-            local close_door_button = ImageButton()
+            local close_door_button = EffectFrame()
             close_door_button:set({
                 image = close_img,
                 image_data = assets:get_image_data("ui/HackDoor1Closed"),
@@ -59,7 +59,7 @@ function Hacking:__init(state)
             self:_add_visual_child(close_door_button)
 
             -- 'open' icon
-            local open_door_button = ImageButton()
+            local open_door_button = EffectFrame()
             open_door_button:set({
                 image = assets:get_image("ui/HackDoor1Open"),
                 image_data = assets:get_image_data("ui/HackDoor1Open"),

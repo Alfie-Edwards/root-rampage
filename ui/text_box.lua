@@ -480,7 +480,7 @@ function TextBox:draw()
             local x1, y1, x2, y2 = select_pos[1], select_pos[2], caret_pos[1], caret_pos[2]
 
             love.graphics.setColor(self.select_color)
-            love.graphics.rectangle("fill", x1, y1, x2 - x1, y2 - y1 + self.font:getHeight() + self.font:getLineHeight())
+            love.graphics.rectangle("fill", x1, y1, x2 - x1, y2 - y1 + self.font:getHeight() + self.font:getLineHeight() + 1)
         end
 
         if ((t_now() - self._blink_offset) % (2 * TextBox.CARET_PERIOD) < TextBox.CARET_PERIOD) then

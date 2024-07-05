@@ -14,6 +14,7 @@ function AssetCache:__init()
     self.image_data = {}
     self.fonts = {}
     self.sounds = {}
+    self.shaders = {}
 end
 
 function AssetCache:get_image(name, extension)
@@ -53,4 +54,12 @@ function AssetCache:get_sound(name, extension, mode)
         self.sounds[name] = love.audio.newSource("assets/"..name, mode or "static")
     end
     return self.sounds[name]
+end
+
+function AssetCache:get_shader(name, extension)
+    name = name.."."..(extension or "fs")
+    if self.shaders[name] == nil then
+        self.shaders[name] = love.graphics.newShader("assets/"..name)
+    end
+    return self.shaders[name]
 end
