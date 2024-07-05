@@ -9,7 +9,7 @@ Game = {
     MODE_ROOTS = {},
     MODE_ALL = {},
     INPUT_DELAY_S = 0.1,
-    LATENCY_SYNC_THRESHOLD_S = 0.05,
+    LATENCY_SYNC_THRESHOLD_S = 0.34,
 }
 setup_class(Game, LayoutElement)
 
