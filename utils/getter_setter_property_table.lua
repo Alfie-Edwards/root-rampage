@@ -8,7 +8,7 @@ function GetterSetterPropertyTable:__init()
     super().__init(self)
 end
 
-function GetterSetterPropertyTable:__get_property_names()
+function GetterSetterPropertyTable:__get_property_names(properties_closure)
     -- Override __get_property_names to include everything with a getter and/or setter so that unset properties show up in iteration.
     local result = {}
     for name, _ in pairs(self:_get_getters()) do
@@ -20,7 +20,7 @@ function GetterSetterPropertyTable:__get_property_names()
     return result
 end
 
-function GetterSetterPropertyTable:__is_property(name)
+function GetterSetterPropertyTable:__is_property(name, properties_closure)
     -- Override __is_property to count only things with a getter and/or setter.
     return (self:_get_getter(name) ~= nil) or (self:_get_setter(name) ~= nil)
 end

@@ -11,18 +11,16 @@ SnapshotFactory.register("PropertyTable", StateSnapshot)
 -- A snapshot class specialised for State objects.
 -- Avoid duplicating the whole state by only saving values which change.
 function StateSnapshot:__init(state, shared_children)
-    timer:push("StateSnapshot:__init("..state:type()..")")
     super().__init(self, shared_children)
 
     assert(state ~= nil)
     self.state = weak_ref(state)
-    self.changed = {}
+    self.changed = weak_table('k')
     self:subscribe()
 
     for _, v in pairs(state) do
         self:try_add_child_for(v)
     end
-    timer:pop(10)
 end
 
 function StateSnapshot:subscribe()
@@ -50,7 +48,7 @@ function StateSnapshot:reinit_impl()
     for name, _ in pairs(self.changed) do
         self:try_add_child_for(self.state.value[name])
     end
-    self.changed = {}
+    self.changed = weak_table('k')
 end
 
 function StateSnapshot:restore_impl()

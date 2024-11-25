@@ -76,6 +76,18 @@ function PLAYER.draw(state, inputs, dt)
     local sx = PLAYER.sprite_size / sprite:getWidth()
     local sy = PLAYER.sprite_size / sprite:getHeight()
 
+    -- draw attack
+    if PLAYER.is_swinging(player, state.t + dt) then
+        local centre = PLAYER.attack_centre(player)
+        local progress = clamp((state.t + dt - player.time_of_prev_attack) / PLAYER.attack_duration, 0, 1)
+        love.graphics.setColor(1, 0.8, 0.8, 0.06 * (1 - progress))
+        love.graphics.circle("fill", centre.x, centre.y, PLAYER.attack_radius * (1 + progress))
+        if progress < 0.1 then
+            love.graphics.setColor(1, 0.8, 0.8, 0.5)
+            love.graphics.circle("fill", centre.x, centre.y, PLAYER.attack_radius)
+        end
+    end
+
     -- draw player
     local x = round(player.pos.x)
     local y = round(player.pos.y)
@@ -111,14 +123,15 @@ end
 
 function PLAYER.attack_centre(player)
     local adj = {}
+    local y_offset = PLAYER.size / 4
     if player.dir == Direction.UP then
-        adj = { x = 0, y = -PLAYER.attack_centre_offset }
+        adj = { x = 0, y = y_offset - PLAYER.attack_centre_offset }
     elseif player.dir == Direction.DOWN then
-        adj = { x = 0, y = PLAYER.attack_centre_offset }
+        adj = { x = 0, y = y_offset + PLAYER.attack_centre_offset }
     elseif player.dir == Direction.LEFT then
-        adj = { x = -PLAYER.attack_centre_offset, y = 0 }
+        adj = { x = -PLAYER.attack_centre_offset, y = y_offset }
     elseif player.dir == Direction.RIGHT then
-        adj = { x = PLAYER.attack_centre_offset, y = 0 }
+        adj = { x = PLAYER.attack_centre_offset, y = y_offset }
     end
 
     return moved(player.pos, adj)
@@ -150,7 +163,6 @@ function PLAYER.attack(state)
 end
 
 function PLAYER.input(state, inputs)
-    timer:push("PLAYER.input")
     local player = state.player
 
     if inputs.player_up then
@@ -185,7 +197,6 @@ function PLAYER.input(state, inputs)
     if inputs.player_chop then
         PLAYER.attack(state)
     end
-    timer:pop(10)
 end
 
 function PLAYER.get_movement(state)
@@ -317,13 +328,11 @@ function PLAYER.collision_y(player)
 end
 
 function PLAYER.move(state)
-    timer:push("PLAYER.move")
     local player = state.player
 
     local movement = PLAYER.get_movement(state)
     if movement.when == NEVER or PLAYER.is_swinging(player, state.t) then
         player.speed = 0
-        timer:pop(10)
         return
     end
 
@@ -338,7 +347,6 @@ function PLAYER.move(state)
         vel.y = vel.y + PLAYER.collision_y(player)
     end
     player.pos = moved(player.pos, {x = vel.x, y = vel.y})
-    timer:pop(10)
 end
 
 function PLAYER.kill(player, t)

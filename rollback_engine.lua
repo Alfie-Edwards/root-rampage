@@ -31,13 +31,11 @@ function RollbackEngine:delta()
 end
 
 function RollbackEngine:tick()
-    timer:push("RollbackEngine:tick")
     self.target_tick = self.target_tick + 1
     if self.input_record[self.target_tick] ~= nil then
         self.dirty = true
     end
     self:refresh()
-    timer:pop(self.model.state.dt * 1000)
 end
 
 function RollbackEngine:refresh()
@@ -92,8 +90,6 @@ function RollbackEngine:get_resolved_inputs(tick)
 end
 
 function RollbackEngine:_update_snapshot()
-    timer:push("RollbackEngine:_update_snapshot")
-
     -- Calculate potentialially new snapshot tick.
     local new_snapshot_tick = self.snapshot_tick
     while new_snapshot_tick < self.target_tick and
@@ -103,14 +99,12 @@ function RollbackEngine:_update_snapshot()
     end
 
     if new_snapshot_tick == self.snapshot_tick then
-        timer:pop(self.model.state.dt * 1000)
         return
     end
 
     -- Reset to old snapshot tick and play to new snapshot tick.
     self:_rollback_to_snapshot()
 
-    timer:push("RollbackEngine:tick_model("..(new_snapshot_tick - self.current_tick..")"))
     while self.current_tick < new_snapshot_tick do
         self.input_record[self.current_tick] = nil
         self.current_tick = self.current_tick + 1
@@ -119,9 +113,7 @@ function RollbackEngine:_update_snapshot()
         -- Clear records up to the new snapshot tick.
         -- Don't clean up current inputs as they're used for rendering.
     end
-    timer:pop(self.model.state.dt * 1000)
 
-    timer:push("RollbackEngine:take_snapshot")
     -- Create the new snapshot.
     if self.snapshot == nil then
         self.snapshot = self.model:take_snapshot()
@@ -129,22 +121,17 @@ function RollbackEngine:_update_snapshot()
         self.snapshot:reinit()
     end
     self.snapshot_tick = new_snapshot_tick
-    timer:pop(self.model.state.dt * 1000)
-    timer:pop(self.model.state.dt * 1000)
 end
 
 function RollbackEngine:_rollback_to_snapshot()
-    timer:push("RollbackEngine:_rollback_to_snapshot")
     if self.current_tick ~= self.snapshot_tick then
         self.model:rollback(self.snapshot)
         self.current_tick = self.snapshot_tick
     end
     self.dirty = false
-    timer:pop(self.model.state.dt * 1000)
 end
 
 function RollbackEngine:_play_to_target()
-    timer:push("RollbackEngine:_play_to_target")
     -- Play until target tick.
     while self.current_tick < self.target_tick do
         local next_tick = self.current_tick + 1
@@ -157,5 +144,4 @@ function RollbackEngine:_play_to_target()
         self.model:tick(self:get_resolved_inputs(next_tick))
         self.current_tick = next_tick
     end
-    timer:pop(self.model.state.dt * 1000)
 end

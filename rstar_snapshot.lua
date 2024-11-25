@@ -18,7 +18,7 @@ function RStarSnapshot:__init(rstar, shared_children)
     assert(rstar ~= nil)
     self.rstar = weak_ref(rstar)
     self.events = {}
-    self.new = {}
+    self.new = weak_table('k')
     self:subscribe()
     for item, _ in pairs(rstar.item_map) do
         self:try_add_child_for(item)
@@ -33,6 +33,7 @@ function RStarSnapshot:subscribe()
     end
     self.remove_handler = function(item, x, y)
         table.insert(self.events, {"remove", item, x, y})
+        self.new[item] = nil
     end
     self.rstar.value.added:subscribe(self.add_handler)
     self.rstar.value.removed:subscribe(self.remove_handler)

@@ -10,8 +10,12 @@ BRANCH = {
 function BRANCH.update(state, inputs)
     for _, branch in pairs(state.branches) do
         local base = BRANCH.base(branch)
-        if base == nil or (branch.t_dead == NEVER and NODE.is_dead(state, base)) then
-            branch.t_dead = state.t
+        if branch.t_dead == NEVER and (base == nil or NODE.is_dead(state, base)) then
+            if branch.length < 2 then
+                BRANCH.remove(state, branch)
+            else
+                BRANCH.kill(state, branch)
+            end
         elseif branch.t_dead ~= NEVER and (state.t - branch.t_dead) >= BRANCH.WITHER_TIME then
             BRANCH.remove(state, branch)
         end
@@ -97,6 +101,9 @@ end
 
 function BRANCH.remove(state, branch)
     PropertyTable.remove_value(state.branches, branch)
+    for _, node in pairs(branch.node_list) do
+        node.branch_map[branch] = nil
+    end
 end
 
 function BRANCH.kill(state, branch)
@@ -152,10 +159,15 @@ function BRANCH.cut(state, branch, i)
         branch.points[(2 * j)] = nil
         branch.node_list[j] = nil
 
-        local m = #node.branch_map[branch]
-        for k = 1, m do
-            if node.branch_map[branch][k] >= i then
-                node.branch_map[branch][k] = nil
+        if node.branch_map[branch] ~= nil then
+            local m = #node.branch_map[branch]
+            for k = 1, m do
+                if node.branch_map[branch][k] >= i then
+                    node.branch_map[branch][k] = nil
+                end
+            end
+            if #(node.branch_map[branch]) == 0 then
+                node.branch_map[branch] = nil
             end
         end
         if j > i then

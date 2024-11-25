@@ -6,7 +6,6 @@ SnapshotFactory = {
     end,
 
     build = function(x, shared_children)
-        timer:push("SnapshotFactory:build("..type_string(x)..")")
         local x_class = class(x)
         local get_snapshot_class = function(c)
             if c == nil then
@@ -23,11 +22,9 @@ SnapshotFactory = {
             snapshot_class = SnapshotFactory.registered[type(x)]
         end
         if snapshot_class == nil then
-            timer:pop(10)
             return nil
         end
         local snapshot = snapshot_class(x, shared_children)
-        timer:pop(10)
         return snapshot
     end,
 }
@@ -52,7 +49,7 @@ end
 
 function Snapshot:save(name, value)
     if self.saved_name_set[name] then
-        error("A value ("..tostring(value)..") has already been saved under the name \""..name.."\"")
+        error("A value ("..tostring(value)..") has already been saved under the name \""..tostring(name).."\"")
     end
     self.saved_name_set[name] = true
     self:try_add_child_for(name)
@@ -69,40 +66,31 @@ function Snapshot:try_add_child_for(value)
     end
     if self.children[value] == nil then
         self.children[value] = true -- Lock from recursion in snapshot constructor.
-        local snapshot = SnapshotFactory.build(value, self.children)
-        if snapshot ~= nil then
-            self.children[value] = snapshot
-        else
-            self.children[value] = nil
-        end
+        self.children[value] = SnapshotFactory.build(value, self.children)
     end
 end
 
 function Snapshot:restore()
-    timer:push(self:type()..":restore()")
     self:restore_impl()
     if not self.deferred_children then
         for _, child in pairs(self.children) do
             child:restore()
         end
     end
-    timer:pop(10)
 end
 
 function Snapshot:clear_saved()
-    timer:push(self:type()..":clear_saved()")
     self.saved = {}
     self.saved_name_set = {}
     if not self.deferred_children then
         for _, child in pairs(self.children) do
             child:clear_saved()
         end
+        collectgarbage('step')
     end
-    timer:pop(10)
 end
 
 function Snapshot:reinit()
-    timer:push(self:type()..":reinit()")
     self:clear_saved()
     if not self.deferred_children then
         for _, child in pairs(shallow_copy(self.children)) do
@@ -110,12 +98,27 @@ function Snapshot:reinit()
         end
     end
     self:reinit_impl()
-    timer:pop(10)
+    -- Memory leak tracking
+    -- print(iter_size(self.children))
+    -- local d = {}
+    -- for k, _ in pairs(self.children) do
+    --     local t = type_string(k)
+    --     d[t] = nil_coalesce(d[t], 0) + 1
+    -- end
+    -- local n = {}
+    -- for k, _ in pairs(d) do
+    --     table.insert(n, k)
+    -- end
+    -- table.sort(n, function(a, b) return d[a] > d[b] end)
+    -- for _, k in ipairs(n) do
+    --     if d[k] > 1 then
+    --         print(k..": "..d[k])
+    --     end
+    -- end
 end
 
 function Snapshot:cleanup()
     -- Allow the object to be garbage collected.
-    timer:push(self:type()..":cleanup()")
     self:clear_saved()
     self:cleanup_impl()
     self.saved = nil
@@ -126,7 +129,6 @@ function Snapshot:cleanup()
             child:cleanup()
         end
     end
-    timer:pop(10)
 end
 
 function Snapshot:restore_impl()

@@ -288,6 +288,14 @@ function without_metatable(x, f, ...)
     return result
 end
 
+function with_default_metatable(x, f, ...)
+    local mt = getmetatable(x)
+    setmetatable(x, {__index=mt.__template})
+    local result = f(...)
+    setmetatable(x, mt)
+    return result
+end
+
 function nil_coalesce(x, ...)
     if x == nil then
         return ...

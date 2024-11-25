@@ -10,9 +10,9 @@ function FixedPropertyTable:__init(properties)
 end
 
 function FixedPropertyTable:__get_property(name, properties_closure)
-    -- Override __set_property error on unknowns.
+    -- Override __get_property error on unknowns.
 
-    if not self:_get_property_names()[name] then
+    if not self:_is_property(name) then
         for k, v in pairs(self:_get_property_names()) do
             print(k, v)
         end
@@ -22,13 +22,18 @@ function FixedPropertyTable:__get_property(name, properties_closure)
 end
 
 function FixedPropertyTable:__set_property(name, value, properties_closure)
-    -- Override __get_property error on unknowns.
+    -- Override __set_property error on unknowns.
 
-    if not self:_get_property_names()[name] then
+    if not self:_is_property(name) then
         for k, v in pairs(self:_get_property_names()) do
             print(k, v)
         end
         error("\""..name.."\" is not a property of "..type_string(self)..".")
     end
     return PropertyTable.__set_property(self, name, value, properties_closure)
+end
+
+function FixedPropertyTable:__is_property(name, properties_closure)
+    -- Override __is_property to count only things which already have values.
+    return properties_closure[name] ~= nil
 end

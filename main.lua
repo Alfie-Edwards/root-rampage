@@ -55,6 +55,7 @@ end
 
 function love.update(dt)
     view:update(dt)
+    collectgarbage("collect")
 end
 
 function love.draw()

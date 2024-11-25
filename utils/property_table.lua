@@ -76,18 +76,17 @@ function PropertyTable:_get_getter(name)
     if type(name) ~= "string" then
         return nil
     end
-    local name = "get_"..name
     -- Default iteration to see actual members of this table.
-    for key, value in BaseObjectClass.__pairs(self) do
-        if key == name then
-            if type(value) == "function" and debug.getinfo(value).nparams == 1 then
+    return with_default_metatable(self,
+        function()
+            local value = self["get_"..name]
+            if type(value) == "function" then
                 return value
             else
                 return nil
             end
         end
-    end
-    return nil
+    )
 end
 
 function PropertyTable:_get_setter(name)
@@ -95,18 +94,16 @@ function PropertyTable:_get_setter(name)
     if type(name) ~= "string" then
         return nil
     end
-    local name = "set_"..name
-    -- Default iteration to see actual members of this table.
-    for key, value in BaseObjectClass.__pairs(self) do
-        if key == name then
-            if type(value) == "function" and debug.getinfo(value).nparams == 2 then
+    return with_default_metatable(self,
+        function()
+            local value = self["set_"..name]
+            if type(value) == "function" then
                 return value
             else
                 return nil
             end
         end
-    end
-    return nil
+    )
 end
 
 function PropertyTable:set(properties)

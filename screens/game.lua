@@ -86,10 +86,10 @@ function Game:get_inputs()
     local mouse_pos = canvas:screen_to_canvas(love.mouse.getX(), love.mouse.getY())
 
     if self.mode == Game.MODE_PLAYER then
-        inputs.player_up = love.keyboard.isDown("up")
-        inputs.player_down = love.keyboard.isDown("down")
-        inputs.player_left = love.keyboard.isDown("left")
-        inputs.player_right = love.keyboard.isDown("right")
+        inputs.player_up = love.keyboard.isDown("up") or love.keyboard.isDown("w")
+        inputs.player_down = love.keyboard.isDown("down") or love.keyboard.isDown("s")
+        inputs.player_left = love.keyboard.isDown("left") or love.keyboard.isDown("a")
+        inputs.player_right = love.keyboard.isDown("right") or love.keyboard.isDown("d")
         inputs.player_chop = love.keyboard.isDown("space")
     elseif self.mode == Game.MODE_ROOTS then
         inputs.roots_grow = love.mouse.isDown(1)
@@ -97,10 +97,10 @@ function Game:get_inputs()
         inputs.roots_pos_x = mouse_pos.x
         inputs.roots_pos_y = mouse_pos.y
     elseif self.mode == Game.MODE_ALL then
-        inputs.player_up = love.keyboard.isDown("up")
-        inputs.player_down = love.keyboard.isDown("down")
-        inputs.player_left = love.keyboard.isDown("left")
-        inputs.player_right = love.keyboard.isDown("right")
+        inputs.player_up = love.keyboard.isDown("up") or love.keyboard.isDown("w")
+        inputs.player_down = love.keyboard.isDown("down") or love.keyboard.isDown("s")
+        inputs.player_left = love.keyboard.isDown("left") or love.keyboard.isDown("a")
+        inputs.player_right = love.keyboard.isDown("right") or love.keyboard.isDown("d")
         inputs.player_chop = love.keyboard.isDown("space")
         inputs.roots_grow = love.mouse.isDown(1)
         inputs.roots_attack = love.mouse.isDown(2)
@@ -112,7 +112,6 @@ function Game:get_inputs()
 end
 
 function Game:tick()
-    timer:push("Game:tick")
     self.current_tick = self.current_tick + 1
     local input_tick = self.current_tick + self.input_delay
     local inputs = self:get_inputs()
@@ -129,9 +128,7 @@ function Game:tick()
         end
 
         if self.host ~= nil then
-            timer:push("flush")
             self.host:flush()
-            timer:pop(5)
         end
     end
 
@@ -140,7 +137,6 @@ function Game:tick()
     end
     self.rollback_engine:tick()
     self.t_last_tick = t_now()
-    timer:pop(self.state.dt * 1000)
 end
 
 function Game:unsubscribe()
@@ -176,9 +172,7 @@ function Game:update(dt)
     end
 
     if self.host ~= nil then
-        timer:push("poll")
         self.host:poll()
-        timer:pop(5)
     end
 
     -- How much more we'd need to be ahead to incur a sync.
@@ -198,6 +192,18 @@ function Game:update(dt)
         -- Just update rollback engine with the new inputs if we didn't tick at all.
         self.rollback_engine:refresh()
     end
+
+    if love.keyboard.isDown("end") then
+        local names = {}
+        for name, _ in pairs(_profile) do
+            table.insert(names, name)
+        end
+        table.sort(names, function(a, b) return _profile[a] > _profile[b] end)
+        for _, name in ipairs(names) do
+            print(_profile[name].." "..name)
+        end
+    end
+    -- print(iter_size(self.state.branches), iter_size(self.state.nodes.entries))
 end
 
 function Game:draw()
@@ -206,9 +212,4 @@ function Game:draw()
     local dt = t_now() - self.t_last_tick
 
     GAME.draw(self.state, self.rollback_engine:get_resolved_inputs(self.current_tick), dt)
-
-    love.graphics.setColor({1, 1, 1, 0.05})
-    love.graphics.setBlendMode("add")
-    love.graphics.rectangle("fill", 0, 0, canvas:width(), canvas:height())
-    love.graphics.setBlendMode("alpha")
 end

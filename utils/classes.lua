@@ -1,5 +1,7 @@
 _classes = {}
 _method_owner_map = {}
+_profile = {}
+DO_PROFILE = false
 
 function type_string(inst)
     -- Class instances and LOVE objects have their own type function.
@@ -82,6 +84,17 @@ function setup_class(class, super)
     for k, v in pairs(class) do
         if type(v) == "function" then
             _method_owner_map[v] = class
+            if DO_PROFILE then
+                local t = name.."."..k
+                local old_v = v
+                local v = function(...)
+                    local t0 = t_now()
+                    local result = {v(...)}
+                    _profile[t] = nil_coalesce(_profile[t], 0) + (t_now() - t0)
+                    return unpack(result)
+                end
+            end
+            class[k] = v
         end
     end
 
@@ -102,6 +115,16 @@ function setup_class(class, super)
             __newindex = function(self, k, v)
                 if type(v) == "function" then
                     _method_owner_map[v] = class
+                    if DO_PROFILE then
+                        local t = name.."."..k
+                        local old_v = v
+                        v = function(...)
+                            local t0 = t_now()
+                            local result = {old_v(...)}
+                            _profile[t] = nil_coalesce(_profile[t], 0) + (t_now() - t0)
+                            return unpack(result)
+                        end
+                    end
                 end
                 local mt = getmetatable(self)
                 local ni = mt.__newindex
