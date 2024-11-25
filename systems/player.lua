@@ -17,7 +17,7 @@ PLAYER = {
     respawn_time = 3,
 
     spawn_pos = {x = 3, y = 3},
-    attack_duration = 0.25,
+    attack_duration = 0.53,
 
     -- sprites
     sprite_sets = {
@@ -34,10 +34,10 @@ PLAYER = {
             down = { "Player walk/Frontwalk1", "Player walk/Frontwalk2" },
         }),
         swing = sprite.make_set("player/", {
-            left = { "Playerleftswing1", "Playerleftswing2" },
-            right = { "Playerrightswing1", "Playerrightswing2" },
-            up = { "Playerbackswing1", "Playerbackswing2" },
-            down = { "Playerfrontswing1", "Playerfrontswing2" },
+            left = { "Playerleftswing2", "Playerleftswing1" },
+            right = { "Playerrightswing2", "Playerrightswing1" },
+            up = { "Playerbackswing2", "Playerbackswing1" },
+            down = { "Playerfrontswing2", "Playerfrontswing1" },
         }),
         dead = sprite.make_set("player/", {
             left = "PlayerleftIdle",
