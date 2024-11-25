@@ -221,8 +221,11 @@ function ROOTS.draw(state, inputs, dt)
 
     if roots.grow_node ~= nil then
         local attack_state = ROOTS.get_attack_state(roots, state.t + dt)
-        local color = nil
-        if attack_state == AttackState.ATTACKING then
+        local color = BRANCH.COLOR
+        local attack_indicator = false
+        if attack_state == AttackState.WINDUP then
+            attack_indicator = true
+        elseif attack_state == AttackState.ATTACKING then
             color = ROOTS.ATTACK_COLOR
         elseif attack_state == AttackState.READY then
             local multiplier = math.min((state.t + dt - roots.t_attack - ROOTS.ATTACK_WINDUP_TIME - ROOTS.ATTACK_TIME - ROOTS.ATTACK_CD) / ROOTS.CD_FLASH_TIME, 1)
@@ -235,6 +238,16 @@ function ROOTS.draw(state, inputs, dt)
         end
         local v = Vector(roots.grow_node.x, roots.grow_node.y,
                              roots.new_pos_x, roots.new_pos_y)
+        if attack_indicator then
+            love.graphics.setColor({0.9, 0, 0, 0.4})
+            love.graphics.setLineWidth(2)
+            love.graphics.line(
+                v.x1,
+                v.y1,
+                v.x1 + v:direction_x() * ROOTS.ATTACK_TIME * ROOTS.ATTACK_SPEED,
+                v.y2 + v:direction_y() * ROOTS.ATTACK_TIME * ROOTS.ATTACK_SPEED
+            )
+        end
         BRANCH.draw_spike(
             roots.grow_node.x,
             roots.grow_node.y,
