@@ -14,7 +14,7 @@ GAME = {}
 
 function GAME.update(state, inputs)
     state.t = state.t + state.dt
-    math.randomseed(state.t)
+    love.math.setRandomSeed(state.t)
     ROOTS.update(state, inputs)
     BRANCH.update(state, inputs)
     TREE_SPOT.update(state, inputs)

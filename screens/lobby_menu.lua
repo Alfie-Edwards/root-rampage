@@ -27,8 +27,8 @@ function LobbyMenu:__init(host, connection)
         else
             self:unsubscribe_connection()
             self.connection = nil
-            self:set_you_unready()
-            self:set_opponent_unready()
+            self:set_you_to_unready()
+            self:set_opponent_to_unready()
             self.grid:cell(2, 3):clear()
             self.grid:cell(2, 4):clear()
             self.grid:cell(2, 5):clear()
@@ -42,9 +42,9 @@ function LobbyMenu:__init(host, connection)
         if message == "start" then
             self:start()
         elseif message == "ready" then
-            self:set_opponent_ready()
+            self:set_opponent_to_ready()
         elseif message == "unready" then
-            self:set_opponent_unready()
+            self:set_opponent_to_unready()
         elseif message == "swap" then
             self:swap(true)
         end
@@ -56,7 +56,7 @@ function LobbyMenu:__init(host, connection)
             self:swap(true)
         end
         if self.you_ready then
-            self:set_you_unready()
+            self:set_you_to_unready()
         end
         self.connection = connection
         self:subscribe_connection()
@@ -278,7 +278,7 @@ function LobbyMenu:send_start()
     self:start()
 end
 
-function LobbyMenu:set_you_ready()
+function LobbyMenu:set_you_to_ready()
     self.you_ready = true
     self.button_you_ready.content.image = assets:get_image_data("ui/button_green.9")
     self.button_you_ready.content.content.text = "READY"
@@ -291,7 +291,7 @@ function LobbyMenu:set_you_ready()
     end
 end
 
-function LobbyMenu:set_you_unready()
+function LobbyMenu:set_you_to_unready()
     self.you_ready = false
     self.button_you_ready.content.image = assets:get_image_data("ui/button_red.9")
     self.button_you_ready.content.content.text = "NOT READY"
@@ -300,13 +300,13 @@ function LobbyMenu:set_you_unready()
     end
 end
 
-function LobbyMenu:set_opponent_ready()
+function LobbyMenu:set_opponent_to_ready()
     self.opponent_ready = true
     self.button_opponent_ready.content.image = assets:get_image_data("ui/button_green.9")
     self.button_opponent_ready.content.content.text = "READY"
 end
 
-function LobbyMenu:set_opponent_unready()
+function LobbyMenu:set_opponent_to_unready()
     self.opponent_ready = false
     self.button_opponent_ready.content.image = assets:get_image_data("ui/button_red.9")
     self.button_opponent_ready.content.content.text = "NOT READY"
@@ -314,14 +314,14 @@ end
 
 function LobbyMenu:toggle_ready()
     if self.you_ready then
-        self:set_you_unready()
+        self:set_you_to_unready()
     else
-        self:set_you_ready()
+        self:set_you_to_ready()
     end
 end
 
 function LobbyMenu:swap(from_opponent)
-    self:set_you_unready()
+    self:set_you_to_unready()
     self.swapped = not self.swapped
     self:update_role_text()
     if not from_opponent and self.connection ~= nil then

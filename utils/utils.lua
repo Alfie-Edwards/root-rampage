@@ -1,5 +1,7 @@
 NEVER = -1
 
+math.random = function() error("Use love.math.random") end
+
 function get_key(tab, value, pairs_fn)
     for k, v in nil_coalesce(pairs_fn, pairs)(tab) do
         if v == value then
@@ -63,13 +65,13 @@ end
 
 function shuffle_list(list)
   for i = #list, 2, -1 do
-    local j = math.random(i)
+    local j = love.math.random(i)
     list[i], list[j] = list[j], list[i]
   end
 end
 
 function choice(list)
-    return list[math.random(#list)]
+    return list[love.math.random(#list)]
 end
 
 function union(a, b)
@@ -150,7 +152,7 @@ function scale_about(scale_x, scale_y, x, y)
 end
 
 function randfloat(low, high)
-    return (math.random() * (high - low)) + low
+    return (love.math.random() * (high - low)) + low
 end
 
 function clamp(x, min, max)

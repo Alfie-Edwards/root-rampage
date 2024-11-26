@@ -33,7 +33,7 @@ function PARTICLE.update(state, inputs)
                             particle.y + math.sin(dir) * 0.1,
                             particle.vx * 1.8 + math.cos(dir) * PARTICLE.FRAG_SPEED,
                             particle.vy * 1.8 + math.sin(dir) * PARTICLE.FRAG_SPEED,
-                            math.random() * PARTICLE.FRAG_MAX_LIFETIME
+                            love.math.random() * PARTICLE.FRAG_MAX_LIFETIME
                         )
                     )
                 end
@@ -61,7 +61,7 @@ function PARTICLE.update(state, inputs)
                             particle.y + math.sin(dir) * 0.1,
                             math.cos(dir) * PARTICLE.FRAG_SPEED,
                             math.sin(dir) * PARTICLE.FRAG_SPEED,
-                            math.random() * PARTICLE.FRAG_MAX_LIFETIME
+                            love.math.random() * PARTICLE.FRAG_MAX_LIFETIME
                         )
                     )
                 end
