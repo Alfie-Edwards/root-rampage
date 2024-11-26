@@ -3,6 +3,7 @@ require "states.door"
 require "states.hacking"
 require "states.node"
 require "states.player"
+require "states.powerups"
 require "states.roots"
 require "states.terminal"
 require "states.tooltip"
@@ -18,14 +19,14 @@ setup_class(GameState, FixedPropertyTable)
 function GameState:__init()
     local cs = LEVEL.cell_size()
 
-    local terminals = {}
-    for _, pos in ipairs(TERMINAL.POSITIONS) do
-        table.insert(terminals, TerminalState(pos.x * cs, pos.y * cs))
+    local terminals = PropertyTable()
+    for i, pos in ipairs(TERMINAL.POSITIONS) do
+        terminals[i] = TerminalState(pos.x * cs, pos.y * cs)
     end
 
-    local tree_spots = {}
-    for _, pos in ipairs(TREE_SPOT.POSITIONS) do
-        table.insert(tree_spots, TreeSpotState(pos.x * cs, pos.y * cs))
+    local tree_spots = PropertyTable()
+    for i, pos in ipairs(TREE_SPOT.POSITIONS) do
+        tree_spots[i] = TreeSpotState(pos.x * cs, pos.y * cs)
     end
 
     super().__init(self, {
@@ -38,6 +39,7 @@ function GameState:__init()
         door = DoorState(cs, 0),
         hacking = HackingState(),
         player = PlayerState(cs),
+        powerups = PowerupsState(),
         roots = RootsState(),
         tooltip = TooltipState(),
         wincon = WinconState(),

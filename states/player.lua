@@ -14,6 +14,8 @@ function PlayerState:__init(cell_size, pos)
         spawn_pos = pos,
         pos = pos,
         speed = 0,
+        max_speed = 100,
+        has_bomb = false,
         dir = Direction.DOWN,
         attack_centre = NONE,
 

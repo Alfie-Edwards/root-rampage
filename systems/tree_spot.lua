@@ -26,7 +26,7 @@ TREE_SPOT = {
 }
 
 function TREE_SPOT.update(state, inputs)
-    for _, tree_spot in ipairs(state.tree_spots) do
+    for _, tree_spot in pairs(state.tree_spots) do
         if tree_spot.node ~= nil and NODE.is_dead(state, tree_spot.node) then
             tree_spot.node = NONE
             tree_spot.t_grown = NEVER
@@ -48,7 +48,7 @@ function TREE_SPOT.update(state, inputs)
 end
 
 function TREE_SPOT.draw(state, inputs, dt)
-    for _, tree_spot in ipairs(state.tree_spots) do
+    for _, tree_spot in pairs(state.tree_spots) do
         TREE_SPOT.draw_patch(tree_spot)
         TREE_SPOT.draw_plant(tree_spot, state.t + dt)
     end
@@ -117,7 +117,7 @@ function TREE_SPOT.since_cut(tree_spot, t)
 end
 
 function TREE_SPOT.find_tree_spot(tree_spots, x, y)
-    for _, tree_spot in ipairs(tree_spots) do
+    for _, tree_spot in pairs(tree_spots) do
         if tree_spot.node == nil and sq_dist(x, y, tree_spot.x, tree_spot.y) < TREE_SPOT.RADIUS ^ 2 then
             return tree_spot
         end

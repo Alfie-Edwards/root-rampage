@@ -8,7 +8,6 @@ PLAYER = {
     -- config
     sprite_size = 24,
     size = 18,
-    max_speed = 160,
     acceleration_time = 0.2,
     root_speed = 80,
     attack_radius = 12,
@@ -144,6 +143,11 @@ function PLAYER.attack(state)
         return
     end
 
+    if player.has_bomb then
+        player.has_bomb = false
+        return
+    end
+
     PLAYER.sounds.swing:play()
 
     player.time_of_prev_attack = state.t
@@ -210,7 +214,7 @@ function PLAYER.get_movement(state)
         end
     end
 
-    most_recent.speed = PLAYER.max_speed
+    most_recent.speed = player.max_speed
     if state.nodes:any_in_radius(player.pos.x, player.pos.y, PLAYER.size / 2) then
         most_recent.speed = PLAYER.root_speed
     end

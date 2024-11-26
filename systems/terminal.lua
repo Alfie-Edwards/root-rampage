@@ -29,7 +29,7 @@ TERMINAL = {
 }
 
 function TERMINAL.update(state, inputs)
-    for _, terminal in ipairs(state.terminals) do
+    for _, terminal in pairs(state.terminals) do
         if terminal.node ~= nil and NODE.is_dead(state, terminal.node) then
             terminal.node = NONE
             terminal.t_hacked = NEVER
@@ -49,7 +49,7 @@ function TERMINAL.update(state, inputs)
 end
 
 function TERMINAL.draw(state, inputs, dt)
-    for _, terminal in ipairs(state.terminals) do
+    for _, terminal in pairs(state.terminals) do
         local sprite = TERMINAL.sprite(terminal, state.t + dt)
         if sprite == nil then
             return
@@ -94,7 +94,7 @@ function TERMINAL.sprite(terminal, t)
 end
 
 function TERMINAL.find_terminal(terminals, x, y)
-    for _, terminal in ipairs(terminals) do
+    for _, terminal in pairs(terminals) do
         if terminal.node == nil and sq_dist(x, y, terminal.x, terminal.y) < TERMINAL.RADIUS ^ 2 then
             return terminal
         end

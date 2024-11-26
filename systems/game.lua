@@ -3,6 +3,7 @@ require "systems.door"
 require "systems.hacking"
 require "systems.level"
 require "systems.player"
+require "systems.powerups"
 require "systems.roots"
 require "systems.terminal"
 require "systems.tooltip"
@@ -17,6 +18,7 @@ function GAME.update(state, inputs)
     TREE_SPOT.update(state, inputs)
     TERMINAL.update(state, inputs)
     PLAYER.update(state, inputs)
+    POWERUPS.update(state, inputs)
     HACKING.update(state, inputs)
     TOOLTIP.update(state, inputs)
     WINCON.update(state, inputs)
@@ -29,6 +31,7 @@ function GAME.draw(state, inputs, dt)
     TERMINAL.draw(state, inputs, dt)
     TREE_SPOT.draw(state, inputs, dt)
     DOOR.draw(state, inputs, dt)
+    POWERUPS.draw(state, inputs, dt)
     PLAYER.draw(state, inputs, dt)
     HACKING.draw(state, inputs, dt)
     TOOLTIP.draw(state, inputs, dt)
