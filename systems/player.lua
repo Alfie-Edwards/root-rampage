@@ -3,6 +3,7 @@ require "direction"
 require "sprite"
 require "states.player"
 require "systems.level"
+require "systems.particle"
 
 PLAYER = {
     -- config
@@ -17,6 +18,7 @@ PLAYER = {
 
     spawn_pos = {x = 3, y = 3},
     attack_duration = 0.53,
+    throw_speed = 200,
 
     -- sprites
     sprite_sets = {
@@ -94,6 +96,20 @@ function PLAYER.draw(state, inputs, dt)
     if player.time_of_death == NEVER then
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(sprite, x, y, 0, sx, sy, ox, oy)
+        
+        if player.has_bomb then
+            local bomb = assets:get_image("bomb")
+            love.graphics.draw(
+                bomb,
+                x,
+                y - (sprite:getHeight() + bomb:getHeight()) / 2 - 2,
+                0,
+                1,
+                1,
+                bomb:getWidth() / 2,
+                bomb:getHeight() / 2
+            )
+        end
     else
         local opacity = 1 - math.min(1, (state.t + dt - player.time_of_death) / PLAYER.respawn_time)
         love.graphics.setColor(1, 0.2, 0.2, opacity)
@@ -145,6 +161,8 @@ function PLAYER.attack(state)
 
     if player.has_bomb then
         player.has_bomb = false
+        local speed = player.speed + PLAYER.throw_speed
+        PARTICLE.add_bomb(state, player.pos.x, player.pos.y, speed * direction_to_x(player.dir), speed * direction_to_y(player.dir))
         return
     end
 

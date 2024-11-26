@@ -45,7 +45,7 @@ function POWERUPS.update(state, inputs)
         if powerups.far_type == "coffee" then
             player.max_speed = player.max_speed * 1.265
             powerups.t_far_taken = state.t
-            if powerups.coffee_spawned >= 4 then
+            if powerups.coffee_spawned >= 3 then
                 powerups.far_type = "bomb"
             end
         elseif powerups.far_type == "bomb" and not player.has_bomb then

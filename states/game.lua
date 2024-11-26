@@ -35,6 +35,7 @@ function GameState:__init()
         nodes = RStar({M = 8, m=4, reinsert_p=4, reinsert_method='weighted'}),
         terminals = terminals,
         tree_spots = tree_spots,
+        particles = PropertyTable(),
 
         door = DoorState(cs, 0),
         hacking = HackingState(),

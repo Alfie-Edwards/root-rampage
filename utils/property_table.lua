@@ -269,14 +269,6 @@ function PropertyTable.append(t, x)
     t[i] = x
 end
 
-function PropertyTable.len(t)
-    local i = 0
-    while t[i + 1] ~= nil do
-        i = i + 1
-    end
-    return i
-end
-
 function PropertyTable.remove_value(t, x)
     local keys = {}
     for k, v in pairs(t) do

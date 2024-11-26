@@ -2,6 +2,7 @@ require "systems.branch"
 require "systems.door"
 require "systems.hacking"
 require "systems.level"
+require "systems.particle"
 require "systems.player"
 require "systems.powerups"
 require "systems.roots"
@@ -13,10 +14,12 @@ GAME = {}
 
 function GAME.update(state, inputs)
     state.t = state.t + state.dt
+    math.randomseed(state.t)
     ROOTS.update(state, inputs)
     BRANCH.update(state, inputs)
     TREE_SPOT.update(state, inputs)
     TERMINAL.update(state, inputs)
+    PARTICLE.update(state, inputs)
     PLAYER.update(state, inputs)
     POWERUPS.update(state, inputs)
     HACKING.update(state, inputs)
@@ -31,6 +34,7 @@ function GAME.draw(state, inputs, dt)
     TERMINAL.draw(state, inputs, dt)
     TREE_SPOT.draw(state, inputs, dt)
     DOOR.draw(state, inputs, dt)
+    PARTICLE.draw(state, inputs, dt)
     POWERUPS.draw(state, inputs, dt)
     PLAYER.draw(state, inputs, dt)
     HACKING.draw(state, inputs, dt)
