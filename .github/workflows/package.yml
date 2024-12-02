@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download assets
-        run: cd $GITHUB_WORKSPACE && gdown --folder "1JssgVA4UbAUl7g3SLxaTNbpIBH0zegPj"
+        run: cd $GITHUB_WORKSPACE && gdown --folder "1euQ8-cIlN86nV4YCi8xXbShAeMtl_XTr"
 
       - name: Create packages
         uses: nhartland/love-build@master

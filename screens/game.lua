@@ -184,7 +184,6 @@ function Game:update(dt)
     local latency = math.max(0, self.rollback_engine:delta() * self.state.dt)
     self:_push_latency(latency)
     local latency_diff_s = self.mean_latency_s - self.mean_opponent_latency_s
-    print(latency_diff_s)
 
     local now = t_now()
     self.tick_offset_s = self.tick_offset_s + now - self.t_last_update
