@@ -106,3 +106,45 @@ end
 function indent(text, indent_level, indent_string)
     return prepend_lines(text, string.rep(nil_coalesce(indent_string, " "), indent_level))
 end
+
+function split_iter(str, sep, max)
+    local i_prev_sep = 1 - #sep
+    local i_next_sep = nil
+    local n = 1
+    return function()
+        if i_prev_sep == nil or (max ~= nil and n > max) then
+            return nil
+        end
+
+        local i_start = i_prev_sep + #sep
+        i_next_sep = str:find(sep, i_start)
+        while nil_coalesce(i_next_sep, #str + 1) <= i_start do
+            if i_next_sep == nil then
+                return nil
+            end
+            i_prev_sep = i_next_sep
+            i_start = nil_coalesce(i_prev_sep, #str + 1) + #sep
+            i_next_sep = str:find(sep, i_start)
+        end
+
+        local i_end = -1
+        if i_next_sep ~= nil then
+            i_end = i_next_sep - 1
+        end
+        if n == max then
+            i_end = nil
+        end
+
+        n = n + 1
+        i_prev_sep = i_next_sep
+        return str:sub(i_start, i_end)
+    end
+end
+
+function split(str, sep, max)
+    local result = {}
+    for x in split_iter(str, sep, max) do
+        table.insert(result, x)
+    end
+    return result
+end

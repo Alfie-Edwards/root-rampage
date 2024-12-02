@@ -9,7 +9,8 @@ Game = {
     MODE_ROOTS = {},
     MODE_ALL = {},
     INPUT_DELAY_S = 0.1,
-    LATENCY_SYNC_THRESHOLD_S = 0.34,
+    LATENCY_AVG = 90,
+    LATENCY_SYNC_THRESHOLD_S = 0,
 }
 setup_class(Game, LayoutElement)
 
@@ -27,7 +28,11 @@ function Game:__init(mode, host, connection)
     self.current_tick = -1
     self.t0 = t_now()
     self.input_delay = math.floor(Game.INPUT_DELAY_S / self.state.dt)
-    self.t_last_tick = t_now()
+    self.t_last_update = t_now()
+    self.opponent_latency_buffer_s = RingBuffer(Game.LATENCY_AVG)
+    self.latency_buffer_s = RingBuffer(Game.LATENCY_AVG)
+    self.mean_latency_s = 0
+    self.mean_opponent_latency_s = 0
 
     if self.input_delay > 0 then
         for t=0,self.input_delay-1,1 do
@@ -55,9 +60,10 @@ function Game:__init(mode, host, connection)
                     self:quit(true)
                     return
                 end
-                local sep = msg:find("|")
-                local tick = tonumber(msg:sub(1, sep-1))
-                local inputs = Inputs.deserialize_roots(msg:sub(sep+1, -1))
+                local tokens = split(msg, "|", 3)
+                local tick = tonumber(tokens[1])
+                self:_push_opponent_latency(tonumber(tokens[2]))
+                local inputs = Inputs.deserialize_roots(tokens[3])
                 self.rollback_engine:add_inputs(inputs, tick)
             end
         elseif mode == Game.MODE_ROOTS then
@@ -66,9 +72,10 @@ function Game:__init(mode, host, connection)
                     self:quit(true)
                     return
                 end
-                local sep = msg:find("|")
-                local tick = tonumber(msg:sub(1, sep-1))
-                local inputs = Inputs.deserialize_player(msg:sub(sep+1, -1))
+                local tokens = split(msg, "|", 3)
+                local tick = tonumber(tokens[1])
+                self:_push_opponent_latency(tonumber(tokens[2]))
+                local inputs = Inputs.deserialize_player(tokens[3])
                 self.rollback_engine:add_inputs(inputs, tick)
             end
         else
@@ -119,9 +126,9 @@ function Game:tick()
     if self.connection ~= nil then
         if input_tick >= 0 then
             if self.mode == Game.MODE_PLAYER then
-                self.connection:send(tostring(input_tick).."|"..inputs:serialize_player())
+                self.connection:send(tostring(input_tick).."|"..self.latency_buffer_s:head().."|"..inputs:serialize_player())
             elseif self.mode == Game.MODE_ROOTS then
-                self.connection:send(tostring(input_tick).."|"..inputs:serialize_roots())
+                self.connection:send(tostring(input_tick).."|"..self.latency_buffer_s:head().."|"..inputs:serialize_roots())
             else
                 error("unreachable")
             end
@@ -136,7 +143,6 @@ function Game:tick()
         self.rollback_engine:add_inputs(inputs, input_tick)
     end
     self.rollback_engine:tick()
-    self.t_last_tick = t_now()
 end
 
 function Game:unsubscribe()
@@ -175,13 +181,18 @@ function Game:update(dt)
         self.host:poll()
     end
 
-    -- How much more we'd need to be ahead to incur a sync.
+    local latency = math.max(0, self.rollback_engine:delta() * self.state.dt)
+    self:_push_latency(latency)
+    local latency_diff_s = self.mean_latency_s - self.mean_opponent_latency_s
+    print(latency_diff_s)
 
-    local max_latency_lead_s = math.max(self.LATENCY_SYNC_THRESHOLD_S, (self.state.dt - self.INPUT_DELAY_S))
-    local latency_sync_delta_s = max_latency_lead_s - (self.rollback_engine:delta() * self.state.dt)
-
-    -- Limit ticks so we're at most self.LATENCY_SYNC_THRESHOLD_S ahead.
-    self.tick_offset_s = math.min(self.tick_offset_s + math.min(self.state.dt, dt), latency_sync_delta_s)
+    local now = t_now()
+    self.tick_offset_s = self.tick_offset_s + now - self.t_last_update
+    if math.abs(latency_diff_s) > Game.LATENCY_SYNC_THRESHOLD_S then
+        self.tick_offset_s = self.tick_offset_s - (latency_diff_s * 0.35 / Game.LATENCY_AVG)
+    end
+    self.tick_offset_s = math.min(self.tick_offset_s, self.state.dt * 3)
+    self.t_last_update = now
 
     if self.tick_offset_s >= self.state.dt then
         while self.tick_offset_s >= self.state.dt do
@@ -193,7 +204,7 @@ function Game:update(dt)
         self.rollback_engine:refresh()
     end
 
-    if love.keyboard.isDown("end") then
+    if DO_PROFILE and love.keyboard.isDown("end") then
         local names = {}
         for name, _ in pairs(_profile) do
             table.insert(names, name)
@@ -203,13 +214,35 @@ function Game:update(dt)
             print(_profile[name].." "..name)
         end
     end
-    -- print(iter_size(self.state.branches), iter_size(self.state.nodes.entries))
 end
+
+function Game:_push_latency(l)
+    if self.latency_buffer_s.length == 0 then
+        self.mean_latency_s = l
+    elseif self.latency_buffer_s.length < 300 then
+        self.mean_latency_s = ((self.mean_latency_s * self.latency_buffer_s.length) + l) / (self.latency_buffer_s.length + 1)
+    else
+        self.mean_latency_s = (self.mean_latency_s + (l - self.latency_buffer_s:tail()) / 300)
+    end
+    self.latency_buffer_s:append(l)
+end
+
+function Game:_push_opponent_latency(l)
+    if self.opponent_latency_buffer_s.length == 0 then
+        self.mean_opponent_latency_s = l
+    elseif self.opponent_latency_buffer_s.length < 300 then
+        self.mean_opponent_latency_s = ((self.mean_opponent_latency_s * self.opponent_latency_buffer_s.length) + l) / (self.opponent_latency_buffer_s.length + 1)
+    else
+        self.mean_opponent_latency_s = (self.mean_opponent_latency_s + (l - self.opponent_latency_buffer_s:tail()) / 300)
+    end
+    self.opponent_latency_buffer_s:append(l)
+end
+
 
 function Game:draw()
     super().draw(self)
 
-    local dt = t_now() - self.t_last_tick
+    local dt = t_now() - self.t_last_update
 
     GAME.draw(self.state, self.rollback_engine:get_resolved_inputs(self.current_tick), dt)
 end

@@ -141,7 +141,7 @@ end
 function PriorityQueue:dequeue()
     local size = self._size
     
-    assert( size > 0, 'Heap is empty' )
+    assert(size > 0, "Queue is empty")
     
     local items, priorities, indices = self, self._priorities, self._indices
     local item, priority = items[1], priorities[1]
