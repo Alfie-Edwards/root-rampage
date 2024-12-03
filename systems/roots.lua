@@ -7,33 +7,61 @@ require "systems.tree_spot"
 
 AttackState = {
     READY = 1,
-    WINDUP = 2,
+    CHARGING = 2,
     ATTACKING = 3,
     COOLDOWN = 4,
 }
 
 ROOTS = {
     SPEED = 120,
-    ATTACK_SPEED = 420,
-    ATTACK_WINDUP_SPEED = 30,
-    ATTACK_WINDUP_TIME = 0.2,
-    ATTACK_TIME = 0.13,
+    ATTACK_SPEED = 480,
+    ATTACK_TIME_MIN = 0.08,
+    ATTACK_TIME_MAX = 0.16,
     ATTACK_CD = 4,
+    STRIKE_MIN_CHARGE_T = 0.07,
+    STRIKE_MAX_CHARGE_T = 0.16,
     KILL_RADIUS = 12,
     ATTACK_COLOR = {0.4, 0.08, 0.02, 1},
     CD_FLASH_COLOR = {1, 1, 1, 1},
     CD_FLASH_TIME = 0.2,
+    CLOUD_RADIUS = 12,
+    CLOUD_DURATION = 3,
 }
 
+function ROOTS.do_strike(roots, t_attack)
+    assert(roots.t_charge ~= NEVER)
+    t_attack = nil_coalesce(t_attack, roots.t_attack)
+    return (t_attack - roots.t_charge) >= ROOTS.STRIKE_MIN_CHARGE_T
+end
+
+function ROOTS.strike_time(roots, t_attack)
+    assert(roots.t_charge ~= NEVER)
+    t_attack = nil_coalesce(t_attack, roots.t_attack)
+    local k = clamp(((t_attack - roots.t_charge) - ROOTS.STRIKE_MIN_CHARGE_T) / (ROOTS.STRIKE_MAX_CHARGE_T - ROOTS.STRIKE_MIN_CHARGE_T), 0, 1)
+    print(k)
+    return lerp(ROOTS.ATTACK_TIME_MIN, ROOTS.ATTACK_TIME_MAX, k)
+end
+
 function ROOTS.get_attack_state(roots, t)
-    if (t - roots.t_attack) < ROOTS.ATTACK_WINDUP_TIME then
-        return AttackState.WINDUP
-    elseif (t - roots.t_attack) < (ROOTS.ATTACK_WINDUP_TIME + ROOTS.ATTACK_TIME) then
-        return AttackState.ATTACKING
-    elseif (t - roots.t_attack) < (ROOTS.ATTACK_WINDUP_TIME + ROOTS.ATTACK_TIME + ROOTS.ATTACK_CD) then
-        return AttackState.COOLDOWN
+    local elapsed = t - roots.t_attack
+    if roots.t_attack == NEVER then
+        return AttackState.CHARGING
+    end
+    if ROOTS.do_strike(roots) then
+        local strike_time = ROOTS.strike_time(roots)
+        if elapsed > (strike_time + ROOTS.ATTACK_CD) then
+            return AttackState.READY
+        elseif elapsed > strike_time then
+            return AttackState.COOLDOWN
+        else
+            return AttackState.ATTACKING
+        end
     else
-        return AttackState.READY
+        if elapsed > ROOTS.ATTACK_CD then
+            return AttackState.READY
+        else
+            return AttackState.COOLDOWN
+        end
     end
 end
 
@@ -41,8 +69,9 @@ function ROOTS.update(state, inputs)
     local roots = state.roots
     local tooltip = state.tooltip
 
-    if roots.t_attack == NEVER then
-        roots.t_attack = -(ROOTS.ATTACK_WINDUP_TIME + ROOTS.ATTACK_TIME + ROOTS.ATTACK_CD)
+    if roots.t_attack == NEVER and roots.t_charge == NEVER then
+        roots.t_charge = -(ROOTS.ATTACK_CD + ROOTS.ATTACK_TIME_MIN + ROOTS.STRIKE_MIN_CHARGE_T)
+        roots.t_attack = roots.t_charge + ROOTS.STRIKE_MIN_CHARGE_T
     end
 
     if roots.selected ~= nil and NODE.is_dead(state, roots.selected) then
@@ -51,7 +80,7 @@ function ROOTS.update(state, inputs)
 
     local attack_state = ROOTS.get_attack_state(roots, state.t)
 
-    if inputs.roots_grow or attack_state == AttackState.ATTACKING or attack_state == AttackState.WINDUP then
+    if inputs.roots_grow or attack_state == AttackState.ATTACKING then
         if roots.selected == nil and roots.grow_node ~= nil and not NODE.is_dead(state, roots.grow_node) then
             roots.selected = roots.grow_node
         end
@@ -60,9 +89,12 @@ function ROOTS.update(state, inputs)
         roots.grow_branch = NONE
     end
 
-    if inputs.roots_attack and attack_state == AttackState.READY and tooltip.timer == nil then
-        roots.t_attack = state.t
-        attack_state = ROOTS.get_attack_state(roots, state.t)
+    if inputs.roots_attack then
+        if attack_state == AttackState.READY and tooltip.timer == nil then
+            roots.t_charge = state.t
+            roots.t_attack = NEVER
+            attack_state = AttackState.CHARGING
+        end
     end
 
     if roots.selected ~= nil and tooltip.timer == nil then
@@ -82,8 +114,14 @@ function ROOTS.update(state, inputs)
         return
     end
 
-    if attack_state == AttackState.WINDUP then
-        roots.speed = ROOTS.ATTACK_WINDUP_SPEED
+    -- print(get_key(AttackState, attack_state), ROOTS.do_strike(roots), roots.t_attack, roots.t_charge)
+    if attack_state == AttackState.CHARGING then
+        if not inputs.roots_attack then
+            roots.t_attack = state.t
+            if not ROOTS.do_strike(roots) then
+                PARTICLE.add_cloud(state, roots.grow_node.x, roots.grow_node.y, ROOTS.CLOUD_RADIUS, ROOTS.CLOUD_DURATION)
+            end
+        end
     elseif attack_state == AttackState.ATTACKING then
         roots.speed = ROOTS.ATTACK_SPEED
     else
@@ -161,7 +199,7 @@ function ROOTS.update(state, inputs)
         end
     end
 
-    if roots.selected ~= nil then
+    if roots.selected ~= nil and attack_state ~= AttackState.CHARGING then
         if roots.valid then
             if roots.tree_spot ~= nil and roots.tree_spot.node == nil then
                 if (state.t - tooltip.timer) > TREE_SPOT.TIME then
@@ -210,7 +248,7 @@ function ROOTS.update(state, inputs)
         end
         if attack_state == AttackState.ATTACKING and
                 sq_dist(state.player.pos.x, state.player.pos.y, roots.selected.x, roots.selected.y) < ROOTS.KILL_RADIUS ^ 2 then
-            state.player.time_of_death = state.t
+            PLAYER.kill(state.player, state.t)
         end
     end
 end
@@ -223,12 +261,18 @@ function ROOTS.draw(state, inputs, dt)
         local attack_state = ROOTS.get_attack_state(roots, state.t + dt)
         local color = BRANCH.COLOR
         local attack_indicator = false
-        if attack_state == AttackState.WINDUP then
-            attack_indicator = true
+        if attack_state == AttackState.CHARGING then
+            if ROOTS.do_strike(roots, state.t + dt) then
+                attack_indicator = true
+            end
         elseif attack_state == AttackState.ATTACKING then
             color = ROOTS.ATTACK_COLOR
         elseif attack_state == AttackState.READY then
-            local multiplier = math.min((state.t + dt - roots.t_attack - ROOTS.ATTACK_WINDUP_TIME - ROOTS.ATTACK_TIME - ROOTS.ATTACK_CD) / ROOTS.CD_FLASH_TIME, 1)
+            local cd_time = ROOTS.ATTACK_CD
+            if ROOTS.do_strike(roots) then
+                cd_time = cd_time + ROOTS.strike_time(roots)
+            end
+            local multiplier = math.min((state.t + dt - roots.t_attack - cd_time) / ROOTS.CD_FLASH_TIME, 1)
             color = {
                 ROOTS.CD_FLASH_COLOR[1] + (BRANCH.COLOR[1] - ROOTS.CD_FLASH_COLOR[1]) * multiplier,
                 ROOTS.CD_FLASH_COLOR[2] + (BRANCH.COLOR[2] - ROOTS.CD_FLASH_COLOR[2]) * multiplier,
@@ -237,20 +281,21 @@ function ROOTS.draw(state, inputs, dt)
             }
         end
         local v = Vector(roots.grow_node.x, roots.grow_node.y,
-                             roots.new_pos_x, roots.new_pos_y)
+                         roots.new_pos_x, roots.new_pos_y)
         if attack_indicator then
+            local strike_time = ROOTS.strike_time(roots, state.t + dt)
             love.graphics.setColor({0.9, 0, 0, 0.4})
             love.graphics.setLineWidth(2)
             love.graphics.line(
                 v.x1,
                 v.y1,
-                v.x1 + v:direction_x() * ROOTS.ATTACK_TIME * ROOTS.ATTACK_SPEED,
-                v.y2 + v:direction_y() * ROOTS.ATTACK_TIME * ROOTS.ATTACK_SPEED
+                v.x1 + v:direction_x() * strike_time * ROOTS.ATTACK_SPEED,
+                v.y2 + v:direction_y() * strike_time * ROOTS.ATTACK_SPEED
             )
         end
         BRANCH.draw_spike(
-            roots.grow_node.x,
-            roots.grow_node.y,
+            v.x1,
+            v.y1,
             v:direction_x(),
             v:direction_y(),
             roots.speed * state.dt, color)

@@ -100,10 +100,10 @@ function NODE.cut(state, node)
     end
 
     local branch_map = shallow_copy(node.branch_map)
-    for branch, indices in pairs(branch_map) do
+    for branch_id, indices in pairs(branch_map) do
         table.sort(indices)
         for i = #indices, 1, -1 do
-            BRANCH.cut(state, branch, indices[i])
+            BRANCH.cut(state, state.branches[branch_id], indices[i])
         end
     end
 

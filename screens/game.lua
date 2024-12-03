@@ -29,6 +29,7 @@ function Game:__init(mode, host, connection)
     self.t0 = t_now()
     self.input_delay = math.floor(Game.INPUT_DELAY_S / self.state.dt)
     self.t_last_update = t_now()
+    self.t_last_tick = self.t_last_update
     self.opponent_latency_buffer_s = RingBuffer(Game.LATENCY_AVG)
     self.latency_buffer_s = RingBuffer(Game.LATENCY_AVG)
     self.mean_latency_s = 0
@@ -98,6 +99,7 @@ function Game:get_inputs()
         inputs.player_left = love.keyboard.isDown("left") or love.keyboard.isDown("a")
         inputs.player_right = love.keyboard.isDown("right") or love.keyboard.isDown("d")
         inputs.player_chop = love.keyboard.isDown("space")
+        inputs.player_dash = love.keyboard.isDown("lshift")
     elseif self.mode == Game.MODE_ROOTS then
         inputs.roots_grow = love.mouse.isDown(1)
         inputs.roots_attack = love.mouse.isDown(2)
@@ -109,6 +111,7 @@ function Game:get_inputs()
         inputs.player_left = love.keyboard.isDown("left") or love.keyboard.isDown("a")
         inputs.player_right = love.keyboard.isDown("right") or love.keyboard.isDown("d")
         inputs.player_chop = love.keyboard.isDown("space")
+        inputs.player_dash = love.keyboard.isDown("lshift")
         inputs.roots_grow = love.mouse.isDown(1)
         inputs.roots_attack = love.mouse.isDown(2)
         inputs.roots_pos_x = mouse_pos.x
@@ -185,19 +188,22 @@ function Game:update(dt)
     self:_push_latency(latency)
     local latency_diff_s = self.mean_latency_s - self.mean_opponent_latency_s
 
+
     local now = t_now()
     self.tick_offset_s = self.tick_offset_s + now - self.t_last_update
+    self.t_last_update = now
+
     if math.abs(latency_diff_s) > Game.LATENCY_SYNC_THRESHOLD_S then
         self.tick_offset_s = self.tick_offset_s - (latency_diff_s * 0.35 / Game.LATENCY_AVG)
     end
     self.tick_offset_s = math.min(self.tick_offset_s, self.state.dt * 3)
-    self.t_last_update = now
 
     if self.tick_offset_s >= self.state.dt then
         while self.tick_offset_s >= self.state.dt do
             self.tick_offset_s = self.tick_offset_s - self.state.dt
             self:tick()
         end
+        self.t_last_tick = now
     else
         -- Just update rollback engine with the new inputs if we didn't tick at all.
         self.rollback_engine:refresh()
@@ -241,7 +247,8 @@ end
 function Game:draw()
     super().draw(self)
 
-    local dt = t_now() - self.t_last_update
+    local dt = t_now() - self.t_last_tick
 
-    GAME.draw(self.state, self.rollback_engine:get_resolved_inputs(self.current_tick), dt)
+    local inputs = self.rollback_model:merge_inputs(self:get_inputs(), self.rollback_engine:get_resolved_inputs(self.current_tick))
+    GAME.draw(self.state, inputs, dt)
 end

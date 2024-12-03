@@ -123,6 +123,14 @@ function norm(x1, y1, x2, y2)
     return Vector(x1, y1, x2, y2):direction()
 end
 
+function random_in_circle(x, y, r)
+    x = nil_coalesce(x, 0)
+    y = nil_coalesce(y, 0)
+    r = math.sqrt(love.math.random()) * nil_coalesce(r, 1)
+    local a = love.math.random() *  math.pi * 2
+    return x + r * math.cos(a), y + r * math.sin(a)
+end
+
 function moved(pos, vel)
     res = {}
     for axis, speed in pairs(vel) do

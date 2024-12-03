@@ -91,7 +91,8 @@ function BRANCH.draw_spike(x, y, dir_x, dir_y, extension, color, line_width)
 end
 
 function BRANCH.get_if_tip(state, node)
-    for branch, indices in pairs(node.branch_map) do
+    for branch_id, indices in pairs(node.branch_map) do
+        local branch = state.branches[branch_id]
         if indices[#indices] == branch.length then
             return branch
         end
@@ -102,7 +103,7 @@ end
 function BRANCH.remove(state, branch)
     PropertyTable.remove_value(state.branches, branch)
     for _, node in pairs(branch.node_list) do
-        node.branch_map[branch] = nil
+        node.branch_map[branch.id] = nil
     end
 end
 
@@ -126,8 +127,10 @@ end
 
 function BRANCH.add_branch(state, base, tip)
     assert(base == nil or base ~= tip)
-    local branch = BranchState()
-    PropertyTable.append(state.branches, branch)
+    local branch = BranchState(state.id_tracker)
+    state.id_tracker = state.id_tracker + 1
+
+    state.branches[branch.id] = branch
     if base ~= nil then
         BRANCH.extend(branch, base)
     end
@@ -142,10 +145,10 @@ function BRANCH.extend(branch, node)
     table.insert(branch.points, node.y)
     branch.length = branch.length + 1
 
-    if node.branch_map[branch] == nil then
-        node.branch_map[branch] = {}
+    if node.branch_map[branch.id] == nil then
+        node.branch_map[branch.id] = {}
     end
-    table.insert(node.branch_map[branch], branch.length)
+    table.insert(node.branch_map[branch.id], branch.length)
     branch.node_list[branch.length] = node
 end
 
@@ -159,15 +162,15 @@ function BRANCH.cut(state, branch, i)
         branch.points[(2 * j)] = nil
         branch.node_list[j] = nil
 
-        if node.branch_map[branch] ~= nil then
-            local m = #node.branch_map[branch]
+        if node.branch_map[branch.id] ~= nil then
+            local m = #node.branch_map[branch.id]
             for k = 1, m do
-                if node.branch_map[branch][k] >= i then
-                    node.branch_map[branch][k] = nil
+                if node.branch_map[branch.id][k] >= i then
+                    node.branch_map[branch.id][k] = nil
                 end
             end
-            if #(node.branch_map[branch]) == 0 then
-                node.branch_map[branch] = nil
+            if #(node.branch_map[branch.id]) == 0 then
+                node.branch_map[branch.id] = nil
             end
         end
         if j > i then

@@ -4,6 +4,7 @@ setup_class(RootsState, FixedPropertyTable)
 
 function RootsState:__init()
     super().__init(self, {
+        t_charge = NEVER,
         t_attack = NEVER,
         selected = NONE,
         grow_node = NONE,

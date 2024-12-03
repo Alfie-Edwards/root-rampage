@@ -30,6 +30,7 @@ function GameState:__init()
     end
 
     super().__init(self, {
+        id_tracker = 0,
         newest_node = NONE,
         branches = PropertyTable(),
         nodes = RStar({M = 8, m=4, reinsert_p=4, reinsert_method='weighted'}),

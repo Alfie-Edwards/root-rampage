@@ -11,6 +11,9 @@ PARTICLE = {
     FRAG_SPEED = 500,
     FRAG_MAX_LIFETIME = 0.2,
     EXPLOSION_DURATION = 0.2,
+    CLOUDLET_SPEED = 3,
+    CLOUDLET_DURATION = 2,
+    CLOUDLETS_PER_UPDATE = 2,
 }
 
 function PARTICLE.update(state, inputs)
@@ -93,6 +96,30 @@ function PARTICLE.update(state, inputs)
             if particle.duration < (state.t - particle.t0) then
                 table.insert(to_kill, i)
             end
+        elseif particle.kind == "cloud" then
+            local life_remaining = particle.duration - (state.t - particle.t0)
+            if life_remaining <= 0 then
+                table.insert(to_kill, i)
+            else
+                if life_remaining > PARTICLE.CLOUDLET_DURATION / 3 then
+                    for i = 1, PARTICLE.CLOUDLETS_PER_UPDATE do
+                        local x, y = random_in_circle(particle.x, particle.y, particle.vx)
+                        if not LEVEL.solid({x = x, y = y}) then
+                            PARTICLE.add_cloudlet(state, x, y)
+                        end
+                    end
+                end
+                local effective_r = particle.vx + PLAYER.size / 2
+                if sq_dist(state.player.pos.x, state.player.pos.y, particle.x, particle.y) < (effective_r * effective_r) then
+                    PLAYER.kill(state.player, state.t)
+                end
+            end
+        elseif particle.kind == "cloudlet" then
+            if particle.duration < (state.t - particle.t0) then
+                table.insert(to_kill, i)
+            else
+                PARTICLE.move(particle, state.dt, "bounce")
+            end
         end
     end
 
@@ -132,11 +159,15 @@ function PARTICLE.draw(state, inputs, dt)
             local progress = clamp(((state.t + dt) - particle.t0) / particle.duration, 0, 1)
             love.graphics.setColor({1, 1, 1, 1 - progress})
             love.graphics.circle("fill", particle.x, particle.y, particle.vx)
+        elseif particle.kind == "cloudlet" then
+            local progress = clamp(((state.t + dt) - particle.t0) / particle.duration, 0, 1)
+            love.graphics.setColor({0.2, 0.9, 0.1, 1 - progress})
+            love.graphics.circle("fill", x, y, 1)
         end
     end
 end
 
-function PARTICLE.move(particle, dt)
+function PARTICLE.move(particle, dt, mode)
     local x0 = particle.x / LEVEL.cell_size()
     local y0 = particle.y / LEVEL.cell_size()
     local vx = particle.vx / LEVEL.cell_size()
@@ -206,6 +237,22 @@ function PARTICLE.move(particle, dt)
         if LEVEL.cell_solid(x + x_offset, y + y_offset) then
             particle.x = x * LEVEL.cell_size()
             particle.y = y * LEVEL.cell_size()
+            if mode == "bounce" then
+                if x_offset ~= 0 then
+                    particle.vx = -particle.vx
+                end
+                if y_offset ~= 0 then
+                    particle.vy = -particle.vy
+                end
+            end
+            if mode == "stop" then
+                if x_offset ~= 0 then
+                    particle.vx = 0
+                end
+                if y_offset ~= 0 then
+                    particle.vy = 0
+                end
+            end
             return true
         end
     end
@@ -237,4 +284,21 @@ end
 
 function PARTICLE.add_explosion(state, x, y, r)
     PropertyTable.append(state.particles, PARTICLE.create_explosion(state, x, y, r))
+end
+
+function PARTICLE.create_cloud(state, x, y, r, duration)
+    return ParticleState("cloud", state.t, x, y, r, 0, duration)
+end
+
+function PARTICLE.add_cloud(state, x, y, r, duration)
+    PropertyTable.append(state.particles, PARTICLE.create_cloud(state, x, y, r, duration))
+end
+
+function PARTICLE.create_cloudlet(state, x, y)
+    local a = love.math.random() * math.pi * 2
+    return ParticleState("cloudlet", state.t, x, y, math.cos(a) * PARTICLE.CLOUDLET_SPEED, math.sin(a) * PARTICLE.CLOUDLET_SPEED, PARTICLE.CLOUDLET_DURATION)
+end
+
+function PARTICLE.add_cloudlet(state, x, y)
+    PropertyTable.append(state.particles, PARTICLE.create_cloudlet(state, x, y))
 end

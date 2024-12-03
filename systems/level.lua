@@ -45,14 +45,13 @@ function LEVEL.out_of_bounds(x, y)
 end
 
 function LEVEL.cell_solid(x, y)
+    if LEVEL.out_of_bounds(x * LEVEL.cell_size(), y * LEVEL.cell_size()) then
+        return true
+    end
     return LEVEL.geom:getPixel(x, y) == 0
 end
 
 function LEVEL.solid(pos)
-    if LEVEL.out_of_bounds(pos.x, pos.y) then
-        return true
-    end
-
     local cell_x, cell_y = LEVEL.cell(pos.x, pos.y)
 
     return LEVEL.cell_solid(cell_x, cell_y)

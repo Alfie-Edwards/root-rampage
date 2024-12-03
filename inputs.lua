@@ -10,6 +10,7 @@ Inputs = {
         player_left = INPUT_UNDEFINED,
         player_right = INPUT_UNDEFINED,
         player_chop = INPUT_UNDEFINED,
+        player_dash = INPUT_UNDEFINED,
         roots_grow = INPUT_UNDEFINED,
         roots_attack = INPUT_UNDEFINED,
         roots_pos_x = INPUT_UNDEFINED,
@@ -21,6 +22,7 @@ Inputs = {
         player_left = false,
         player_right = false,
         player_chop = false,
+        player_dash = false,
         roots_grow = false,
         roots_attack = false,
         roots_pos_x = 0,
@@ -79,7 +81,8 @@ function Inputs:serialize_player()
         Inputs.bool_to_string(self.player_down)..
         Inputs.bool_to_string(self.player_left)..
         Inputs.bool_to_string(self.player_right)..
-        Inputs.bool_to_string(self.player_chop)
+        Inputs.bool_to_string(self.player_chop)..
+        Inputs.bool_to_string(self.player_dash)
 end
 
 function Inputs:serialize_roots()
@@ -96,6 +99,7 @@ function Inputs.deserialize_player(x)
         player_left = Inputs.parse_bool(x:sub(3, 3)),
         player_right = Inputs.parse_bool(x:sub(4, 4)),
         player_chop = Inputs.parse_bool(x:sub(5, 5)),
+        player_dash = Inputs.parse_bool(x:sub(6, 6)),
         roots_grow = INPUT_UNDEFINED,
         roots_attack = INPUT_UNDEFINED,
         roots_pos_x = INPUT_UNDEFINED,
@@ -111,6 +115,7 @@ function Inputs.deserialize_roots(x)
         player_left = INPUT_UNDEFINED,
         player_right = INPUT_UNDEFINED,
         player_chop = INPUT_UNDEFINED,
+        player_dash = INPUT_UNDEFINED,
         roots_grow = Inputs.parse_bool(x:sub(1, 1)),
         roots_attack = Inputs.parse_bool(x:sub(2, 2)),
         roots_pos_x = Inputs.parse_f(x:sub(3, sep-1)),

@@ -11,13 +11,17 @@ function PlayerState:__init(cell_size, pos)
 
     super().__init(self, {
         -- main state
-        spawn_pos = pos,
-        pos = pos,
+        spawn_pos = shallow_copy(pos),
+        pos = shallow_copy(pos),
         speed = 0,
-        max_speed = 100,
+        coffee_t0 = NEVER,
         has_bomb = false,
         dir = Direction.DOWN,
+        vel = {x = 0, y = 0},
         attack_centre = NONE,
+        charge_t0 = NEVER,
+        swing_t0 = NEVER,
+        dash_t0 = NEVER,
 
         -- other bits of state
         started_holding = {
@@ -27,7 +31,6 @@ function PlayerState:__init(cell_size, pos)
             DOWN = 0,
         },
 
-        time_of_prev_attack = NEVER,
         time_of_death = NEVER,
     })
 end
