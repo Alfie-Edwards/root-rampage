@@ -9,11 +9,12 @@ PARTICLE = {
     BOMB_FRAGS = 15,
     FRAG_RADIUS = 16,
     FRAG_SPEED = 500,
-    FRAG_MAX_LIFETIME = 0.2,
+    FRAG_MAX_LIFETIME = 0.15,
     EXPLOSION_DURATION = 0.2,
     CLOUDLET_SPEED = 3,
     CLOUDLET_DURATION = 2,
     CLOUDLETS_PER_UPDATE = 2,
+    BUZZ_DURATION = 0.2,
 }
 
 function PARTICLE.update(state, inputs)
@@ -120,6 +121,13 @@ function PARTICLE.update(state, inputs)
             else
                 PARTICLE.move(particle, state.dt, "bounce")
             end
+        elseif particle.kind == "buzz" then
+            if particle.duration < (state.t - particle.t0) then
+                table.insert(to_kill, i)
+            else
+                PARTICLE.brownian(particle, 20)
+                PARTICLE.move(particle, state.dt, "bounce")
+            end
         end
     end
 
@@ -161,10 +169,23 @@ function PARTICLE.draw(state, inputs, dt)
             love.graphics.circle("fill", particle.x, particle.y, particle.vx)
         elseif particle.kind == "cloudlet" then
             local progress = clamp(((state.t + dt) - particle.t0) / particle.duration, 0, 1)
-            love.graphics.setColor({0.2, 0.9, 0.1, 1 - progress})
+            love.graphics.setColor({0.5, 0.8, 0.2, 1 - progress})
             love.graphics.circle("fill", x, y, 1)
+        elseif particle.kind == "buzz" then
+            love.graphics.setColor({0.6, 0.0, 0.0, 1})
+            love.graphics.points(x, y)
         end
     end
+end
+
+function PARTICLE.brownian(particle, scale)
+    local vx, vy = random_in_circle(particle.vx, particle.vy, 2 * scale)
+    if (vx * vy) == 0 then 
+        vx = scale
+    end
+    local s = scale / math.sqrt(vx * vx + vy * vy)
+    particle.vx = vx * s
+    particle.vy = vy * s
 end
 
 function PARTICLE.move(particle, dt, mode)
@@ -301,4 +322,13 @@ end
 
 function PARTICLE.add_cloudlet(state, x, y)
     PropertyTable.append(state.particles, PARTICLE.create_cloudlet(state, x, y))
+end
+
+function PARTICLE.create_buzz(state, x, y)
+    local a = love.math.random() * math.pi * 2
+    return ParticleState("buzz", state.t, x, y, 0, 0, PARTICLE.BUZZ_DURATION)
+end
+
+function PARTICLE.add_buzz(state, x, y)
+    PropertyTable.append(state.particles, PARTICLE.create_buzz(state, x, y))
 end

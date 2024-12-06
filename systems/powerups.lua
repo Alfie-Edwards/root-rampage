@@ -1,7 +1,7 @@
 require "systems.level"
 
 POWERUPS = {
-    COOLDOWN = 60,
+    COOLDOWN = 6,
     PICKUP_RADIUS = 15,
 
     FAR_POS = {x = 22, y = 3},

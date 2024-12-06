@@ -6,6 +6,8 @@ function RootsState:__init()
     super().__init(self, {
         t_charge = NEVER,
         t_attack = NEVER,
+        t_attack_end = NEVER,
+        attack_cancellable = false,
         selected = NONE,
         grow_node = NONE,
         grow_branch = NONE,

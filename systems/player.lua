@@ -31,11 +31,14 @@ PLAYER = {
     attack_centre_offset = 8,
     t_max_charge = 1,
     attack_duration = 0.53,
+    attack_indicator_color = {0.9, 0, 0, 0.4},
 
     -- powerup config
     coffee_half_life = 30,
     coffee_speedup = 80,
     throw_speed = 200,
+    coffee_shake_amount = 0.08,
+    coffee_buzz_amount = 0.1,
 
     -- sprites
     sprite_sets = {
@@ -100,6 +103,9 @@ function PLAYER.update(state, inputs)
     elseif (state.t - player.time_of_death) >= PLAYER.respawn_time then
         PLAYER.spawn(player)
     end
+    if love.math.random() < PLAYER.coffee_buzz_amount * (PLAYER.coffee_amount(player, state.t) - 0.1) then
+        PARTICLE.add_buzz(state, random_in_circle(player.pos.x, player.pos.y, PLAYER.size))
+    end
 end
 
 function PLAYER.draw(state, inputs, dt)
@@ -117,22 +123,38 @@ function PLAYER.draw(state, inputs, dt)
     local dash_state = PLAYER.get_dash_state(player, state.t + dt)
 
     -- draw attack
-    if swing_state == SwingState.SWINGING then
+    if swing_state == SwingState.CHARGING then
+        local attack_radius = PLAYER.attack_radius(state.t + dt - player.charge_t0)
+        local centre = PLAYER.attack_centre(player)
+        love.graphics.setColor(PLAYER.attack_indicator_color)
+        love.graphics.circle("fill", centre.x, centre.y, attack_radius)
+    elseif swing_state == SwingState.SWINGING then
         local attack_radius = PLAYER.attack_radius(player.swing_t0 - player.charge_t0)
         local centre = PLAYER.attack_centre(player)
         local progress = clamp((state.t + dt - player.swing_t0) / PLAYER.attack_duration, 0, 1)
         love.graphics.setColor(1, 0.8, 0.8, 0.06 * (1 - progress))
         love.graphics.circle("fill", centre.x, centre.y, attack_radius * (1 + progress))
-        if progress < 0.1 then
-            love.graphics.setColor(1, 0.8, 0.8, 0.5)
-            love.graphics.circle("fill", centre.x, centre.y, attack_radius)
-        end
     end
 
     -- draw player
     local x = player.pos.x + player.vel.x * dt
     local y = player.pos.y + player.vel.y * dt
     local r = 0
+
+    if love.math.random() < PLAYER.coffee_shake_amount * (PLAYER.coffee_amount(player, state.t) - 0.1) then
+        if love.math.random() < 0.5 then
+            x = x + 1
+        else
+            x = x - 1
+        end
+    end
+    if love.math.random() < PLAYER.coffee_shake_amount * (PLAYER.coffee_amount(player, state.t) - 0.1) then
+        if love.math.random() < 0.5 then
+            y = y + 1
+        else
+            y = y - 1
+        end
+    end
 
     if player.time_of_death == NEVER then
         love.graphics.setColor(1, 1, 1, 1)
@@ -340,11 +362,18 @@ function PLAYER.input(state, inputs)
     end
 end
 
+function PLAYER.coffee_amount(player, t)
+    if player.coffee_t0 == NEVER then
+        return 0
+    end
+    return clamp(0.5 ^ ((t - player.coffee_t0) / PLAYER.coffee_half_life), 0, 1)
+end
+
 function PLAYER.max_speed(player, t)
     if player.coffee_t0 == NEVER then
         return PLAYER.base_speed
     end
-    return PLAYER.base_speed + PLAYER.coffee_speedup * 0.5 ^ ((t - player.coffee_t0) / PLAYER.coffee_half_life)
+    return PLAYER.base_speed + PLAYER.coffee_amount(player, t) * PLAYER.coffee_speedup
 end
 
 function PLAYER.get_movement(state)
