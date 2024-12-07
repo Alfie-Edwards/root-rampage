@@ -34,6 +34,7 @@ function Game:__init(mode, host, connection)
     self.latency_buffer_s = RingBuffer(Game.LATENCY_AVG)
     self.mean_latency_s = 0
     self.mean_opponent_latency_s = 0
+    self.manual_step = false
 
     if self.input_delay > 0 then
         for t=0,self.input_delay-1,1 do
@@ -172,11 +173,41 @@ function Game:quit(requested_by_peer)
     view:set_content(MainMenu())
 end
 
+function Game:keypressed(key, scancode, isrepeat)
+    if key == "]" then
+        if self.manual_step then
+            self:tick()
+        else
+            self.manual_step = true
+        end
+    elseif key == "[" then
+        self.manual_step = false
+        self.t_last_update = t_now()
+        self.t_last_tick = t_now()
+    elseif key == "end" then
+        if not DO_PROFILE then
+            return
+        end
+        local names = {}
+        for name, _ in pairs(_profile) do
+            table.insert(names, name)
+        end
+        table.sort(names, function(a, b) return _profile[a] > _profile[b] end)
+        for _, name in ipairs(names) do
+            print(_profile[name].." "..name)
+        end
+    end
+end
+
 function Game:update(dt)
     super().update(self, dt)
 
     if love.keyboard.isDown("escape") then
             self:quit(false)
+        return
+    end
+
+    if self.manual_step then
         return
     end
 
@@ -208,17 +239,6 @@ function Game:update(dt)
         -- Just update rollback engine with the new inputs if we didn't tick at all.
         self.rollback_engine:refresh()
     end
-
-    if DO_PROFILE and love.keyboard.isDown("end") then
-        local names = {}
-        for name, _ in pairs(_profile) do
-            table.insert(names, name)
-        end
-        table.sort(names, function(a, b) return _profile[a] > _profile[b] end)
-        for _, name in ipairs(names) do
-            print(_profile[name].." "..name)
-        end
-    end
 end
 
 function Game:_push_latency(l)
@@ -248,6 +268,9 @@ function Game:draw()
     super().draw(self)
 
     local dt = t_now() - self.t_last_tick
+    if self.manual_step then
+        dt = 0
+    end
 
     local inputs = self.rollback_model:merge_inputs(self:get_inputs(), self.rollback_engine:get_resolved_inputs(self.current_tick))
     GAME.draw(self.state, inputs, dt)

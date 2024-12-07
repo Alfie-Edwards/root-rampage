@@ -16,7 +16,7 @@ AttackState = {
 ROOTS = {
     SPEED = 120,
     STRIKE_SPEED = 480,
-    STRIKE_TIME_MIN = 0.14,
+    STRIKE_TIME_MIN = 0.08,
     STRIKE_TIME_MAX = 0.18,
     STRIKE_MIN_CHARGE_T = 0.07,
     STRIKE_MAX_CHARGE_T = 0.16,
@@ -77,7 +77,7 @@ function ROOTS.update(state, inputs)
 
     local attack_state = ROOTS.get_attack_state(roots, state.t)
 
-    if inputs.roots_grow or attack_state == AttackState.STRIKE or attack_state == AttackState.CLOUD then
+    if inputs.roots_grow or attack_state == AttackState.STRIKE or attack_state == AttackState.CLOUD or attack_state == AttackState.CHARGING then
         if roots.selected == nil and roots.grow_node ~= nil and not NODE.is_dead(state, roots.grow_node) then
             roots.selected = roots.grow_node
         end
@@ -109,7 +109,7 @@ function ROOTS.update(state, inputs)
     if roots.selected ~= nil and tooltip.timer == nil then
         roots.grow_node = roots.selected
     else
-        if not (inputs.roots_attack and not inputs.roots_grow and attack_state ~= AttackState.STRIKE and attack_state ~= AttackState.CLOUD) then
+        if not (inputs.roots_attack or inputs.roots_grow or attack_state == AttackState.CHARGING or attack_state == AttackState.STRIKE or attack_state == AttackState.CLOUD) then
             roots.grow_node = nil_coalesce(state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y), NONE)
             roots.grow_branch = NONE
         end
@@ -138,7 +138,10 @@ function ROOTS.update(state, inputs)
     if attack_state == AttackState.CHARGING then
         if not inputs.roots_attack then
             roots.t_attack = state.t
-            if not ROOTS.do_strike(roots) then
+            if ROOTS.do_strike(roots) then
+                attack_state = AttackState.STRIKE
+            else
+                attack_state = AttackState.CLOUD
                 PARTICLE.add_cloud(state, roots.grow_node.x, roots.grow_node.y, ROOTS.CLOUD_RADIUS, ROOTS.CLOUD_DURATION)
             end
         elseif roots.attack_cancellable and inputs.roots_grow then
@@ -168,7 +171,7 @@ function ROOTS.update(state, inputs)
     local tick_distance = roots.speed * state.dt
     local tick_distance_sq = tick_distance * tick_distance
 
-    if attack_state == AttackState.STRIKE then
+    if attack_state == AttackState.STRIKE and roots.t_attack ~= state.t then
         local grow_v = nil
         if iter_size(roots.grow_node.neighbors) == 1 then
             local neighbor = first_value(roots.grow_node.neighbors)
@@ -192,7 +195,6 @@ function ROOTS.update(state, inputs)
         roots.new_pos_y = NONE
         return
     end
-
 
     roots.new_pos_x = roots.grow_node.x + v:direction_x() * roots.speed * state.dt
     roots.new_pos_y = roots.grow_node.y + v:direction_y() * roots.speed * state.dt
@@ -270,9 +272,20 @@ function ROOTS.update(state, inputs)
                     if roots.grow_branch == nil then
                         roots.grow_branch = nil_coalesce(BRANCH.get_if_tip(state, roots.selected), NONE)
                     end
-                    roots.selected, branch = NODE.add_node(roots.new_pos_x, roots.new_pos_y, roots.grow_node, state, NODE_TYPE.NORMAL, roots.grow_branch)
-                    if roots.grow_branch == nil then
-                        roots.grow_branch = branch
+
+                    local n = math.ceil(roots.speed / ROOTS.SPEED)
+                    for i = 1, n do
+                        local d = 1 / (n - i + 1)
+                        local x = lerp(roots.grow_node.x, roots.new_pos_x, d)
+                        local y = lerp(roots.grow_node.y, roots.new_pos_y, d)
+                        roots.selected, branch = NODE.add_node(x, y, roots.grow_node, state, NODE_TYPE.NORMAL, roots.grow_branch)
+
+                        if roots.grow_branch == nil then
+                            roots.grow_branch = branch
+                        end
+                        if i < n then
+                            roots.grow_node = roots.selected
+                        end
                     end
                 end
                 if attack_state == AttackState.STRIKE then

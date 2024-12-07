@@ -43,6 +43,9 @@ function BRANCH.draw(state, inputs, dt)
             love.graphics.setLineWidth(line_width)
             love.graphics.line(branch.points)
 
+            -- love.graphics.setColor({1, 1, 1, 1})
+            -- love.graphics.points(branch.points)
+
             if state.roots.selected ~= tip then
                 local neighbor = first_value(tip.neighbors)
                 local v = Vector(neighbor.x, neighbor.y,
