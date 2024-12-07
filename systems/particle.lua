@@ -6,10 +6,10 @@ PARTICLE = {
     BOMB_FUSE = 1,
     BOMB_RADIUS = 18,
     BOMB_WALL_OFFSET = 32,
-    BOMB_FRAGS = 15,
-    FRAG_RADIUS = 16,
-    FRAG_SPEED = 500,
-    FRAG_MAX_LIFETIME = 0.15,
+    BOMB_FRAGS = 20,
+    FRAG_RADIUS = 11,
+    FRAG_SPEED = 175,
+    FRAG_MAX_LIFETIME = 0.3,
     EXPLOSION_DURATION = 0.2,
     CLOUDLET_SPEED = 3,
     CLOUDLET_DURATION = 2,
@@ -29,15 +29,17 @@ function PARTICLE.update(state, inputs)
 
                 for _ = 1, PARTICLE.BOMB_FRAGS do
                     local dir = love.math.random() * 2 * math.pi
+                    local speedup = lerp(0.5, 1.5, love.math.random())
+                    local speed = speedup * PARTICLE.FRAG_SPEED
                     table.insert(
                         to_spawn,
                         PARTICLE.create_frag(
                             state.t,
                             particle.x + math.cos(dir) * 0.1,
                             particle.y + math.sin(dir) * 0.1,
-                            particle.vx * 1.8 + math.cos(dir) * PARTICLE.FRAG_SPEED,
-                            particle.vy * 1.8 + math.sin(dir) * PARTICLE.FRAG_SPEED,
-                            love.math.random() * PARTICLE.FRAG_MAX_LIFETIME
+                            (particle.vx + math.cos(dir) * speed) * 0.5,
+                            (particle.vy + math.sin(dir) * speed) * 0.5,
+                            love.math.random() * PARTICLE.FRAG_MAX_LIFETIME / speedup
                         )
                     )
                 end
@@ -57,15 +59,17 @@ function PARTICLE.update(state, inputs)
                 local a = math.atan2(particle.vy, particle.vx) + math.pi
                 for _ = 1, PARTICLE.BOMB_FRAGS do
                     local dir = a + (love.math.random() - 0.5) * math.pi
+                    local speedup = lerp(0.5, 1.5, love.math.random())
+                    local speed = speedup * PARTICLE.FRAG_SPEED
                     table.insert(
                         to_spawn,
                         PARTICLE.create_frag(
                             state.t,
                             particle.x + math.cos(dir) * 0.1,
                             particle.y + math.sin(dir) * 0.1,
-                            math.cos(dir) * PARTICLE.FRAG_SPEED,
-                            math.sin(dir) * PARTICLE.FRAG_SPEED,
-                            love.math.random() * PARTICLE.FRAG_MAX_LIFETIME
+                            math.cos(dir) * speed,
+                            math.sin(dir) * speed,
+                            love.math.random() * PARTICLE.FRAG_MAX_LIFETIME / speedup
                         )
                     )
                 end
@@ -91,7 +95,7 @@ function PARTICLE.update(state, inputs)
         elseif particle.kind == "frag" then
             if particle.duration < (state.t - particle.t0) or PARTICLE.move(particle, state.dt) then
                 table.insert(to_kill, i)
-                table.insert(to_spawn, PARTICLE.create_explosion(state, particle.x, particle.y, PARTICLE.FRAG_RADIUS))
+                table.insert(to_spawn, PARTICLE.create_explosion(state, particle.x, particle.y, PARTICLE.FRAG_RADIUS + lerp(-2, 2, love.math.random())))
             end
         elseif particle.kind == "explosion" then
             if particle.duration < (state.t - particle.t0) then
@@ -172,7 +176,7 @@ function PARTICLE.draw(state, inputs, dt)
             love.graphics.setColor({0.5, 0.8, 0.2, 1 - progress})
             love.graphics.circle("fill", x, y, 1)
         elseif particle.kind == "buzz" then
-            love.graphics.setColor({0.6, 0.0, 0.0, 1})
+            love.graphics.setColor({0.6, 0.1, 0.0, 1})
             love.graphics.points(x, y)
         end
     end

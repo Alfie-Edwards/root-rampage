@@ -1,7 +1,12 @@
 require "systems.level"
 
 POWERUPS = {
-    COOLDOWN = 6,
+    COOLDOWNS = {
+        coffee = 30,
+        bomb = 60,
+    },
+    COFFEE_COOLDOWN = 30,
+    BOMB_COOLDOWN = 30,
     PICKUP_RADIUS = 15,
 
     FAR_POS = {x = 22, y = 3},
@@ -65,12 +70,12 @@ function POWERUPS.near_ready(t, powerups)
     if powerups.near_type == nil then
         return false
     end
-    return (t - powerups.t_near_taken) >= POWERUPS.COOLDOWN
+    return (t - powerups.t_near_taken) >= POWERUPS.COOLDOWNS[powerups.near_type]
 end
 
 function POWERUPS.far_ready(t, powerups)
     if powerups.far_type == nil then
         return false
     end
-    return (t - powerups.t_far_taken) >= POWERUPS.COOLDOWN
+    return (t - powerups.t_far_taken) >= POWERUPS.COOLDOWNS[powerups.far_type]
 end

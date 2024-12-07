@@ -34,7 +34,7 @@ PLAYER = {
     attack_indicator_color = {0.9, 0, 0, 0.4},
 
     -- powerup config
-    coffee_half_life = 30,
+    coffee_half_life = 15,
     coffee_speedup = 80,
     throw_speed = 200,
     coffee_shake_amount = 0.08,
