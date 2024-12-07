@@ -14,7 +14,7 @@ AttackState = {
 }
 
 ROOTS = {
-    SPEED = 120,
+    SPEED = 130,
     STRIKE_SPEED = 480,
     STRIKE_TIME_MIN = 0.08,
     STRIKE_TIME_MAX = 0.18,
@@ -109,7 +109,7 @@ function ROOTS.update(state, inputs)
     if roots.selected ~= nil and tooltip.timer == nil then
         roots.grow_node = roots.selected
     else
-        if not (inputs.roots_attack or inputs.roots_grow or attack_state == AttackState.CHARGING or attack_state == AttackState.STRIKE or attack_state == AttackState.CLOUD) then
+        if not (inputs.roots_attack or (inputs.roots_grow and not (roots.tree_spot or roots.terminal)) or attack_state == AttackState.CHARGING or attack_state == AttackState.STRIKE or attack_state == AttackState.CLOUD) then
             roots.grow_node = nil_coalesce(state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y), NONE)
             roots.grow_branch = NONE
         end
