@@ -564,6 +564,9 @@ function PLAYER.kill(player, t)
         return
     end
     player.time_of_death = t
+    player.charge_t0 = NEVER
+    player.swing_t0 = NEVER
+    player.dash_t0 = NEVER
     PLAYER.sounds.death:play()
 end
 
