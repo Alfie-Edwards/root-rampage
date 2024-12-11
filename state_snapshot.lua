@@ -14,6 +14,7 @@ function StateSnapshot:__init(state, shared_children)
     super().__init(self, shared_children)
 
     assert(state ~= nil)
+    self.any_changed = false
     self.state = weak_ref(state)
     self.changed = weak_table('k')
     self:subscribe()
@@ -30,6 +31,7 @@ function StateSnapshot:subscribe()
             -- Already saved an older value for this property.
             return
         end
+        self.any_changed = true
         self:save(name, old_value)
         self.changed[name] = true
     end
@@ -45,10 +47,14 @@ function StateSnapshot:unsubscribe()
 end
 
 function StateSnapshot:reinit_impl()
-    for name, _ in pairs(self.changed) do
-        self:try_add_child_for(self.state.value[name])
+    if self.any_changed then
+        for name, _ in pairs(self.changed) do
+            any = true
+            self:try_add_child_for(self.state.value[name])
+        end
+        self.changed = weak_table('k')
+        self.any_changed = false
     end
-    self.changed = weak_table('k')
 end
 
 function StateSnapshot:restore_impl()

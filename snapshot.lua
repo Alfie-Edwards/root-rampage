@@ -41,6 +41,7 @@ setup_class(Snapshot)
 function Snapshot:__init(shared_children)
     super().__init(self)
 
+    self.any_saved = false
     self.saved = {}
     self.saved_name_set = {}
     self.children = nil_coalesce(shared_children, weak_table('k'))
@@ -52,6 +53,7 @@ function Snapshot:save(name, value)
         error("A value ("..tostring(value)..") has already been saved under the name \""..tostring(name).."\"")
     end
     self.saved_name_set[name] = true
+    self.any_saved = true
     self:try_add_child_for(name)
 
     if value ~= nil then
@@ -61,7 +63,7 @@ function Snapshot:save(name, value)
 end
 
 function Snapshot:try_add_child_for(value)
-    if value == nil then
+    if type(value) ~= "table" then
         return
     end
     if self.children[value] == nil then
@@ -80,13 +82,16 @@ function Snapshot:restore()
 end
 
 function Snapshot:clear_saved()
-    self.saved = {}
-    self.saved_name_set = {}
+    if self.any_saved then
+        self.saved = {}
+        self.saved_name_set = {}
+        self.any_saved = false
+    end
     if not self.deferred_children then
         for _, child in pairs(self.children) do
             child:clear_saved()
         end
-        collectgarbage('step')
+        collectgarbage('step', 0.1)
     end
 end
 

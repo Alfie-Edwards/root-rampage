@@ -21,7 +21,7 @@ PLAYER = {
     -- dash config
     dash_speed = 480,
     dash_duration = 0.24,
-    dash_end_duration = 0.76,
+    dash_end_duration = 0.5,
     dash_end_speed = 0,
 
     -- attack config
@@ -29,7 +29,7 @@ PLAYER = {
     max_attack_radius = 20,
     attack_cooldown = 1,
     attack_centre_offset = 8,
-    t_max_charge = 1,
+    t_max_charge = 0.7,
     attack_duration = 0.53,
     attack_indicator_color = {0.9, 0, 0, 0.4},
 

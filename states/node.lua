@@ -20,5 +20,6 @@ function NodeState:__init(x, y, type)
         is_tree = (type == NODE_TYPE.TREE),
         is_terminal = (type == NODE_TYPE.TERMINAL),
         branch_map = PropertyTable(),
+        id = NONE,
     })
 end

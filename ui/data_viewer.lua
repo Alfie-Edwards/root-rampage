@@ -150,7 +150,7 @@ function DataViewer:update_layout()
         elseif is_type(self.schema, MapSchema) then
             local keys = keys_to_sorted_list(self.data)
             self.grid.cols = 2
-            if type(self        data) == "table" then
+            if type(self.data) == "table" then
                 self.grid.rows = #keys
                 for i, k in ipairs(keys) do
                     self:populate(1, i, k, self.schema.key_schema)

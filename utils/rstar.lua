@@ -373,12 +373,15 @@ function RStar:__init(settings)
 end
 
 function RStar:contains(item)
-    return self.item_map[item] ~= nil
+    return self.item_map[item.id] ~= nil
 end
 
 function RStar:add(item, x, y)
     self.id_counter = self.id_counter + 1
-    local new_entry = {id = self.id_counter, box = RStarBox(x, y, 0, 0), item=item }
+    if item.id == nil then
+        item.id = self.id_counter
+    end
+    local new_entry = {id = item.id, box = RStarBox(x, y, 0, 0), item=item }
 
     if self.height == 0 then
         self.root = RStarNode(self, true, new_entry)
@@ -390,19 +393,18 @@ function RStar:add(item, x, y)
         end
     end
 
-    self.item_map[item] = self.id_counter
+    self.item_map[item.id] = item
     self.len = self.len + 1
     self.added(item, x, y)
 end
 
-function RStar:remove(item)
-    local id = self.item_map[item]
-    if id == nil or self.entries[id] == nil then return end
+function RStar:remove(item_id)
+    if item_id == NONE or self.entries[item_id] == nil then return end
 
-    local n = self.entries[id]
+    local n = self.entries[item_id]
     local x, y = n.box.x, n.box.y
     local removed = n.box
-    self.entries[id]:remove(self, id)
+    n:remove(self, item_id)
     local q = {}
     local lc = 0
 
@@ -444,7 +446,8 @@ function RStar:remove(item)
         self.height = 0
     end
 
-    self.item_map[item] = nil
+    local item = self.item_map[item_id]
+    self.item_map[item_id] = nil
     self.len = self.len - 1
     self.removed(item, x, y)
 end
@@ -485,7 +488,7 @@ function RStar:in_radius(x, y, r)
     local result_nodes = self:_in_radius(x, y, r)
     local result = {}
     for i, v in ipairs(result_nodes) do
-        result[i] = v.item
+        result[i] = v.item.id
     end
     return result
 end
@@ -535,7 +538,7 @@ end
 
 function RStar:closest(x, y)
     if self.root == nil then
-        return
+        return nil
     end
     local queue = PriorityQueue.new()
     local enqueue = function(node)
@@ -546,7 +549,7 @@ function RStar:closest(x, y)
     while queue:len() do
         local current, _ = queue:dequeue()
         if current.item ~= nil then
-            return current.item
+            return current.item.id
         end
         for _, child in ipairs(current.children) do
             enqueue(child)

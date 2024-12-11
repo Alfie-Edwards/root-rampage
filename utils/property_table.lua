@@ -42,6 +42,10 @@ function PropertyTable:__init(properties)
             return self:__is_property(name, properties_closure)
         end
 
+        self._raw = function(self)
+            return properties_closure
+        end
+
     end)
 end
 
@@ -267,6 +271,10 @@ function PropertyTable.append(t, x)
         i = i + 1
     end
     t[i] = x
+end
+
+function PropertyTable.len(t)
+    return #(t:_raw())
 end
 
 function PropertyTable.remove_value(t, x)

@@ -6,10 +6,10 @@ function BranchState:__init(id)
     assert(id ~= nil)
     super().__init(self, {
         length = 0,
-        points = {},
+        points = PropertyTable(),
         node_list = PropertyTable(),
         t_dead = NEVER,
-        id = id
+        id = id,
         -- color = hsva(love.math.random(), 1, 1, 1),
     })
 end

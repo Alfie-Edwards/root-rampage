@@ -60,6 +60,7 @@ function RStarSnapshot:restore_impl()
         local event = self.events[i]
         if event[1] == "add" then
             self.rstar.value:remove(event[2])
+            self.rstar.id_counter = self.rstar.id_counter - 1
         elseif event[1] == "remove" then
             self.rstar.value:add(event[2], event[3], event[4])
         else

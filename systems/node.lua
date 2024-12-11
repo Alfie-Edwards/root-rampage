@@ -2,76 +2,89 @@ require "states.node"
 
 NODE = {}
 
-function NODE.add_node(x, y, parent, state, type, branch)
+function NODE.add_node(x, y, parent_id, state, type, branch_id)
     local node = NodeState(x, y, type)
-    if parent ~= nil then
-        NODE.connect(node, parent)
-    end
     state.nodes:add(node, x, y)
-    state.newest_node = node
+    if parent_id ~= nil then
+        NODE.connect(state, node.id, parent_id)
+    end
+    state.newest_node = node.id
 
-    if parent == nil then
-        branch = BRANCH.add_branch(state, node)
-    elseif branch == nil then
-        branch = BRANCH.add_branch(state, parent, node)
+    if parent_id == nil then
+        branch_id = BRANCH.add_branch(state, node.id)
+    elseif branch_id == nil then
+        branch_id = BRANCH.add_branch(state, parent_id, node.id)
     else
-        BRANCH.extend(branch, node)
+        BRANCH.extend(state, branch_id, node.id)
     end
 
-    return node, branch
+    return node.id, branch_id
 end
 
-function NODE.connect(a, b)
-    PropertyTable.append(a.neighbors, b)
-    PropertyTable.append(b.neighbors, a)
+function NODE.from_id(state, node_id)
+    return nil_coalesce(state.nodes.item_map[node_id], state.ghost_nodes[node_id])
 end
 
-function NODE.disconnect(a, b)
-    PropertyTable.remove_value(a.neighbors, b)
-    PropertyTable.remove_value(b.neighbors, a)
+
+function NODE.connect(state, a_id, b_id)
+    local a = NODE.from_id(state, a_id)
+    local b = NODE.from_id(state, b_id)
+    PropertyTable.append(a.neighbors, b_id)
+    PropertyTable.append(b.neighbors, a_id)
 end
 
-function NODE.are_connected(a, b)
-    return value_in(a, b.neighbors, pairs)
+function NODE.disconnect(state, a_id, b_id)
+    local a = NODE.from_id(state, a_id)
+    local b = NODE.from_id(state, b_id)
+    PropertyTable.remove_value(a.neighbors, b_id)
+    PropertyTable.remove_value(b.neighbors, a_id)
 end
 
-function NODE.remove_node(state, node)
-    state.nodes:remove(node)
+function NODE.are_connected(state, a_id, b_id)
+    local b = NODE.from_id(state, b_id)
+    return value_in(a_id, b.neighbors:_raw(), pairs)
 end
 
-function NODE.is_dead(state, node)
-    return not state.nodes:contains(node)
+function NODE.remove_node(state, node_id)
+    state.ghost_nodes[node_id] = NODE.from_id(state, node_id)
+    state.nodes:remove(node_id)
 end
 
-function NODE.do_to_subtree(node, func, seen)
+function NODE.is_dead(state, node_id)
+    return state.nodes.item_map[node_id] == nil
+end
+
+function NODE.do_to_subtree(state, node_id, func, seen)
     seen = nil_coalesce(seen, {})
-    if seen[node] then
+    if seen[node_id] then
         return
     end
-    func(node)
-    seen[node] = true
+    func(node_id)
+    seen[node_id] = true
+    local node = NODE.from_id(state, node_id)
     for _, neighbor in pairs(node.neighbors) do
         if not seen[neighbor] then
-            NODE.do_to_subtree(neighbor, func, seen)
+            NODE.do_to_subtree(state, neighbor, func, seen)
         end
     end
 end
 
-function NODE.kill_subtree_if_no_trees(state, node, cache)
+function NODE.kill_subtree_if_no_trees(state, node_id, cache)
     cache = nil_coalesce(cache, {})
 
-    local function any_trees(node)
-        if cache[node] ~= nil then
-            return cache[node]
+    local function any_trees(node_id)
+        if cache[node_id] ~= nil then
+            return cache[node_id]
         else
-            cache[node] = false
+            cache[node_id] = false
         end
+        local node = NODE.from_id(state, node_id)
         if node.is_tree then
             return true
         else
             for _, neighbor in pairs(node.neighbors) do
                 if any_trees(neighbor) then
-                    cache[node] = true
+                    cache[node_id] = true
                     return true
                 end
             end
@@ -79,31 +92,33 @@ function NODE.kill_subtree_if_no_trees(state, node, cache)
         end
     end
 
-    if not any_trees(node) then
-        NODE.do_to_subtree(node,
-            function(node)
-                NODE.remove_node(state, node)
+    if not any_trees(node_id) then
+        NODE.do_to_subtree(state, node_id,
+            function(node_id)
+                NODE.remove_node(state, node_id)
             end
         )
     end
 end
 
-function NODE.cut(state, node)
-    if NODE.is_dead(state, node) then
+function NODE.cut(state, node_id)
+    if NODE.is_dead(state, node_id) then
         return
     end
+
+    local node = NODE.from_id(state, node_id)
 
     -- Cache neighbors.
     local neighbors = shallow_copy(node.neighbors)
     for _, neighbor in pairs(neighbors) do
-        NODE.disconnect(node, neighbor)
+        NODE.disconnect(state, node_id, neighbor)
     end
 
     local branch_map = shallow_copy(node.branch_map)
     for branch_id, indices in pairs(branch_map) do
         table.sort(indices)
-        for i = #indices, 1, -1 do
-            BRANCH.cut(state, state.branches[branch_id], indices[i])
+        for i = PropertyTable.len(indices), 1, -1 do
+            BRANCH.cut(state, BRANCH.from_id(state, branch_id), indices[i])
         end
     end
 
@@ -114,8 +129,8 @@ function NODE.cut(state, node)
         end
     end
 
-    NODE.remove_node(state, node)
+    NODE.remove_node(state, node_id)
 
     -- Create branch containing just this node.
-    BRANCH.add_branch(state, node)
+    BRANCH.add_branch(state, node_id)
 end

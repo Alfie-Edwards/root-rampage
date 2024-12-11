@@ -88,6 +88,7 @@ function ROOTS.update(state, inputs)
 
     if roots.selected ~= nil and NODE.is_dead(state, roots.selected) then
         roots.selected = NONE
+        roots.grow_branch = NONE
     end
 
     if attack_state == AttackState.CHARGING and not inputs.roots_grow then
@@ -122,6 +123,7 @@ function ROOTS.update(state, inputs)
         roots.new_pos_y = NONE
         return
     end
+    local grow_node = NODE.from_id(state, roots.grow_node)
 
     local cancel_attack = function()
         reset_attack_timers()
@@ -142,7 +144,7 @@ function ROOTS.update(state, inputs)
                 attack_state = AttackState.STRIKE
             else
                 attack_state = AttackState.CLOUD
-                PARTICLE.add_cloud(state, roots.grow_node.x, roots.grow_node.y, ROOTS.CLOUD_RADIUS, ROOTS.CLOUD_DURATION)
+                PARTICLE.add_cloud(state, grow_node.x, grow_node.y, ROOTS.CLOUD_RADIUS, ROOTS.CLOUD_DURATION)
             end
         elseif roots.attack_cancellable and inputs.roots_grow then
             cancel_attack()
@@ -165,7 +167,7 @@ function ROOTS.update(state, inputs)
         roots.speed = ROOTS.SPEED
     end
 
-    local v = Vector(roots.grow_node.x, roots.grow_node.y,
+    local v = Vector(grow_node.x, grow_node.y,
                      inputs.roots_pos_x, inputs.roots_pos_y)
     local sqln = v:sq_length()
     local tick_distance = roots.speed * state.dt
@@ -173,11 +175,11 @@ function ROOTS.update(state, inputs)
 
     if attack_state == AttackState.STRIKE and roots.t_attack ~= state.t then
         local grow_v = nil
-        if iter_size(roots.grow_node.neighbors) == 1 then
-            local neighbor = first_value(roots.grow_node.neighbors)
-            grow_v = Vector(roots.grow_node.x, roots.grow_node.y,
-                            (2 * roots.grow_node.x - neighbor.x),
-                            (2 * roots.grow_node.y - neighbor.y))
+        if iter_size(grow_node.neighbors) == 1 then
+            local neighbor = NODE.from_id(state, first_value(grow_node.neighbors))
+            grow_v = Vector(grow_node.x, grow_node.y,
+                            (2 * grow_node.x - neighbor.x),
+                            (2 * grow_node.y - neighbor.y))
             grow_v:scale_to_length(tick_distance)
         end
 
@@ -196,8 +198,8 @@ function ROOTS.update(state, inputs)
         return
     end
 
-    roots.new_pos_x = roots.grow_node.x + v:direction_x() * roots.speed * state.dt
-    roots.new_pos_y = roots.grow_node.y + v:direction_y() * roots.speed * state.dt
+    roots.new_pos_x = grow_node.x + v:direction_x() * roots.speed * state.dt
+    roots.new_pos_y = grow_node.y + v:direction_y() * roots.speed * state.dt
     if sqln < tick_distance_sq then
         roots.valid = false
     elseif LEVEL.solid({x = roots.new_pos_x, y = roots.new_pos_y}) then
@@ -251,21 +253,22 @@ function ROOTS.update(state, inputs)
                 end
             else
                 local closest = state.nodes:closest(roots.new_pos_x, roots.new_pos_y)
+                local closest_node = NODE.from_id(state, closest)
                 local threshold = 0.5 * tick_distance_sq
-                local connected = NODE.are_connected(roots.selected, closest)
+                local connected = NODE.are_connected(state, roots.selected, closest)
                 if connected then
                     threshold = threshold * 0.2
                 end
-                if attack_state ~= AttackState.STRIKE and closest ~= nil and closest ~= roots.grow_node and sq_dist(closest.x, closest.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
+                if attack_state ~= AttackState.STRIKE and closest ~= nil and closest ~= roots.grow_node and sq_dist(closest_node.x, closest_node.y, roots.new_pos_x, roots.new_pos_y) <= threshold then
                     if connected then
                         roots.grow_branch = NONE
                     else
                         if roots.grow_branch == nil then
                             roots.grow_branch = BRANCH.add_branch(state, roots.selected, closest)
                         else
-                            BRANCH.extend(roots.grow_branch, closest)
+                            BRANCH.extend(state, roots.grow_branch, closest)
                         end
-                        NODE.connect(roots.selected, closest)
+                        NODE.connect(state, roots.selected, closest)
                     end
                     roots.selected = closest
                 else
@@ -276,8 +279,8 @@ function ROOTS.update(state, inputs)
                     local n = math.ceil(roots.speed / ROOTS.SPEED)
                     for i = 1, n do
                         local d = 1 / (n - i + 1)
-                        local x = lerp(roots.grow_node.x, roots.new_pos_x, d)
-                        local y = lerp(roots.grow_node.y, roots.new_pos_y, d)
+                        local x = lerp(grow_node.x, roots.new_pos_x, d)
+                        local y = lerp(grow_node.y, roots.new_pos_y, d)
                         roots.selected, branch = NODE.add_node(x, y, roots.grow_node, state, NODE_TYPE.NORMAL, roots.grow_branch)
 
                         if roots.grow_branch == nil then
@@ -293,8 +296,9 @@ function ROOTS.update(state, inputs)
                 end
             end
         end
+        local selected = NODE.from_id(state, roots.selected)
         if attack_state == AttackState.STRIKE and
-                sq_dist(state.player.pos.x, state.player.pos.y, roots.selected.x, roots.selected.y) < ROOTS.KILL_RADIUS ^ 2 then
+                sq_dist(state.player.pos.x, state.player.pos.y, selected.x, selected.y) < ROOTS.KILL_RADIUS ^ 2 then
             PLAYER.kill(state.player, state.t)
         end
     end
@@ -305,6 +309,8 @@ function ROOTS.draw(state, inputs, dt)
     local tooltip = state.tooltip
 
     if roots.grow_node ~= nil then
+        local grow_node = NODE.from_id(state, roots.grow_node)
+
         local attack_state = ROOTS.get_attack_state(roots, state.t + dt)
         local color = BRANCH.COLOR
         local attack_indicator = false
@@ -324,7 +330,7 @@ function ROOTS.draw(state, inputs, dt)
                 ROOTS.CD_FLASH_COLOR[4] + (BRANCH.COLOR[4] - ROOTS.CD_FLASH_COLOR[4]) * multiplier,
             }
         end
-        local v = Vector(roots.grow_node.x, roots.grow_node.y,
+        local v = Vector(grow_node.x, grow_node.y,
                          roots.new_pos_x, roots.new_pos_y)
         if attack_indicator then
             local strike_time = ROOTS.strike_time(roots, state.t + dt)
@@ -346,16 +352,18 @@ function ROOTS.draw(state, inputs, dt)
     end
 
     if tooltip.timer ~= nil and roots.selected ~= nil then
+        local selected = NODE.from_id(state, roots.selected)
+
         if roots.tree_spot ~= nil then
             love.graphics.setColor({0, 0, 0, 0.4})
             love.graphics.setLineWidth(1)
             love.graphics.line({inputs.roots_pos_x, inputs.roots_pos_y + 20,
                                 roots.tree_spot.x, roots.tree_spot.y})
-            local v = Vector(roots.selected.x, roots.selected.y,
-                                 roots.tree_spot.x, roots.tree_spot.y)
+            local v = Vector(selected.x, selected.y,
+                             roots.tree_spot.x, roots.tree_spot.y)
             BRANCH.draw_spike(
-                roots.selected.x,
-                roots.selected.y,
+                selected.x,
+                selected.y,
                 v:direction_x(),
                 v:direction_y(),
                 ROOTS.SPEED * state.dt)
@@ -366,11 +374,11 @@ function ROOTS.draw(state, inputs, dt)
             love.graphics.setLineWidth(1)
             love.graphics.line({inputs.roots_pos_x, inputs.roots_pos_y + 20,
                                 roots.terminal.x, roots.terminal.y})
-            local v = Vector(roots.selected.x, roots.selected.y,
-                                 roots.terminal.x, roots.terminal.y)
+            local v = Vector(selected.x, selected.y,
+                             roots.terminal.x, roots.terminal.y)
             BRANCH.draw_spike(
-                roots.selected.x,
-                roots.selected.y,
+                selected.x,
+                selected.y,
                 v:direction_x(),
                 v:direction_y(),
                 ROOTS.SPEED * state.dt)

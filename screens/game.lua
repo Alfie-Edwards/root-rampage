@@ -175,7 +175,7 @@ end
 
 function Game:keypressed(key, scancode, isrepeat)
     if key == "]" then
-        if self.manual_step then
+        if self.manual_step then 
             self:tick()
         else
             self.manual_step = true
@@ -192,10 +192,13 @@ function Game:keypressed(key, scancode, isrepeat)
         for name, _ in pairs(_profile) do
             table.insert(names, name)
         end
-        table.sort(names, function(a, b) return _profile[a] > _profile[b] end)
+        table.sort(names, function(a, b) return _profile[a][1] > _profile[b][1] end)
+        
+        print("================================================================================")
         for _, name in ipairs(names) do
-            print(_profile[name].." "..name)
+            print(_profile[name][1].." (".._profile[name][1] / _profile[name][2].." x ".._profile[name][2]..") "..name)
         end
+        _profile = {}
     end
 end
 

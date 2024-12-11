@@ -23,6 +23,8 @@ function love.load()
 
     view = View()
     view:set_content(MainMenu())
+
+    collectgarbage("setstepmul", 1)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
@@ -55,7 +57,6 @@ end
 
 function love.update(dt)
     view:update(dt)
-    collectgarbage("collect")
 end
 
 function love.draw()
