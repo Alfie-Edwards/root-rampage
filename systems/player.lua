@@ -178,6 +178,20 @@ function PLAYER.draw(state, inputs, dt)
                 bomb:getWidth() / 2,
                 bomb:getHeight() / 2
             )
+        else
+            local attack_state = ROOTS.get_attack_state(state.roots, state.t + dt)
+            if attack_state == AttackState.WINDUP or attack_state == AttackState.STRIKE then
+                local selected = NODE.from_id(state, state.roots.selected)
+                if sq_dist(selected.x, selected.y, player.pos.x, player.pos.y) < 128 ^ 2 then
+                    love.graphics.setColor(ROOTS.ATTACK_INDICATOR_WINDUP_COLOR)
+                    love.graphics.setFont(font16)
+                    love.graphics.print(
+                        "!",
+                        round(x) - 3,
+                        round(y - sprite:getHeight() - 2)
+                    )
+                end
+            end
         end
     else
         local opacity = 1 - math.min(1, (state.t + dt - player.time_of_death) / PLAYER.respawn_time)

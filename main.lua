@@ -11,6 +11,7 @@ function love.load()
     -- setup rendering
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
     font = assets:get_font("font")
+    font16 = assets:get_font("font", "ttf", 8)
     font16 = assets:get_font("font", "ttf", 16)
     font24 = assets:get_font("font", "ttf", 24)
     font32 = assets:get_font("font", "ttf", 32)
