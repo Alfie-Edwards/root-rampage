@@ -24,9 +24,9 @@ ROOTS = {
     CLOUD_RADIUS = 12,
     CLOUD_DURATION = 3,
     ATTACK_CD = 4,
-    ATTACK_WINDUP_TIME = 0.18,
+    ATTACK_WINDUP_TIME = 0.26,
     ATTACK_INDICATOR_CHARGING_COLOR = {1, 0.8, 0.8, 0.1},
-    ATTACK_INDICATOR_WINDUP_COLOR = {0.9, 0, 0, 0.6},
+    ATTACK_INDICATOR_WINDUP_COLOR = {0.9, 0, 0, 0.4},
     KILL_RADIUS = 14,
     ATTACK_COLOR = {0.4, 0.08, 0.02, 1},
     CD_FLASH_COLOR = {1, 1, 1, 1},
@@ -77,6 +77,18 @@ function ROOTS.update(state, inputs)
         roots.t_attack_end = roots.t_attack + ROOTS.STRIKE_MIN_CHARGE_T + ROOTS.ATTACK_WINDUP_TIME
     end
 
+    local cancel_attack = function()
+        reset_attack_timers()
+        attack_state = AttackState.READY
+        roots.speed = ROOTS.SPEED
+    end
+
+    local end_attack = function()
+        roots.t_attack_end = state.t
+        attack_state = AttackState.COOLDOWN
+        roots.speed = ROOTS.SPEED
+    end
+
     if roots.t_attack == NEVER and roots.t_charge == NEVER then
         reset_attack_timers()
     end
@@ -95,6 +107,14 @@ function ROOTS.update(state, inputs)
     if roots.selected ~= nil and NODE.is_dead(state, roots.selected) then
         roots.selected = NONE
         roots.grow_branch = NONE
+
+        if attack_state == AttackState.WINDUP or attack_state == AttackState.CHARGING or attack_state == AttackState.CLOUD or attack_state == AttackState.STRIKE then
+            roots.grow_node = nil_coalesce(state.nodes:closest(inputs.roots_pos_x, inputs.roots_pos_y), NONE)
+            roots.selected = roots.grow_node
+            if attack_state == AttackState.WINDUP or attack_state == AttackState.CHARGING then
+                cancel_attack()
+            end
+        end
     end
 
     if attack_state == AttackState.CHARGING and not inputs.roots_grow then
@@ -130,18 +150,6 @@ function ROOTS.update(state, inputs)
         return
     end
     local grow_node = NODE.from_id(state, roots.grow_node)
-
-    local cancel_attack = function()
-        reset_attack_timers()
-        attack_state = AttackState.READY
-        roots.speed = ROOTS.SPEED
-    end
-
-    local end_attack = function()
-        roots.t_attack_end = state.t
-        attack_state = AttackState.COOLDOWN
-        roots.speed = ROOTS.SPEED
-    end
 
     if attack_state == AttackState.CHARGING then
         if not inputs.roots_attack then
