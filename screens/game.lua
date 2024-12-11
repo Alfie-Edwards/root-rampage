@@ -270,7 +270,7 @@ end
 function Game:draw()
     super().draw(self)
 
-    local dt = t_now() - self.t_last_tick
+    local dt = math.min(t_now() - self.t_last_tick, self.state.dt)
     if self.manual_step then
         dt = 0
     end
