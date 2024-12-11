@@ -182,7 +182,7 @@ function PLAYER.draw(state, inputs, dt)
             local attack_state = ROOTS.get_attack_state(state.roots, state.t + dt)
             if attack_state == AttackState.WINDUP or attack_state == AttackState.STRIKE then
                 local selected = NODE.from_id(state, state.roots.selected)
-                if sq_dist(selected.x, selected.y, player.pos.x, player.pos.y) < 128 ^ 2 then
+                if selected and sq_dist(selected.x, selected.y, player.pos.x, player.pos.y) < 128 ^ 2 then
                     love.graphics.setColor(ROOTS.ATTACK_INDICATOR_WINDUP_COLOR)
                     love.graphics.setFont(font16)
                     love.graphics.print(
