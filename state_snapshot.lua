@@ -58,8 +58,15 @@ function StateSnapshot:reinit_impl()
 end
 
 function StateSnapshot:restore_impl()
-    for name, _ in pairs(self.saved_name_set) do
-        self.state.value[name] = self.saved[name]
+    if self.any_changed then
+        for name, _ in pairs(self.saved_name_set) do
+            self.state.value[name] = self.saved[name]
+        end
+        self.changed = weak_table('k')
+        self.saved = {}
+        self.saved_name_set = {}
+        self.any_saved = false
+        self.any_changed = false
     end
 end
 

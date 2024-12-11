@@ -9,7 +9,7 @@ NODE_TYPE = {
 
 setup_class(NodeState, FixedPropertyTable)
 
-function NodeState:__init(x, y, type)
+function NodeState:__init(x, y, id, type)
     assert(x ~= nil)
     assert(y ~= nil)
 
@@ -20,6 +20,6 @@ function NodeState:__init(x, y, type)
         is_tree = (type == NODE_TYPE.TREE),
         is_terminal = (type == NODE_TYPE.TERMINAL),
         branch_map = PropertyTable(),
-        id = NONE,
+        id = id,
     })
 end

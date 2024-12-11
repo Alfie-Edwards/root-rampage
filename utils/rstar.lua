@@ -315,7 +315,6 @@ RStar = {
     reinsert_p = nil,
     reinsert_method = nil,
     choice_p = nil,
-    id_counter = nil,
     bid_counter = nil,
     height = nil,
     root = nil,
@@ -333,7 +332,6 @@ function RStar:__init(settings)
     self.reinsert_p = 6
     self.reinsert_method = 1
     self.choice_p = 20
-    self.id_counter = -1
     self.bid_counter = -1
     self.height = 0
     self.root = nil
@@ -341,8 +339,8 @@ function RStar:__init(settings)
     self.overflow_mem = {}
     self.item_map = {}
     self.len = 0
-    self.added = Event() -- added(x, y, obj)
-    self.removed = Event() -- removed(x, y, obj)
+    self.added = Event() -- added(item)
+    self.removed = Event() -- removed(item)
 
     if settings then
         if type(settings.M) == 'number' then
@@ -376,12 +374,8 @@ function RStar:contains(item)
     return self.item_map[item.id] ~= nil
 end
 
-function RStar:add(item, x, y)
-    self.id_counter = self.id_counter + 1
-    if item.id == nil then
-        item.id = self.id_counter
-    end
-    local new_entry = {id = item.id, box = RStarBox(x, y, 0, 0), item=item }
+function RStar:add(item)
+    local new_entry = {id = item.id, box = RStarBox(item.x, item.y, 0, 0), item=item }
 
     if self.height == 0 then
         self.root = RStarNode(self, true, new_entry)
@@ -395,7 +389,7 @@ function RStar:add(item, x, y)
 
     self.item_map[item.id] = item
     self.len = self.len + 1
-    self.added(item, x, y)
+    self.added(item)
 end
 
 function RStar:remove(item_id)
@@ -449,7 +443,7 @@ function RStar:remove(item_id)
     local item = self.item_map[item_id]
     self.item_map[item_id] = nil
     self.len = self.len - 1
-    self.removed(item, x, y)
+    self.removed(item)
 end
 
 function RStar:any()

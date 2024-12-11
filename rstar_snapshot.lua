@@ -19,6 +19,7 @@ function RStarSnapshot:__init(rstar, shared_children)
     self.rstar = weak_ref(rstar)
     self.events = {}
     self.new = weak_table('k')
+    self.dirty = false
     self:subscribe()
     for item, _ in pairs(rstar.item_map) do
         self:try_add_child_for(item)
@@ -27,13 +28,15 @@ end
 
 function RStarSnapshot:subscribe()
     self:unsubscribe()
-    self.add_handler = function(item, x, y)
-        table.insert(self.events, {"add", item, x, y})
+    self.add_handler = function(item)
+        table.insert(self.events, {"add", item})
         self.new[item] = true
+        self.dirty = true
     end
-    self.remove_handler = function(item, x, y)
-        table.insert(self.events, {"remove", item, x, y})
+    self.remove_handler = function(item)
+        table.insert(self.events, {"remove", item})
         self.new[item] = nil
+        self.dirty = true
     end
     self.rstar.value.added:subscribe(self.add_handler)
     self.rstar.value.removed:subscribe(self.remove_handler)
@@ -56,25 +59,33 @@ function RStarSnapshot:clear_saved()
 end
 
 function RStarSnapshot:restore_impl()
+    if not self.dirty then
+        return
+    end
     for i=#self.events, 1, -1 do
         local event = self.events[i]
         if event[1] == "add" then
-            self.rstar.value:remove(event[2])
-            self.rstar.id_counter = self.rstar.id_counter - 1
+            self.rstar.value:remove(event[2].id)
         elseif event[1] == "remove" then
-            self.rstar.value:add(event[2], event[3], event[4])
+            self.rstar.value:add(event[2])
         else
             error("unrachable")
         end
     end
     self.events = {}
+    self.new = weak_table('k')
+    self.dirty = false
 end
 
 function RStarSnapshot:reinit_impl()
+    if not self.dirty then
+        return
+    end
     for item, _ in pairs(self.new) do
         self:try_add_child_for(item)
     end
-    self.new = {}
+    self.new = weak_table('k')
+    self.dirty = false
 end
 
 function RStarSnapshot:cleanup_impl()

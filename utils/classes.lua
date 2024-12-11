@@ -1,7 +1,7 @@
 _classes = {}
 _method_owner_map = {}
 _profile = {}
-DO_PROFILE = true
+DO_PROFILE = false
 
 function _profile_wrapper(name, f)
     return function(...)

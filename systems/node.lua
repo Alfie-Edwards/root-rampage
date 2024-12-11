@@ -3,7 +3,8 @@ require "states.node"
 NODE = {}
 
 function NODE.add_node(x, y, parent_id, state, type, branch_id)
-    local node = NodeState(x, y, type)
+    local node = NodeState(x, y, state.id_tracker, type)
+    state.id_tracker = state.id_tracker + 1
     state.nodes:add(node, x, y)
     if parent_id ~= nil then
         NODE.connect(state, node.id, parent_id)
