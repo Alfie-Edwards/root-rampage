@@ -4,7 +4,7 @@ require "systems.node"
 
 TERMINAL = {
     RADIUS = 24,
-    TIME = 2.5,
+    TIME = 3,
     TOOLTIP = "Hack terminal",
     TOOLTIP2 = "Gaining root access...",
 

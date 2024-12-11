@@ -2,7 +2,7 @@ require "states.hacking"
 
 HACKING = {
     MAX = 100,
-    SPEED_MULTIPLIER = 0.85,
+    SPEED_MULTIPLIER = 0.75,
 }
 
 function HACKING.update(state, inputs)
