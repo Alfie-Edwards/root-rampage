@@ -396,9 +396,9 @@ function PLAYER.get_movement(state)
 
     local most_recent = { dir = player.dir, when = player.started_holding[player.dir] or NEVER }
 
-    if dash_state == DashState.READY then
+    if dash_state == DashState.READY or player.dash_t0 == state.t then
         for direction, time in pairs(player.started_holding) do
-            if time > most_recent.when or (time == most_recent.when and Direction[direction] > most_recent.dir) then
+            if time > most_recent.when or (time ~= NEVER and time == most_recent.when and Direction[direction] > most_recent.dir) then
                 most_recent = { dir = Direction[direction], when = time }
             end
         end
