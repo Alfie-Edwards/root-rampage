@@ -19,7 +19,7 @@ ROOTS = {
     STRIKE_SPEED = 480,
     STRIKE_TIME_MAX = 0.18,
     STRIKE_CHARGE_T = 0.03,
-    STRIKE_MIN_DIST = 32,
+    STRIKE_MIN_DIST = 28,
     CLOUD_RADIUS = 12,
     CLOUD_DURATION = 3,
     ATTACK_CD = 4,
@@ -205,21 +205,28 @@ function ROOTS.update(state, inputs)
     local tick_distance_sq = tick_distance * tick_distance
 
     if attack_state == AttackState.STRIKE and roots.t_attack ~= state.t then
-        local grow_v = nil
         if iter_size(grow_node.neighbors) == 1 then
             local neighbor = NODE.from_id(state, first_value(grow_node.neighbors))
-            grow_v = Vector(grow_node.x, grow_node.y,
-                            (2 * grow_node.x - neighbor.x),
-                            (2 * grow_node.y - neighbor.y))
-            grow_v:scale_to_length(tick_distance)
-        end
 
-        if grow_v ~= nil and (v:dot(grow_v) < 0 or sqln < tick_distance_sq) then
-            v = grow_v
-            sqln = tick_distance_sq
-        elseif sqln < tick_distance_sq and sqln > 0 then
-            v:scale_to_length(tick_distance)
-            sqln = tick_distance_sq
+            straight = Vector(grow_node.x, grow_node.y,
+                                (2 * grow_node.x - neighbor.x),
+                                (2 * grow_node.y - neighbor.y))
+            straight:scale_to_length(tick_distance)
+
+            if sqln == 0 then
+                v = straight
+                sqln = tick_distance_sq
+            else
+                v:scale_to_length(tick_distance)
+                sqln = tick_distance_sq
+                -- Clamp to catch fp inaccuracies causing nans from acos.
+                local turn = math.acos(clamp(v:dot(straight) / tick_distance_sq, -1, 1))
+                local max_turn = (math.pi * 0.75)
+
+                if turn > max_turn then
+                    v = straight
+                end
+            end
         end
     end
 

@@ -173,7 +173,7 @@ function PARTICLE.draw(state, inputs, dt)
             love.graphics.circle("fill", particle.x, particle.y, particle.vx)
         elseif particle.kind == "cloudlet" then
             local progress = clamp(((state.t + dt) - particle.t0) / particle.duration, 0, 1)
-            love.graphics.setColor({0.5, 0.8, 0.2, 1 - progress})
+            love.graphics.setColor({0.95, 0.75, 0.45, 1 - progress})
             love.graphics.circle("fill", x, y, 1)
         elseif particle.kind == "buzz" then
             love.graphics.setColor({0.6, 0.1, 0.0, 1})

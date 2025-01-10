@@ -19,6 +19,10 @@ function Vector:__init(x1, y1, x2, y2)
     self.y2 = y2
 end
 
+function Vector:copy()
+    return Vector(self.x1, self.y1, self.x2, self.y2)
+end
+
 function Vector:dx()
     return self.x2 - self.x1
 end
@@ -64,4 +68,14 @@ end
 
 function Vector:dot(other)
     return self:dx() * other:dx() + self:dy() * other:dy()
+end
+
+function Vector:rotate(theta)
+    -- Rotate (x2, y2) about (x1, y1)
+    local dx = self:dx()
+    local dy = self:dy()
+    local ct = math.cos(theta)
+    local st = math.sin(theta)
+    self.x2 = self.x1 + ct * dx - st * dy
+    self.y2 = self.y1 + st * dx + ct * dy
 end
