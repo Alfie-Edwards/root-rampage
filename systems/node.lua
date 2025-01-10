@@ -5,7 +5,7 @@ NODE = {}
 function NODE.add_node(x, y, parent_id, state, type, branch_id)
     local node = NodeState(x, y, state.id_tracker, type)
     state.id_tracker = state.id_tracker + 1
-    state.nodes:add(node, x, y)
+    state.nodes:add(node)
     if parent_id ~= nil then
         NODE.connect(state, node.id, parent_id)
     end
@@ -118,7 +118,7 @@ function NODE.cut(state, node_id)
     local branch_map = shallow_copy(node.branch_map)
     for branch_id, indices in pairs(branch_map) do
         table.sort(indices)
-        for i = PropertyTable.len(indices), 1, -1 do
+        for i = iter_size(indices), 1, -1 do
             BRANCH.cut(state, BRANCH.from_id(state, branch_id), indices[i])
         end
     end

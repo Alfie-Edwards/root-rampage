@@ -47,30 +47,34 @@ function BRANCH.draw(state, inputs, dt)
             -- love.graphics.setColor({1, 1, 1, 1})
             -- love.graphics.points(branch.points:_raw())
 
-            if tip and state.roots.selected ~= tip then
+            if tip and state.roots.grow_node ~= tip.id then
                 local neighbor = NODE.from_id(state, first_value(tip.neighbors))
-                local v = Vector(neighbor.x, neighbor.y,
-                                 tip.x, tip.y)
-                BRANCH.draw_spike(
-                    tip.x,
-                    tip.y,
-                    v:direction_x(),
-                    v:direction_y(),
-                    -line_width * 1.2, color,
-                    line_width)
+                if neighbor then
+                    local v = Vector(neighbor.x, neighbor.y,
+                                     tip.x, tip.y)
+                    BRANCH.draw_spike(
+                        tip.x,
+                        tip.y,
+                        v:direction_x(),
+                        v:direction_y(),
+                        -line_width * 1.2, color,
+                        line_width)
+                end
             end
 
-            if base and PropertyTable.len(base.neighbors) == 1 then
+            if base and state.roots.grow_node ~= base.id and iter_size(base.neighbors) == 1 then
                 local neighbor = NODE.from_id(state, first_value(base.neighbors))
-                local v = Vector(neighbor.x, neighbor.y,
-                                 base.x, base.y)
-                BRANCH.draw_spike(
-                    base.x,
-                    base.y,
-                    v:direction_x(),
-                    v:direction_y(),
-                    -line_width * 0.2, color,
-                    line_width)
+                if neighbor then
+                    local v = Vector(neighbor.x, neighbor.y,
+                                     base.x, base.y)
+                    BRANCH.draw_spike(
+                        base.x,
+                        base.y,
+                        v:direction_x(),
+                        v:direction_y(),
+                        -line_width * 0.2, color,
+                        line_width)
+                end
             end
         end
     end
@@ -98,7 +102,7 @@ function BRANCH.get_if_tip(state, node_id)
     local node = NODE.from_id(state, node_id)
     for branch_id, indices in pairs(node.branch_map) do
         local branch = BRANCH.from_id(state, branch_id)
-        if indices[PropertyTable.len(indices)] == branch.length then
+        if indices[iter_size(indices)] == branch.length then
             return branch.id
         end
     end
@@ -183,13 +187,13 @@ function BRANCH.cut(state, branch, i)
         branch.node_list[j] = nil
 
         if node.branch_map[branch.id] ~= nil then
-            local m = PropertyTable.len(node.branch_map[branch.id])
+            local m = iter_size(node.branch_map[branch.id])
             for k = 1, m do
                 if node.branch_map[branch.id][k] >= i then
                     node.branch_map[branch.id][k] = nil
                 end
             end
-            if PropertyTable.len(node.branch_map[branch.id]) == 0 then
+            if iter_size(node.branch_map[branch.id]) == 0 then
                 node.branch_map[branch.id] = nil
             end
         end
