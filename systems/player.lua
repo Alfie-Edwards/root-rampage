@@ -179,7 +179,7 @@ function PLAYER.draw(state, inputs, dt)
                 bomb:getHeight() / 2
             )
         else
-            local attack_state = ROOTS.get_attack_state(state.roots, state.t + dt)
+            local attack_state = ROOTS.get_attack_state(state, inputs, state.t + dt)
             if attack_state == AttackState.WINDUP or attack_state == AttackState.STRIKE then
                 local selected = NODE.from_id(state, state.roots.selected)
                 if selected and sq_dist(selected.x, selected.y, player.pos.x, player.pos.y) < 128 ^ 2 then
